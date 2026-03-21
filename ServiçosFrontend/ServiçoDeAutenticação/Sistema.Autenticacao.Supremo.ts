@@ -5,7 +5,7 @@ import { LoginUsuarioDTO as LoginDto } from '../../../types/Entrada/Dto.Estrutur
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
 import { servicoGestaoLogin } from './Servico.Gestao.Login';
-import { servicoGestaoLogout } from './Servico.Gestao.Logout'; // <-- Importado
+import { servicoGestaoLogout } from './Servico.Gestao.Logout';
 
 // --- Types & Interfaces ---
 interface User extends Usuario {}
@@ -73,8 +73,19 @@ const createAuthService = () => {
                 throw error;
             }
         },
+        async loginComGoogle() { // Função adicionada
+            setState({ loading: true, error: null });
+            try {
+                const data = await servicoGestaoLogin.loginComGoogle();
+                setState({ user: data.user, loading: false });
+                return data;
+            } catch (error: any) {
+                setState({ loading: false, error });
+                throw error;
+            }
+        },
         logout() {
-            servicoGestaoLogout.logout(); // <-- Alterado
+            servicoGestaoLogout.logout();
             setState({ user: null, loading: false, error: null });
         },
         async completeProfile(profileData: Partial<Usuario>) {
