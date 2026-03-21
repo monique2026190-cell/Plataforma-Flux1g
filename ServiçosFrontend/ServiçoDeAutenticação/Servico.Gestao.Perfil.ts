@@ -56,4 +56,4 @@ if (config.VITE_APP_ENV === 'simulation') {
 }
 
 // Exporta a instância selecionada como um singleton para ser usado em todo o aplicativo.
-export const servicoPerfilUsuario = servicoSelecionado;
+export const servicoGestaoPerfil = servicoSelecionado;
