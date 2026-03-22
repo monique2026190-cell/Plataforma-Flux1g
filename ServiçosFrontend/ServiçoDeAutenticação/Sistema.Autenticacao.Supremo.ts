@@ -107,7 +107,7 @@ const createAuthService = () => {
             return resultadoRequisicao.dados;
         } else {
             const error = new Error(resultadoRequisicao.mensagem);
-            setState({ loading: false, error });
+            setState({ user: null, loading: false, error });
             throw error;
         }
     };
@@ -127,9 +127,13 @@ const createAuthService = () => {
             const request = criarRequisicaoLoginEmail(dadosLogin);
             return executeAuthRequest(request);
         },
-        async loginWithGoogle(code: string) {
-            const request = criarRequisicaoLoginGoogle(code);
-            return executeAuthRequest(request);
+        async loginWithGoogle(code: string, referredBy?: string) {
+            const request = criarRequisicaoLoginGoogle(code, referredBy);
+            const response = await executeAuthRequest(request);
+            if (response && response.user) {
+                setState({ user: response.user, loading: false, error: null });
+            }
+            return response;
         },
         async logout() {
             const request = criarRequisicaoLogout();
