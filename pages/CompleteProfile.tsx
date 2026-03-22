@@ -5,17 +5,16 @@ import { ModalCorteImagem } from '../Componentes/ComponenteDeInterfaceDeUsuario/
 
 export const CompleteProfile: React.FC = () => {
     const {
-        dadosFormulario,
+        register,
+        handleSubmit,
+        errors,
+        isSubmitting,
         previaImagem,
-        carregando,
-        erroNomeUsuario,
         cortarAberto,
         setCortarAberto,
         imagemOriginal,
-        aoMudarInput,
         aoMudarImagem,
         aoSalvarImagemCortada,
-        aoSubmeter,
         aoSair
     } = useCompleteProfile();
 
@@ -32,6 +31,7 @@ export const CompleteProfile: React.FC = () => {
                 .input-group { margin-bottom: 18px; }
                 .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; }
                 .input-group input, .input-group textarea { width: 100%; padding: 12px; background: #1a1e26; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 15px; outline: none; }
+                .error-message { color: #ff4d4d; font-size: 12px; margin-top: 5px; }
                 .submit-btn { width: 100%; padding: 14px; background: #00c2ff; color: #000; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
                 .logout-btn { background: none; border: none; color: #ff4d4d; font-size: 13px; cursor: pointer; display: block; text-align: center; margin-top: 20px; }
             `}</style>
@@ -48,22 +48,26 @@ export const CompleteProfile: React.FC = () => {
                     <input type="file" ref={fileInputRef} onChange={aoMudarImagem} accept="image/*" hidden />
                 </div>
 
-                <form onSubmit={aoSubmeter}>
+                <form onSubmit={handleSubmit}>
                     <div className="input-group">
                         <label>Seu apelido</label>
-                        <input type="text" name="nickname" value={dadosFormulario.nickname || ''} onChange={aoMudarInput} placeholder="Ex: Seu Nome" />
+                        <input type="text" {...register('nickname')} placeholder="Ex: Seu Nome" />
+                        {errors.nickname && <p className="error-message">{errors.nickname.message}</p>}
                     </div>
                     <div className="input-group">
                         <label>Seu nome de usuário</label>
-                        <input type="text" name="name" value={dadosFormulario.name || ''} onChange={aoMudarInput} placeholder="Ex: @seunome" />
-                        {erroNomeUsuario && <p className="text-red-500 text-xs mt-1">{erroNomeUsuario}</p>}
+                        <input type="text" {...register('name')} placeholder="Ex: @seunome" />
+                        {errors.name && <p className="error-message">{errors.name.message}</p>}
                     </div>
                     <div className="input-group">
                         <label>Sua bio</label>
-                        <textarea name="bio" value={dadosFormulario.bio || ''} onChange={aoMudarInput} placeholder="Fale um pouco sobre você" rows={2}></textarea>
+                        <textarea {...register('bio')} placeholder="Fale um pouco sobre você" rows={2}></textarea>
+                        {errors.bio && <p className="error-message">{errors.bio.message}</p>}
                     </div>
 
-                    <button type="submit" className="submit-btn" disabled={carregando}>{carregando ? 'Finalizando...' : 'Concluir Cadastro'}</button>
+                    {errors.root?.serverError && <p className="error-message text-center mb-4">{errors.root.serverError.message}</p>}
+
+                    <button type="submit" className="submit-btn" disabled={isSubmitting}>{isSubmitting ? 'Finalizando...' : 'Concluir Cadastro'}</button>
                 </form>
 
                 <button onClick={aoSair} className="logout-btn">Sair da conta</button>

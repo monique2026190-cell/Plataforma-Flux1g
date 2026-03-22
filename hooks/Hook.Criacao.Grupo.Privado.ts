@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ServiçoCriaçãoGrupoPrivado from '../ServiçosFrontend/ServiçoDeGrupos/Criação.Grupo.Privado.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 
 export const useCreatePrivateGroup = () => {
@@ -42,7 +42,8 @@ export const useCreatePrivateGroup = () => {
         }
 
         try {
-            const newGroup = await ServiçoCriaçãoGrupoPrivado.criar({
+            // Refatorado para usar o SistemaGrupoSupremo
+            const newGroup = await SistemaGrupoSupremo.criarGrupoPrivado({
                 name: groupName,
                 description,
                 coverImageBlob: coverImage,

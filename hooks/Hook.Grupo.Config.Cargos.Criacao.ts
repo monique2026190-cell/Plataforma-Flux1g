@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { GroupRole } from '../tipos/types.Grupo';
 
 export const useGrupoConfigCargosCriacao = (groupId: string | undefined) => {
@@ -12,7 +12,7 @@ export const useGrupoConfigCargosCriacao = (groupId: string | undefined) => {
         if (!groupId) return;
         setLoading(true);
         try {
-            const fetchedRoles = await groupSystem.getGroupRoles(groupId);
+            const fetchedRoles = await SistemaGrupoSupremo.getGroupRoles(groupId);
             setRoles(fetchedRoles);
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Erro ao buscar cargos.');
@@ -28,7 +28,7 @@ export const useGrupoConfigCargosCriacao = (groupId: string | undefined) => {
     const addRole = async (roleData: { name: string; color: string }) => {
         if (!groupId) return;
         try {
-            const newRole = await groupSystem.createGroupRole(groupId, roleData);
+            const newRole = await SistemaGrupoSupremo.createGroupRole(groupId, roleData);
             setRoles(prevRoles => [...prevRoles, newRole]);
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Erro ao criar cargo.');
@@ -39,7 +39,7 @@ export const useGrupoConfigCargosCriacao = (groupId: string | undefined) => {
     const updateRole = async (roleId: string, roleData: { name: string; color: string }) => {
         if (!groupId) return;
         try {
-            const updatedRole = await groupSystem.updateGroupRole(groupId, roleId, roleData);
+            const updatedRole = await SistemaGrupoSupremo.updateGroupRole(groupId, roleId, roleData);
             setRoles(prevRoles => prevRoles.map(r => (r.id === roleId ? updatedRole : r)));
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Erro ao atualizar cargo.');
@@ -50,7 +50,7 @@ export const useGrupoConfigCargosCriacao = (groupId: string | undefined) => {
     const deleteRole = async (roleId: string) => {
         if (!groupId) return;
         try {
-            await groupSystem.deleteGroupRole(groupId, roleId);
+            await SistemaGrupoSupremo.deleteGroupRole(groupId, roleId);
             setRoles(prevRoles => prevRoles.filter(r => r.id !== roleId));
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Erro ao deletar cargo.');

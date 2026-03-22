@@ -6,7 +6,7 @@ import { SessaoConfiguracoesDeModeracao } from '../Componentes/ComponentesDeGrou
 import { SessaoZonaCritica } from '../Componentes/ComponentesDeGroups/SessaoZonaCritica';
 import { SessaoConfiguracoesDeMarketing } from '../Componentes/ComponentesDeGroups/SessaoConfiguracoesDeMarketing';
 import { SessaoConfiguracoesDeAuditoria } from '../Componentes/ComponentesDeGroups/SessaoConfiguracoesDeAuditoria';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 export const PG_Configuracoes_Grupo: React.FC = () => {
     const navigate = useNavigate();
@@ -27,7 +27,8 @@ export const PG_Configuracoes_Grupo: React.FC = () => {
         }
         setLoading(true);
         try {
-            const groupData = await groupSystem.getGroupDetails(id);
+            // Refatorado para usar o SistemaGrupoSupremo
+            const groupData = await SistemaGrupoSupremo.getGroupDetails(id);
             setGroup(groupData);
             setIsSalesPlatformEnabled(groupData.isSalesPlatformEnabled || false);
             setIsOwner(true);
@@ -52,11 +53,12 @@ export const PG_Configuracoes_Grupo: React.FC = () => {
         setIsSalesPlatformEnabled(newState);
 
         try {
-            await groupSystem.updateGroupSettings(id, { isSalesPlatformEnabled: newState });
-            fetchGroupData();
+            // Refatorado para usar o SistemaGrupoSupremo
+            await SistemaGrupoSupremo.updateGroupSettings(id, { isSalesPlatformEnabled: newState });
+            fetchGroupData(); // Recarrega os dados para garantir consistência
         } catch (error) {
             console.error("Falha ao atualizar o Modo Hub:", error);
-            setIsSalesPlatformEnabled(originalState);
+            setIsSalesPlatformEnabled(originalState); // Reverte em caso de erro
             alert("Não foi possível salvar sua alteração. Tente novamente.");
         }
     };
@@ -79,6 +81,7 @@ export const PG_Configuracoes_Grupo: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#0c0f14,_#0a0c10)] text-white font-['Inter'] flex flex-col overflow-hidden">
+            {/* Estilos... */}
             <style>{`
                 .settings-group{margin-bottom:20px;}
                 .settings-group h2{font-size:13px;color:#00c2ff;padding:10px 0;margin-bottom:8px;text-transform:uppercase;font-weight:800;letter-spacing:1px;}

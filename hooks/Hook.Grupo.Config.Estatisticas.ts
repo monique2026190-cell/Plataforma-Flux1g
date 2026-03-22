@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 
 // Supondo que o serviço de grupo será estendido para buscar estatísticas.
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 // Define a estrutura de dados para as métricas do grupo.
 interface RoleMetric {
@@ -41,8 +41,8 @@ export const useGrupoConfigEstatisticas = (groupId: string | undefined) => {
             setLoading(true);
             try {
                 // Esta chamada de função é uma simulação.
-                // O método `getGroupStats` precisa ser implementado no `groupSystem`.
-                const response = await groupSystem.getGroupStats(groupId);
+                // O método `getGroupStats` precisa ser implementado no `SistemaGrupoSupremo`.
+                const response = await SistemaGrupoSupremo.getGroupStats(groupId);
                 setMetrics(response);
             } catch (e) {
                 const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';

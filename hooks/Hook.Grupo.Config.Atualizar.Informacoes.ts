@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 export const useAtualizarInformacoesGrupo = () => {
     const [isSaving, setIsSaving] = useState(false);
@@ -10,7 +10,7 @@ export const useAtualizarInformacoesGrupo = () => {
         setIsSaving(true);
         setError(null);
         try {
-            await groupSystem.updateGroupSettings(groupId, data);
+            await SistemaGrupoSupremo.updateGroupSettings(groupId, data);
             return true;
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';

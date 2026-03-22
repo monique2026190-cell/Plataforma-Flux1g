@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { groupSystem } from '../../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos';
+import { SistemaGrupoSupremo } from '../../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { chatService } from '../../ServiçosFrontend/ServiçoDeChat/chatService';
 import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 
@@ -28,7 +28,7 @@ export const ModalEncaminharMensagem: React.FC<ModalEncaminharMensagemProps> = (
       const fetchConversations = async () => {
         setLoading(true);
         try {
-          const groupData = await groupSystem.getGroupList();
+          const groupData = await SistemaGrupoSupremo.getGroupList();
           const token = SistemaAutenticacaoSupremo.getToken();
           const chatData = token ? await chatService.listConversations(token) : [];
           

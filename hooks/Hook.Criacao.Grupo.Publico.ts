@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ServiçoCriaçãoGrupoPublico from '../ServiçosFrontend/ServiçoDeGrupos/Criação.Grupo.Publico.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 
 export const useCreatePublicGroup = () => {
@@ -42,7 +42,8 @@ export const useCreatePublicGroup = () => {
         }
 
         try {
-            const newGroup = await ServiçoCriaçãoGrupoPublico.criar({
+            // Refatorado para usar o SistemaGrupoSupremo
+            const newGroup = await SistemaGrupoSupremo.criarGrupoPublico({
                 name: groupName,
                 description,
                 coverImageBlob: coverImage, // Assumindo que o serviço lida com a conversão

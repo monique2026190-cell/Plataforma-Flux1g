@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 import { Group, CurrencyCode } from '../types';
 
@@ -50,7 +50,7 @@ export const useGroupRevenue = () => {
         }
 
         try {
-            const foundGroup = await groupSystem.getGroupDetails(id);
+            const foundGroup = await SistemaGrupoSupremo.getGroupDetails(id);
             if (foundGroup) {
                 setGroup(foundGroup);
             } else {

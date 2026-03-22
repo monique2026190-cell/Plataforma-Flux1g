@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 // Interface para o link de convite
 interface InviteLink {
@@ -25,7 +25,7 @@ export const useGroupAccessAndInvites = () => {
         if (!groupId) return;
         setLoading(true);
         try {
-            const links = await groupSystem.getInviteLinks(groupId);
+            const links = await SistemaGrupoSupremo.getInviteLinks(groupId);
             setInviteLinks(links || []);
         } catch (err) {
             setError('Falha ao carregar os links de convite.');
@@ -45,7 +45,7 @@ export const useGroupAccessAndInvites = () => {
         if (!groupId) return;
         try {
             // A lógica de criação pode precisar de opções, como tempo de expiração ou usos máximos
-            await groupSystem.createInviteLink(groupId, options);
+            await SistemaGrupoSupremo.createInviteLink(groupId, options);
             // Após criar, recarrega a lista para mostrar o novo link
             await fetchInviteLinks(); 
         } catch (err) {
@@ -60,7 +60,7 @@ export const useGroupAccessAndInvites = () => {
     const revokeInviteLink = useCallback(async (linkId: string) => {
         if (!groupId) return;
         try {
-            await groupSystem.revokeInviteLink(groupId, linkId);
+            await SistemaGrupoSupremo.revokeInviteLink(groupId, linkId);
             // Remove o link da lista localmente para uma atualização rápida da UI
             setInviteLinks(prevLinks => prevLinks.filter(link => link.id !== linkId));
         } catch (err) {

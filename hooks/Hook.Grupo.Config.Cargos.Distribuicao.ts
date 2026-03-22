@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { GroupRole } from '../tipos/types.Grupo';
 
 // A interface Member, que pode ser movida para um arquivo de tipos mais tarde
@@ -25,8 +25,8 @@ export const useGrupoConfigCargosDistribuicao = (groupId: string | undefined) =>
         try {
             // Busca os dados em paralelo para otimizar o tempo de carregamento
             const [fetchedMembers, fetchedRoles] = await Promise.all([
-                groupSystem.getGroupMembers(groupId),
-                groupSystem.getGroupRoles(groupId),
+                SistemaGrupoSupremo.getGroupMembers(groupId),
+                SistemaGrupoSupremo.getGroupRoles(groupId),
             ]);
             setMembers(fetchedMembers);
             setRoles(fetchedRoles);
@@ -60,7 +60,7 @@ export const useGrupoConfigCargosDistribuicao = (groupId: string | undefined) =>
             // O hook poderia ser mais inteligente e salvar apenas as alterações.
             // Por simplicidade, vamos iterar e salvar cada atribuição.
             const promises = members.map(member => 
-                groupSystem.assignRoleToMember(groupId, member.id, member.roleId)
+                SistemaGrupoSupremo.assignRoleToMember(groupId, member.id, member.roleId)
             );
             await Promise.all(promises);
             // Opcional: Recarregar os dados para garantir consistência

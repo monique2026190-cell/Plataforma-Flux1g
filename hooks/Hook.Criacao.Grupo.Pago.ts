@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ServiçoCriaçãoGrupoPago from '../ServiçosFrontend/ServiçoDeGrupos/Criação.Grupo.Pago.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 
 export const useCreatePaidGroup = () => {
@@ -79,7 +79,8 @@ export const useCreatePaidGroup = () => {
                 console.log(`Upload progress: ${percentage.toFixed(2)}% (${count}/${total})`);
             };
 
-            const newGroup = await ServiçoCriaçãoGrupoPago.criar(payload, onProgress);
+            // Refatorado para usar o SistemaGrupoSupremo
+            const newGroup = await SistemaGrupoSupremo.criarGrupoPago(payload, onProgress);
 
             console.log('Grupo VIP criado com sucesso:', newGroup);
             navigate(`/group/${newGroup.id}`);

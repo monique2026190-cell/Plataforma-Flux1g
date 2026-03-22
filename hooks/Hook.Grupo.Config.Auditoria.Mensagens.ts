@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 // Interface para um log de auditoria de mensagem, vindo da API
 interface MessageAuditLog {
@@ -27,7 +27,7 @@ export const useGroupMessageAuditLog = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await groupSystem.getMessageAuditLogs(groupId, { userId: filter?.userId });
+            const response = await SistemaGrupoSupremo.getMessageAuditLogs(groupId, { userId: filter?.userId });
             setLogs(response || []);
         } catch (err) {
             setError("Não foi possível carregar os logs de mensagens.");
@@ -44,7 +44,7 @@ export const useGroupMessageAuditLog = () => {
     const deleteMessage = useCallback(async (messageId: string) => {
         if (!groupId) return;
         try {
-            await groupSystem.deleteGroupMessage(groupId, messageId);
+            await SistemaGrupoSupremo.deleteGroupMessage(groupId, messageId);
             // Remove a mensagem do estado local para a UI atualizar
             setLogs(prevLogs => prevLogs.filter(log => log.id !== messageId));
         } catch (err) {
@@ -57,7 +57,7 @@ export const useGroupMessageAuditLog = () => {
     const warnUser = useCallback(async (userId: string, reason: string) => {
         if (!groupId) return;
         try {
-            await groupSystem.warnUser(groupId, userId, { reason });
+            await SistemaGrupoSupremo.warnUser(groupId, userId, { reason });
             // A advertência não remove o log, então não há mudança no estado.
             // Apenas confirma a ação.
             console.log(`Advertência para o usuário ${userId} enviada por: ${reason}`);

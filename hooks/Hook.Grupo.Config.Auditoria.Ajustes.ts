@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 // Interface para um log de auditoria
 interface AuditLog {
@@ -22,8 +22,8 @@ export const useGroupSettingsAuditLog = () => {
         setLoading(true);
         setError(null);
         try {
-            // Supondo que `getSettingsAuditLogs` exista no groupSystem
-            const response = await groupSystem.getSettingsAuditLogs(groupId);
+            // Supondo que `getSettingsAuditLogs` exista no SistemaGrupoSupremo
+            const response = await SistemaGrupoSupremo.getSettingsAuditLogs(groupId);
             setLogs(response || []);
         } catch (err) {
             setError("Não foi possível carregar os logs de auditoria.");

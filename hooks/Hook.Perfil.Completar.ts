@@ -1,27 +1,33 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
+import { validadorFormularioCompletarPerfil, CompletarPerfilFormData } from '../Validators/Validadores de Formulário/Validador.Formulario.CompletarPerfil';
 
 export const useCompleteProfile = () => {
     const navigate = useNavigate();
     const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
 
-    const [dadosPerfil, setDadosPerfil] = useState<Partial<Usuario>>({
-        nome: '',
-        apelido: '',
-        bio: '',
-        privado: false,
-    });
-
+    // Estado para o upload e corte da imagem de perfil (mantido)
     const [previaImagem, setPreviaImagem] = useState<string | null>(null);
     const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
-    const [carregando, setCarregando] = useState(false);
-    const [errors, setErrors] = useState<{ nome?: string, apelido?: string, formulario?: string }>({});
     const [cortarAberto, setCortarAberto] = useState(false);
     const [imagemOriginal, setImagemOriginal] = useState<string>('');
 
+    const {
+        register,
+        handleSubmit,
+        setError,
+        formState: { errors, isSubmitting },
+    } = useForm<CompletarPerfilFormData>({
+        resolver: zodResolver(validadorFormularioCompletarPerfil),
+        // Define um modo de validação mais interativo
+        mode: 'onChange',
+    });
+
+    // Hooks para verificar o estado de autenticação (mantidos)
     useEffect(() => {
         const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
         return () => unsubscribe();
@@ -29,27 +35,13 @@ export const useCompleteProfile = () => {
 
     useEffect(() => {
         const { user, loading } = authState;
-        
-        if (!loading) { // Wait for auth state to be confirmed
-            if (!user) {
-                navigate('/');
-            } else if (user.perfilCompleto) {
-                navigate('/feed');
-            }
+        if (!loading) {
+            if (!user) navigate('/');
+            else if (user.perfilCompleto) navigate('/feed');
         }
     }, [navigate, authState]);
 
-    const updateField = useCallback((key: keyof Usuario, value: string | boolean) => {
-        let valorFinal = value;
-        if (key === 'apelido' && typeof value === 'string') {
-            const valorLimpo = value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-            valorFinal = valorLimpo;
-            setErrors(prev => ({ ...prev, apelido: undefined }));
-        }
-        
-        setDadosPerfil(prev => ({ ...prev, [key]: valorFinal }));
-    }, []);
-
+    // Funções de manipulação da imagem de perfil (mantidas)
     const aoMudarImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -72,68 +64,56 @@ export const useCompleteProfile = () => {
           });
     };
 
-    const aoSubmeter = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setErrors({});
-
-        if (!dadosPerfil.apelido?.trim()) {
-            setErrors({ apelido: 'Apelido é obrigatório.' });
-            return;
-        }
-
-        setCarregando(true);
-
-        const dadosParaApi: Partial<Usuario> = {
-            nome: dadosPerfil.nome || '',
-            apelido: dadosPerfil.apelido || '',
-            bio: dadosPerfil.bio || '',
-            urlFoto: '', 
-            site: '', 
-            privado: dadosPerfil.privado,
-        };
-
+    // Nova função de submissão, integrada com react-hook-form
+    const aoSubmeter = async (data: CompletarPerfilFormData) => {
         try {
-            // if (arquivoSelecionado) {
-            //     dadosParaApi.urlFoto = await fileService.uploadFile(arquivoSelecionado);
-            // }
+            // TODO: Adicionar lógica de upload da imagem (arquivoSelecionado)
+            // const urlDaFoto = arquivoSelecionado ? await servicoDeArquivos.upload(arquivoSelecionado) : '';
 
-            await SistemaAutenticacaoSupremo.completeProfile(dadosParaApi);
-            
-            // Redireciona para o feed após o sucesso
+            await SistemaAutenticacaoSupremo.completeProfile({
+                ...data,
+                urlFoto: '' // Substituir pela urlDaFoto quando o upload for implementado
+            });
+
             navigate('/feed');
 
         } catch (err: any) {
-            console.error("Falha ao completar o perfil no hook 'useCompleteProfile':", err);
+            console.error("Falha ao completar o perfil:", err);
+            const errorMessage = err.message || 'Ocorreu um erro desconhecido.';
             
-            if (err.message && err.message.includes('APELIDO_TAKEN')) {
-                setErrors({ apelido: 'Este apelido já está em uso.' });
+            // Associa erros da API aos campos do formulário
+            if (errorMessage.includes('APELIDO_TAKEN')) {
+                setError('nickname', { type: 'manual', message: 'Este apelido já está em uso. Tente outro.' });
+            } else if (errorMessage.includes('NOME_USUARIO_TAKEN')) {
+                setError('name', { type: 'manual', message: 'Este nome de usuário já está em uso. Tente outro.' });
             } else {
-                setErrors({ formulario: err.message || 'Ocorreu um erro ao finalizar o perfil. Tente novamente.' });
+                // Erro genérico associado à raiz do formulário
+                setError('root.serverError', { type: 'manual', message: 'Não foi possível finalizar o cadastro. Tente novamente mais tarde.' });
             }
-        } finally {
-            setCarregando(false);
         }
     };
-    
+
     const aoSair = () => {
         SistemaAutenticacaoSupremo.logout();
         navigate('/');
     };
 
     return {
-        dadosFormulario: dadosPerfil,
-        perfilPrivado: dadosPerfil.privado,
+        // Propriedades do react-hook-form para o componente
+        register,
+        handleSubmit: handleSubmit(aoSubmeter),
+        errors,
+        isSubmitting,
+
+        // Estado e funções da imagem
         previaImagem,
-        carregando,
-        erroApelido: errors.apelido,
         cortarAberto,
         setCortarAberto,
         imagemOriginal,
-        aoMudarInput: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => updateField(e.target.name as keyof Usuario, e.target.value),
         aoMudarImagem,
         aoSalvarImagemCortada,
-        aoMudarPrivacidade: (marcado: boolean) => updateField('privado', marcado),
-        aoSubmeter,
+        
+        // Outras ações
         aoSair
     };
 };

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { useUsuarioSessao } from './Hook.Usuario.Sessao';
 
 interface Group {
@@ -33,7 +33,7 @@ export const HookConfiguracaoGrupoPrincipal = (groupId: string | undefined) => {
 
         setLoading(true);
         try {
-            const groupData = await groupSystem.getGroupDetails(groupId);
+            const groupData = await SistemaGrupoSupremo.getGroupDetails(groupId);
             setGroup(groupData);
             if (user && groupData.ownerId === user.id) {
                 setIsOwner(true);

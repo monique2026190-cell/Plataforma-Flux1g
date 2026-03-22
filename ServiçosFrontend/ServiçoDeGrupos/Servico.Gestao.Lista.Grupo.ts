@@ -1,33 +1,37 @@
-
-import { Group } from '../../../types/Saida/Types.Estrutura.Grupos';
+import { Grupo } from '../../../types/Saida/Types.Estrutura.Grupos';
+import { GroupModel } from '../../Models/Models.Estrutura.Grupo'; // Caminho corrigido
 import { apiServicoGestaoListaGrupo } from '../APIs/APIsServicoGrupos/API.Servico.Gestao.Lista.Grupo';
 import { mockMyGroups, mockPublicGroups } from '../ServiçoDeSimulação/simulacoes/Simulacao.Gestao.Lista.Grupo';
 import { config } from '../ValidaçãoDeAmbiente/config';
 
 class ServicoGestaoListaGrupo {
 
-  async obterGrupos(): Promise<Group[]> {
-    let publicGroups: Group[] = [];
-    let myGroups: Group[] = [];
+  async obterGrupos(): Promise<GroupModel[]> {
+    let publicGroupsData: Grupo[] = [];
+    let myGroupsData: Grupo[] = [];
 
     try {
       if (config.VITE_APP_ENV === 'simulation') {
-        console.log("[SIMULAÇÃO] Usando dados mocados para a lista de grupos, conforme configuração de ambiente.");
-        publicGroups = mockPublicGroups;
-        myGroups = mockMyGroups;
+        console.log("[SIMULAÇÃO] Usando dados mocados para a lista de grupos.");
+        publicGroupsData = mockPublicGroups;
+        myGroupsData = mockMyGroups;
       } else {
         const [pub, mine] = await Promise.all([
           apiServicoGestaoListaGrupo.obterGruposPublicos(),
           apiServicoGestaoListaGrupo.obterMeusGrupos(),
         ]);
-        publicGroups = pub;
-        myGroups = mine;
+        publicGroupsData = pub;
+        myGroupsData = mine;
       }
 
-      const allGroups = [...(myGroups || []), ...(publicGroups || [])];
-      const uniqueGroups = Array.from(new Map(allGroups.map(group => [group.id, group])).values());
+      const allGroupsData = [...(myGroupsData || []), ...(publicGroupsData || [])];
+      const uniqueGroupsData = Array.from(new Map(allGroupsData.map(group => [group.id, group])).values());
 
-      return uniqueGroups;
+      const groupModels = uniqueGroupsData
+        .map(groupData => GroupModel.fromObject(groupData))
+        .filter((group): group is GroupModel => group !== null);
+
+      return groupModels;
 
     } catch (error) {
       console.error("ServicoGestaoListaGrupo: Falha ao obter e processar grupos:", error);

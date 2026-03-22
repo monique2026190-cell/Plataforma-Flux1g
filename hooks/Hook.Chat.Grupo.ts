@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { VirtuosoHandle } from 'react-virtuoso';
 import { Group, Message } from '../tipos';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { chatService } from '../ServiçosFrontend/ServiçoDeChat/chatService';
 
 export const useGroupChat = () => {
@@ -23,16 +23,11 @@ export const useGroupChat = () => {
     const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
 
     useEffect(() => {
-        // Pega o estado inicial
         const currentState = SistemaAutenticacaoSupremo.getState();
         setCurrentUserEmail(currentState.user?.email?.toLowerCase() || null);
-
-        // Se inscreve para futuras atualizações
         const unsubscribe = SistemaAutenticacaoSupremo.subscribe(state => {
             setCurrentUserEmail(state.user?.email?.toLowerCase() || null);
         });
-
-        // Limpa a inscrição quando o componente desmonta
         return () => unsubscribe();
     }, []);
 
@@ -40,7 +35,7 @@ export const useGroupChat = () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await groupSystem.getGroupChatData(groupId);
+            const data = await SistemaGrupoSupremo.getGroupChatData(groupId);
             setGroupInfo(data.group);
             setMessages(data.messages || []);
         } catch (err) {
@@ -122,7 +117,7 @@ export const useGroupChat = () => {
     };
 
     const handleConfirmForward = async (targetChatIds: string[]) => {
-        const token = SistemaAutenticacaoSupremo.getState().token; // Pega o token do estado atual
+        const token = SistemaAutenticacaoSupremo.getState().token;
         if (!token) {
             alert('Autenticação necessária.');
             return;

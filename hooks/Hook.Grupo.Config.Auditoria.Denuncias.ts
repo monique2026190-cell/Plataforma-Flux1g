@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { groupSystem } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.js';
+import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 
 // Interface para uma denúncia, como definido pela API
 interface Report {
@@ -31,7 +31,7 @@ export const useGroupReportLog = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await groupSystem.getReports(groupId);
+            const response = await SistemaGrupoSupremo.getReports(groupId);
             setReports(response || []);
         } catch (err) {
             setError("Não foi possível carregar as denúncias.");
@@ -49,7 +49,7 @@ export const useGroupReportLog = () => {
     const banUser = useCallback(async (userId: string) => {
         if (!groupId) return;
         try {
-            await groupSystem.banUser(groupId, userId, { reason: "Comportamento inadequado conforme denúncia." });
+            await SistemaGrupoSupremo.banUser(groupId, userId, { reason: "Comportamento inadequado conforme denúncia." });
             // Depois de banir, remove as denúncias relacionadas a esse usuário da lista
             setReports(prev => prev.filter(r => r.reportedUser.id !== userId));
         } catch (err) {
@@ -62,7 +62,7 @@ export const useGroupReportLog = () => {
     const dismissReport = useCallback(async (reportId: string) => {
         if (!groupId) return;
         try {
-            await groupSystem.dismissReport(groupId, reportId);
+            await SistemaGrupoSupremo.dismissReport(groupId, reportId);
             // Apenas remove a denúncia da lista local
             setReports(prev => prev.filter(r => r.id !== reportId));
         } catch (err) {

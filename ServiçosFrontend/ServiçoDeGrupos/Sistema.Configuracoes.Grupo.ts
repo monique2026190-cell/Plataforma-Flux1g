@@ -1,13 +1,12 @@
 
-// Arquivo: ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupos.ts
+// Arquivo: ServiçosFrontend/ServiçoDeGrupos/Sistema.Configuracoes.Grupo.ts
 
 /**
- * @file Agregador de serviços relacionados a grupos.
+ * @file Sistema de Configurações de Grupo: Agregador de serviços de gestão para grupos.
  * 
- * Este arquivo importa todos os serviços modulares de grupo (cargos, membros, convites, etc.)
- * e os exporta como um único objeto `groupSystem`. Isso mantém uma API consistente
- * para o resto da aplicação, permitindo que a lógica interna seja dividida em arquivos menores
- * e mais fáceis de gerenciar, sem quebrar o código que consome esses serviços.
+ * Este arquivo importa todos os serviços modulares de gestão de grupo (cargos, membros, convites, etc.)
+ * e os exporta como um único objeto `sistemaConfiguracoesGrupo`. Isso centraliza o acesso
+ * às funcionalidades de configuração e administração de grupos.
  */
 
 import * as roleService from './Servico.Sistema.Cargos';
@@ -18,13 +17,13 @@ import * as auditAdjustService from './Servico.Sistema.Auditoria.Ajuste';
 import * as auditReportService from './Servico.Sistema.Auditoria.Denuncias';
 import * as auditEntryExitService from './Servico.Sistema.Auditoria.Entrada.Saida';
 import * as auditMessageService from './Servico.Sistema.Auditoria.Mensagens';
-import * as hubModeService from './Servico.Sistema.Modo.Hub'; // <-- ADICIONADO
+import * as hubModeService from './Servico.Sistema.Modo.Hub';
 
 /**
- * Objeto de serviço unificado que combina todos os submódulos de grupo.
+ * Objeto de serviço unificado que combina todos os submódulos de configuração de grupo.
  * Mantém uma interface consistente para o resto da aplicação.
  */
-export const groupSystem = {
+export const sistemaConfiguracoesGrupo = {
     // Funções do serviço de cargos
     ...roleService,
 
@@ -37,19 +36,12 @@ export const groupSystem = {
     // Funções do serviço de configurações gerais e estatísticas
     ...generalService,
 
-    // Funções do serviço de auditoria de ajustes
+    // Funções dos serviços de auditoria
     ...auditAdjustService,
-
-    // Funções do serviço de auditoria de denúncias
     ...auditReportService,
-
-    // Funções do serviço de auditoria de entrada e saída
     ...auditEntryExitService,
-
-    // Funções do serviço de auditoria de mensagens
     ...auditMessageService,
 
     // Funções do serviço de modo hub
-    ...hubModeService, // <-- ADICIONADO
-
+    ...hubModeService,
 };
