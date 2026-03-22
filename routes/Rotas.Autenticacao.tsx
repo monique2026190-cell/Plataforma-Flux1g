@@ -7,6 +7,7 @@ const VerifyEmail = lazy(() => import('../pages/VerifyEmail').then(module => ({ 
 const ForgotPassword = lazy(() => import('../pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
 const ResetPassword = lazy(() => import('../pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
 const Banned = lazy(() => import('../pages/Banned').then(module => ({ default: module.Banned })));
+const GoogleAuthCallback = lazy(() => import('../pages/GoogleAuthCallback'));
 
 export const authRoutes = [
   { path: '/', element: <Login /> },
@@ -14,5 +15,6 @@ export const authRoutes = [
   { path: '/verify-email', element: <VerifyEmail /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/reset-password', element: <ResetPassword /> },
-  { path: '/banned', element: <Banned /> }
+  { path: '/banned', element: <Banned /> },
+  { path: '/auth/google/callback', element: <GoogleAuthCallback /> }
 ];

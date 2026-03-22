@@ -1,3 +1,4 @@
+
 // Arquivo: backend/config/Variaveis.Backend.js
 
 import dotenv from 'dotenv';
@@ -21,9 +22,10 @@ dotenv.config({ path: path.join(projectRoot, '.env') });
 const VARIAVEIS_OBRIGATORIAS = [
     'DATABASE_URL',
     'JWT_SECRET',
-    'GOOGLE_CLIENT_ID',       // Desacoplado do VITE_ prefix
+    'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',
-    'CORS_ORIGIN',             // Adicionado à validação
+    'GOOGLE_REDIRECT_URI', // Adicionado para o fluxo OAuth
+    'CORS_ORIGIN',
 ];
 
 // Variáveis OPCIONAIS, que possuem um valor padrão caso não sejam definidas.
@@ -50,18 +52,19 @@ Object.entries(VARIAVEIS_OPCIONAIS).forEach(([nome, valorPadrao]) => {
     VariaveisBackend[nome] = process.env[nome] || valorPadrao;
 });
 
-// Renomeia as chaves para camelCase para um padrão de código mais limpo, se desejar.
-// Isso é opcional, mas recomendado para consistência no código JavaScript.
+// 3. Monta o objeto de configuração final com uma estrutura limpa e aninhada
 const configFinal = {
     databaseUrl: VariaveisBackend.DATABASE_URL,
     jwtSecret: VariaveisBackend.JWT_SECRET,
-    googleClientId: VariaveisBackend.GOOGLE_CLIENT_ID,
-    googleClientSecret: VariaveisBackend.GOOGLE_CLIENT_SECRET,
     corsOrigin: VariaveisBackend.CORS_ORIGIN,
     port: VariaveisBackend.PORT,
-    stripeSecretKey: VariaveisBackend.STRIPE_SECRET_KEY
+    stripeSecretKey: VariaveisBackend.STRIPE_SECRET_KEY,
+    google: {
+        clientId: VariaveisBackend.GOOGLE_CLIENT_ID,
+        clientSecret: VariaveisBackend.GOOGLE_CLIENT_SECRET,
+        redirectUri: VariaveisBackend.GOOGLE_REDIRECT_URI,
+    }
 };
 
-
-// 3. Exporte o objeto de configuração final, validado e pronto para uso.
+// 4. Exporte o objeto de configuração final, validado e pronto para uso.
 export default configFinal;
