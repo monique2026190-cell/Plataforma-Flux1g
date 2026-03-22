@@ -41,10 +41,25 @@ const encontrarPorGoogleId = async (googleId) => {
     }
 };
 
+const atualizar = async (idUsuario, dados) => {
+    const contexto = "Repositorio.Usuario.atualizar";
+    ServicoLog.info(contexto, 'Chamando camada de gestão de dados para atualizar usuário.', { idUsuario });
+    try {
+        const usuarioAtualizado = await consultasUsuario.atualizar(idUsuario, dados);
+        ServicoLog.info(contexto, 'Usuário atualizado com sucesso na gestão de dados.', { idUsuario });
+        return usuarioAtualizado;
+    } catch (error) {
+        ServicoLog.erro(contexto, 'Erro ao atualizar usuário na gestão de dados', error);
+        throw error;
+    }
+};
+
+
 const repositorioUsuario = {
     criar,
     encontrarPorEmail,
     encontrarPorGoogleId,
+    atualizar,
 };
 
 export default repositorioUsuario;

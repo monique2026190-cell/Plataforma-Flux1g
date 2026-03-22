@@ -105,10 +105,70 @@ const encontrarPorGoogleId = async (googleId) => {
     }
 };
 
+const atualizar = async (idUsuario, dados) => {
+    const contexto = "Consultas.Usuario.atualizar";
+    const cliente = await pool.connect();
+
+    const camposTabelaUser = ['name', 'email', 'password_hash'];
+    const camposTabelaProfile = ['nickname', 'bio', 'website', 'photo_url', 'is_private', 'profile_completed'];
+
+    const dadosUser = {};
+    const dadosProfile = {};
+
+    Object.keys(dados).forEach(key => {
+        if (camposTabelaUser.includes(key)) {
+            dadosUser[key] = dados[key];
+        } else if (camposTabelaProfile.includes(key)) {
+            dadosProfile[key] = dados[key];
+        }
+    });
+
+    try {
+        await cliente.query('BEGIN');
+        ServicoLog.info(contexto, `Iniciando transação para atualizar o usuário ${idUsuario}.`);
+
+        if (Object.keys(dadosUser).length > 0) {
+            const queryUser = buildUpdateQuery('users', dadosUser, 'id');
+            await cliente.query(queryUser.query, queryUser.values);
+            ServicoLog.debug(contexto, "Tabela 'users' atualizada.", { userId: idUsuario });
+        }
+
+        if (Object.keys(dadosProfile).length > 0) {
+            const queryProfile = buildUpdateQuery('profiles', dadosProfile, 'user_id');
+            await cliente.query(queryProfile.query, queryProfile.values);
+            ServicoLog.debug(contexto, "Tabela 'profiles' atualizada.", { userId: idUsuario });
+        }
+
+        await cliente.query('COMMIT');
+        ServicoLog.info(contexto, `Transação de atualização para o usuário ${idUsuario} concluída.`);
+        
+        return await encontrarPorId(idUsuario, cliente);
+
+    } catch (error) {
+        await cliente.query('ROLLBACK');
+        ServicoLog.erro(contexto, `Erro na transação de atualização. Rollback para o usuário ${idUsuario}.`, error);
+        throw new Error('Erro ao atualizar usuário no banco de dados');
+    } finally {
+        cliente.release();
+    }
+};
+
+const buildUpdateQuery = (tabela, dados, colunaId) => {
+    const fields = Object.keys(dados);
+    const values = Object.values(dados);
+    const setClause = fields.map((field, index) => `"${field}" = $${index + 1}`).join(', ');
+    
+    const query = `UPDATE ${tabela} SET ${setClause} WHERE ${colunaId} = $${fields.length + 1}`;
+    
+    return { query, values: [...values, idUsuario] };
+}
+
+
 const consultasUsuario = {
     criar,
     encontrarPorEmail,
     encontrarPorGoogleId,
+    atualizar,
 };
 
 export default consultasUsuario;
