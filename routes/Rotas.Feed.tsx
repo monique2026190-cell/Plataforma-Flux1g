@@ -3,7 +3,7 @@ import React, { lazy } from 'react';
 import { ProtectedRoute } from './Rotas.Protegidas';
 
 const Feed = lazy(() => import('../pages/Feed').then(module => ({ default: module.Feed })));
-const PGDetalhesPostFeed = lazy(() => import('../pages/PG.Detalhes.Post.Feed.tsx').then(module => ({ default: module.PGDetalhesPostFeed })));
+const PGDetalhesPostFeed = lazy(() => import('../pages/PG.Detalhes.Post.Feed.tsx').then(module => ({ default: module.PG_Detalhes_Post_Feed })));
 const CreatePost = lazy(() => import('../pages/CreatePost').then(module => ({ default: module.CreatePost })));
 const CreatePoll = lazy(() => import('../pages/CreatePoll').then(module => ({ default: module.CreatePoll })));
 const FeedSearch = lazy(() => import('../pages/FeedSearch').then(module => ({ default: module.FeedSearch })));

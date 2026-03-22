@@ -60,6 +60,8 @@ const createAuthService = () => {
 
     const service = {
         getState: () => currentState,
+        getCurrentUser: () => currentState.user,
+        getProfile: () => currentState.user, // Adicionando a função getProfile
         subscribe: (listener: AuthChangeListener) => {
             listeners.push(listener);
             return () => { listeners = listeners.filter(l => l !== listener); };
