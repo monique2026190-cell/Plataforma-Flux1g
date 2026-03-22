@@ -1,7 +1,7 @@
 
 import logger from '../logger';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
-import authApi from '../APIs/authApi';
+import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import ClienteBackend from '../Cliente.Backend';
 import { config } from '../ValidaçãoDeAmbiente/config';
 

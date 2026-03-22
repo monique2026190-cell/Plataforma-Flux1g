@@ -1,6 +1,6 @@
 
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
-import authApi from '../APIs/authApi';
+import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import { config } from '../ValidaçãoDeAmbiente/config';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
 import { LoginUsuarioDTO as CriarContaDTO } from '../../../types/Entrada/Dto.Estrutura.Usuario'; // Reutilizando DTO, pode ser ajustado

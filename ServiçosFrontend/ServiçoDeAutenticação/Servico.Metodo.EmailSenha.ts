@@ -2,7 +2,7 @@
 import { config } from '../ValidaçãoDeAmbiente/config';
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 import { LoginUsuarioDTO as LoginDto } from '../../../types/Entrada/Dto.Estrutura.Usuario';
-import authApi from '../APIs/authApi';
+import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import { servicoGestaoPerfil } from './Servico.Gestao.Perfil';
 
 // --- Interface ---
