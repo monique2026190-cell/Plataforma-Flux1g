@@ -30,7 +30,7 @@ const LogSessaoUsuario = {
    * @param {string} dadosUsuario.email - O email do usuário.
    */
   sessaoEstabelecida: (dadosUsuario: { id: string; nome_usuario: string; email: string; }) => {
-    LogProvider.success('Sessão do usuário estabelecida com sucesso.', {
+    LogProvider.info('Sessão do usuário estabelecida com sucesso.', {
       contexto: CONTEXTO,
       ...dadosUsuario,
     });
