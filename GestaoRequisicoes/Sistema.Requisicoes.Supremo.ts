@@ -1,5 +1,5 @@
 
-import { LogSupremo } from "../ServiçosFrontend/SistemaObservabilidade/Log.Supremo1";
+import { LogSupremo } from "../ServiçosFrontend/SistemaObservabilidade/Log.Supremo";
 import {
     manipularRequisicaoAutenticacao,
     RequisicaoAutenticacao,

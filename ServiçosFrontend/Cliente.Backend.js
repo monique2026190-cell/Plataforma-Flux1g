@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import VariaveisFrontend from './Config/Variaveis.Frontend.js';
-import { LogSupremo } from './SistemaObservabilidade/Log.Supremo1';
+import { LogSupremo } from './SistemaObservabilidade/Log.Supremo';
 
 const ClienteBackend = axios.create({
     baseURL: VariaveisFrontend.apiBaseUrl,
@@ -38,16 +38,11 @@ ClienteBackend.interceptors.request.use(
             config.headers['Authorization'] = `Bearer ${token}`;
         }
 
-        LogSupremo.Log.info(
-            'ClienteBackend.Request',
-            `▶️ ${config.method.toUpperCase()} ${config.url}`,
-            { payload: config.data },
-            traceId
-        );
+        LogSupremo.API.logRequest(config);
         return config;
     },
     (error) => {
-        LogSupremo.Log.error('ClienteBackend.Request.Error', 'Erro ao configurar a requisição', error);
+        LogSupremo.API.logError(error);
         return Promise.reject(error);
     }
 );
@@ -55,21 +50,12 @@ ClienteBackend.interceptors.request.use(
 // Interceptor de Resposta
 ClienteBackend.interceptors.response.use(
     (response) => {
-        const duration = Date.now() - response.config.metadata.startTime;
-        const { traceId } = response.config.metadata;
-
-        LogSupremo.Log.info(
-            'ClienteBackend.Response',
-            `✅ ${response.status} ${response.config.url} em ${duration}ms`,
-            { status: response.status, duration },
-            traceId
-        );
+        LogSupremo.API.logResponse(response);
         return response;
     },
     async (error) => {
         const originalRequest = error.config;
         const { traceId } = originalRequest.metadata;
-        const duration = Date.now() - originalRequest.metadata.startTime;
         const contexto = 'ClienteBackend.Response.Error';
 
         if (error.response?.status === 401 && !originalRequest._retry) {
@@ -118,14 +104,7 @@ ClienteBackend.interceptors.response.use(
             }
         }
 
-        const errorMessage = error.response ? `❌ ${error.response.status} ${originalRequest.url} em ${duration}ms` : `Erro de rede em ${originalRequest.url}`;
-        LogSupremo.Log.error(contexto, errorMessage, {
-            traceId,
-            status: error.response?.status,
-            duration,
-            errorData: error.response?.data,
-            message: error.message,
-        });
+        LogSupremo.API.logError(error);
 
         return Promise.reject(error);
     }

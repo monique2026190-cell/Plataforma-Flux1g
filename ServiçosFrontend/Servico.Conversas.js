@@ -1,6 +1,6 @@
 
 import ClienteBackend from './Cliente.Backend.js';
-import { LogSupremo } from './SistemaObservabilidade/Log.Supremo1.ts';
+import { LogSupremo } from './SistemaObservabilidade/Log.Supremo.ts';
 
 const ServicoConversas = {
     obterConversas: async () => {

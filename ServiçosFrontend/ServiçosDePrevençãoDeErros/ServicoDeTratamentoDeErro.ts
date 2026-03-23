@@ -1,4 +1,4 @@
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1.ts';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo.ts';
 import { ERROR_LEVEL } from './TiposDeErro.ts';
 
 // Adicionamos um parâmetro opcional de navegação

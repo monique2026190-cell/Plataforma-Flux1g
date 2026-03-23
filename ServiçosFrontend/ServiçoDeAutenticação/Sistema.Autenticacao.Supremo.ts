@@ -1,6 +1,6 @@
 
 import { config } from '../ValidaçãoDeAmbiente/config';
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1'; // Caminho do log corrigido
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo'; // Caminho do log corrigido
 import { RegistroUsuarioDTO, LoginUsuarioDTO } from '../../../types/Entrada/Dto.Estrutura.Usuario';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';

@@ -19,6 +19,14 @@ const authApi = {
     updateProfile(dadosPerfil: Partial<AtualizarPerfilUsuarioDTO>): Promise<AxiosResponse<any>> {
         return ClienteBackend.put('/user/profile', dadosPerfil);
     },
+
+    /**
+     * Envia o sessionId para o backend para obter o token de sessão e os dados do usuário.
+     * @param sessionId O ID de sessão recebido do provedor de autenticação.
+     */
+    resolverSessaoLogin(sessionId: string): Promise<AxiosResponse<any>> {
+        return ClienteBackend.post('/auth/resolve-session', { sessionId });
+    },
 };
 
 export default authApi;

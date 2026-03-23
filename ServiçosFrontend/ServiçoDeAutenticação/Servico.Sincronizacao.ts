@@ -3,7 +3,7 @@ import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import { config } from '../ValidaçãoDeAmbiente/config';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1'; // Caminho do log corrigido
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo'; // Caminho do log corrigido
 
 interface User extends Usuario {}
 
