@@ -1,47 +1,70 @@
-// backend/Logs/BK.Log.Supremo.js
 
-import { createLogger, asyncLocalStorage } from './BK.Log.Core.js';
-import { requestLoggerMiddleware } from './Log.Middleware.js';
+import { v4 as uuidv4 } from 'uuid';
+import LogProvider from './Log.Provider.js';
+import { LogLayers } from './Log.Layers.js';
 
 /**
- * Módulo unificado de Logging - A Fachada Suprema.
- * 
- * Este módulo exporta todas as funcionalidades de logging necessárias para a aplicação,
- * atuando como um ponto central de acesso ao sistema de logs.
+ * @file BK.Log.Supremo.js
+ * @description Ponto de entrada centralizado para o sistema de observabilidade do backend.
+ * Fornece o middleware para rastreamento de requisições e exporta loggers para cada camada da aplicação.
  */
+
+// --- Middleware de Log de Requisição ---
+
+const requestLoggerMiddleware = (req, res, next) => {
+    // 1. Gera ou utiliza um traceId existente
+    const traceId = req.headers['x-flux-trace-id'] || uuidv4();
+    req.traceId = traceId; // Anexa o traceId ao objeto req para uso posterior
+
+    // Expõe o traceId na resposta para o frontend
+    res.setHeader('X-Flux-Trace-ID', traceId);
+
+    const startTime = process.hrtime();
+
+    // 2. Log de INBOUND
+    LogProvider.info(LogLayers.HTTP_API, `INBOUND - ${req.method} ${req.originalUrl}`, {
+        method: req.method,
+        url: req.originalUrl,
+        ip: req.ip,
+        headers: req.headers,
+    }, traceId);
+
+    // 3. Monitora o fim da requisição para logar o OUTBOUND
+    res.on('finish', () => {
+        const diff = process.hrtime(startTime);
+        const durationMs = (diff[0] * 1e3) + (diff[1] * 1e-6);
+
+        LogProvider.info(LogLayers.HTTP_API, `OUTBOUND - ${req.method} ${req.originalUrl}`, {
+            statusCode: res.statusCode,
+            durationMs: parseFloat(durationMs.toFixed(2)),
+        }, traceId);
+    });
+
+    next();
+};
+
+// --- Loggers por Camada ---
+
+const createLayerLogger = (layer) => ({
+    info: (message, data, traceId) => LogProvider.info(layer, message, data, traceId),
+    warn: (message, data, traceId) => LogProvider.warn(layer, message, data, traceId),
+    error: (message, error, data, traceId) => LogProvider.error(layer, message, error, data, traceId),
+    query: (query, params, durationMs, traceId) => LogProvider.info(layer, 'Database Query', { query, params, durationMs }, traceId)
+});
+
 const Log = {
-  /**
-   * Cria uma instância de logger com um escopo específico.
-   * Ideal para ser usado em diferentes módulos e serviços.
-   * 
-   * @param {string} scope - O nome do escopo (ex: 'AuthService', 'Database').
-   * @returns {object} Uma instância do logger com métodos info, error, warn.
-   * 
-   * @example
-   * const logger = Log.createLogger('MeuServico');
-   * logger.info('Operação iniciada');
-   */
-  createLogger: createLogger,
-
-  /**
-   * O middleware do Express para log de requisições.
-   * Deve ser adicionado à pilha de middlewares do Express para
-   * registrar automaticamente todas as requisições INBOUND e OUTBOUND.
-   */
-  requestLoggerMiddleware: requestLoggerMiddleware,
-
-  /**
-   * Middleware de contexto que ativa o AsyncLocalStorage.
-   * Embora o requestLoggerMiddleware já faça isso, este middleware pode ser
-   * usado separadamente em cenários onde apenas o contexto é necessário
-   * sem o log automático de requisições.
-   */
-  contextMiddleware: (req, res, next) => {
-    const store = {
-      traceId: req.traceId || 'untraced'
-    };
-    asyncLocalStorage.run(store, next);
-  }
+    // O middleware principal
+    requestLoggerMiddleware,
+    
+    // Loggers para cada camada
+    controller: createLayerLogger(LogLayers.CONTROLLER),
+    service: createLayerLogger(LogLayers.SERVICE),
+    database: createLayerLogger(LogLayers.DATABASE),
+    auth: createLayerLogger(LogLayers.AUTH),
+    cache: createLayerLogger(LogLayers.CACHE),
+    system: createLayerLogger(LogLayers.SYSTEM),
+    security: createLayerLogger(LogLayers.SECURITY),
+    external: createLayerLogger(LogLayers.EXTERNAL_API),
 };
 
 export default Log;
