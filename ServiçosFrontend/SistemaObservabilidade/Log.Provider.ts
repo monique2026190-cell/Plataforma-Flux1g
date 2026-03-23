@@ -56,7 +56,7 @@ const mascararDados = (data: any): any => {
 
 class LogProvider {
   static ativo: boolean = true;
-  static levelMinimo: number = VariaveisFrontend.mode === 'production' ? NIVEIS_DE_LOG.WARN : NIVEIS_DE_LOG.INFO;
+  static levelMinimo: number = NIVEIS_DE_LOG.DEBUG;
 
   private static log(level: LogLevel, module: string, message: string, data: any = null, traceId?: string) {
     const levelNumber = NIVEIS_DE_LOG[level];
