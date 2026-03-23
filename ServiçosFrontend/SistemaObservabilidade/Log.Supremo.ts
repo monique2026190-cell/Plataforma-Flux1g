@@ -21,6 +21,7 @@ import LogIntegracoes from './Log.Integracoes';
 import LogCache from './Log.Cache';
 import Alertas from './Log.Alertas';
 import SnapshotEstado from './Log.Snapshot.Estado';
+import LogHook from './Log.Hook';
 
 /**
  * @object LogSupremo
@@ -63,4 +64,7 @@ export const LogSupremo = {
 
   /** Captura de snapshots do estado da aplicação em momentos chave. */
   Snapshot: SnapshotEstado,
+
+  /** Módulo de logging para hooks da UI. */
+  Hook: LogHook,
 };
