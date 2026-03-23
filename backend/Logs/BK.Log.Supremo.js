@@ -1,23 +1,16 @@
-import provedor from './Provedor.Log.js';
 
-const createLogger = (escopo) => {
+import { contextMiddleware, getTraceId } from './Log.Context.js';
+import logger from './Provedor.Log.js';
 
-  const formatarMensagem = (nivel, codigo, detalhes = {}) => {
-    const mensagem = {
-      nivel,
-      escopo,
-      codigo,
-      ...detalhes,
-    };
-    return mensagem;
-  };
-
-  return {
-    info: (codigo, detalhes) => provedor.info(formatarMensagem('info', codigo, detalhes)),
-    warn: (codigo, detalhes) => provedor.warn(formatarMensagem('warn', codigo, detalhes)),
-    error: (codigo, detalhes) => provedor.error(formatarMensagem('error', codigo, detalhes)),
-    debug: (codigo, detalhes) => provedor.debug(formatarMensagem('debug', codigo, detalhes)),
-  };
+const Log = {
+  createLogger: (name) => logger.child({ name }),
+  contextMiddleware,
+  getTraceId,
+  info: logger.info.bind(logger),
+  warn: logger.warn.bind(logger),
+  error: logger.error.bind(logger),
+  debug: logger.debug.bind(logger),
+  fatal: logger.fatal.bind(logger),
 };
 
-export default { createLogger };
+export default Log;
