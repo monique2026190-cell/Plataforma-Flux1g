@@ -58,26 +58,44 @@ class LogProvider {
   static ativo: boolean = true;
   static levelMinimo: number = NIVEIS_DE_LOG.DEBUG;
 
-  private static log(level: LogLevel, module: string, message: string, data: any = null, traceId?: string) {
+  private static log(level: LogLevel, module: string, message: any, data: any = null, traceId?: string) {
     const levelNumber = NIVEIS_DE_LOG[level];
     if (!LogProvider.ativo || levelNumber < LogProvider.levelMinimo) {
       return;
     }
 
+    let finalModule = module;
+    let finalMessage = message;
+    let finalData = data;
+
+    // Lida com o uso incorreto do LogProvider, onde módulo e mensagem são trocados.
+    if (typeof finalMessage === 'object' && finalMessage !== null && finalMessage.contexto) {
+        finalMessage = finalModule; // O módulo original é a mensagem
+        finalModule = message.contexto; // A propriedade 'contexto' é o módulo
+        
+        // Limpa o objeto de dados se ele foi usado apenas para o contexto
+        const { contexto, ...rest } = message;
+        if (Object.keys(rest).length > 0) {
+          finalData = { ...(finalData || {}), ...rest };
+        }
+    } else if (typeof finalMessage !== 'string') {
+        finalMessage = String(finalMessage);
+    }
+
     // Mantém a integração com o rastreador de erros críticos
     if (level === 'ERROR' || level === 'FATAL') {
-        const error = data instanceof Error ? data : new Error(message);
-        rastreadorDeEventos.trackCriticalError(error, { module, traceId, extraData: data });
+        const error = finalData instanceof Error ? finalData : new Error(finalMessage);
+        rastreadorDeEventos.trackCriticalError(error, { module: finalModule, traceId, extraData: finalData });
     }
 
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       env: VariaveisFrontend.mode || 'development',
-      module,
+      module: finalModule,
       traceId,
-      message,
-      data: mascararDados(data),
+      message: finalMessage,
+      data: mascararDados(finalData),
     };
 
     // Imprime o objeto JSON estruturado no console
@@ -86,7 +104,6 @@ class LogProvider {
     
     // Envia o log para o backend
     this.enviarLogParaBackend(logEntry);
-
   }
 
   private static async enviarLogParaBackend(logEntry: LogEntry) {
