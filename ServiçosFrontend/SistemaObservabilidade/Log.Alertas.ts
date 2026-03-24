@@ -1,5 +1,5 @@
 
-import LogProvider from './Log.Provider';
+import LogProvider from './Sistema.Mensageiro.Cliente.Backend.ts';
 
 // Placeholder para o futuro módulo de Alertas
 class Alertas {

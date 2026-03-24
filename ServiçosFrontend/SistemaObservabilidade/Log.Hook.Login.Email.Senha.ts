@@ -5,7 +5,7 @@
  * Centraliza todos os logs relacionados ao processo de autenticação via email e senha.
  */
 
-import LogProvider from './Log.Provider';
+import LogProvider from './Sistema.Mensageiro.Cliente.Backend.ts';
 
 const CONTEXTO = 'Hook.Login.Email.Senha';
 

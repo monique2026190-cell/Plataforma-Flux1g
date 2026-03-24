@@ -6,7 +6,7 @@
  * desde a verificação inicial até o estabelecimento ou falha da sessão.
  */
 
-import LogProvider from './Log.Provider';
+import LogProvider from './Sistema.Mensageiro.Cliente.Backend.ts';
 
 const CONTEXTO = 'Hook.Usuario.Sessao';
 

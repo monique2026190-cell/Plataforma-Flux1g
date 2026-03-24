@@ -1,8 +1,8 @@
-
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import VariaveisFrontend from './Config/Variaveis.Frontend.js';
 import { registrar } from './config/EndpointRegistry.js';
+import LogClienteBackend from './SistemaObservabilidade/Log.ClienteBackend.ts';
 
 /**
  * Calcula a duração em milissegundos.
@@ -36,6 +36,8 @@ ClienteBackend.interceptors.request.use(
         config.headers['x-trace-id'] = config.headers['x-trace-id'] || uuidv4();
         config.startTime = performance.now();
 
+        LogClienteBackend.logRequest(config);
+
         registrar('Frontend', [`${config.method.toUpperCase()} ${config.url}`]);
 
         const token = localStorage.getItem('userToken');
@@ -46,8 +48,7 @@ ClienteBackend.interceptors.request.use(
         return config;
     },
     (error) => {
-        const traceId = error.config?.headers['x-trace-id'] || 'unknown-trace';
-        
+        LogClienteBackend.logError(error);
         return Promise.reject(error);
     }
 );
@@ -56,14 +57,12 @@ ClienteBackend.interceptors.request.use(
 ClienteBackend.interceptors.response.use(
     (response) => {
         const duration = getDurationInMilliseconds(response.config.startTime);
-        const traceId = response.config.headers['x-trace-id'];
-
+        LogClienteBackend.logResponse(response, duration);
         return response;
     },
     async (error) => {
         const originalRequest = error.config;
-        const duration = getDurationInMilliseconds(originalRequest?.startTime);
-        const traceId = originalRequest?.headers['x-trace-id'] || 'unknown-trace';
+        LogClienteBackend.logError(error);
 
         // Lógica de renovação de token (preservada)
         if (error.response?.status === 401 && !originalRequest._retry) {

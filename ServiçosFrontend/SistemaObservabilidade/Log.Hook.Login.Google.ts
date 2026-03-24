@@ -4,7 +4,7 @@
  * @description Módulo de logging especializado para o hook `useLoginGoogle`.
  */
 
-import { createLogger } from './Log.Provider';
+import { createLogger } from './Sistema.Mensageiro.Cliente.Backend.ts';
 
 // Cria uma instância de logger específica para este módulo
 const logger = createLogger('Hook.Login.Google');

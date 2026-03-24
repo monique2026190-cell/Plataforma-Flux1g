@@ -1,4 +1,4 @@
-import LogProvider from './Log.Provider';
+import LogProvider from './Sistema.Mensageiro.Cliente.Backend.ts';
 
 const DOMAIN = 'Feed';
 

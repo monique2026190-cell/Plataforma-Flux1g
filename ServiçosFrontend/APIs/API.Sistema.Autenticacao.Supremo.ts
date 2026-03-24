@@ -6,6 +6,7 @@ import {
     LoginRequestSchema 
 } from '../Contratos/Contrato.Autenticacao';
 import { AxiosResponse } from 'axios';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
 
 /**
  * @file Implementação concreta do serviço de autenticação que interage com o backend real.
@@ -24,15 +25,23 @@ class AutenticacaoAPISupremo implements IAutenticacaoServico {
      * @throws {ZodError} Se a validação dos dados de entrada falhar.
      */
     async login(data: LoginRequest): Promise<LoginResponse> {
-        // 1. Validar os dados de entrada ANTES de fazer a chamada de rede.
-        // O .parse() joga um erro se os dados não corresponderem ao schema.
-        const dadosValidados = LoginRequestSchema.parse(data);
-        
-        // 2. Enviar a requisição para o backend com os dados já validados.
-        const resposta: AxiosResponse<LoginResponse> = await ClienteBackend.post('/auth/login', dadosValidados);
+        LogSupremo.API.Autenticacao.inicioLogin(data.email);
+        try {
+            // 1. Validar os dados de entrada ANTES de fazer a chamada de rede.
+            // O .parse() joga um erro se os dados não corresponderem ao schema.
+            const dadosValidados = LoginRequestSchema.parse(data);
+            
+            // 2. Enviar a requisição para o backend com os dados já validados.
+            const resposta: AxiosResponse<LoginResponse> = await ClienteBackend.post('/auth/login', dadosValidados);
 
-        // Retorna apenas os dados da resposta, conforme o contrato.
-        return resposta.data;
+            LogSupremo.API.Autenticacao.sucessoLogin(data.email, resposta.data);
+
+            // Retorna apenas os dados da resposta, conforme o contrato.
+            return resposta.data;
+        } catch (error) {
+            LogSupremo.API.Autenticacao.falhaLogin(data.email, error);
+            throw error;
+        }
     }
 }
 
