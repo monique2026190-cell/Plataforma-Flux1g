@@ -15,32 +15,22 @@ const NIVEIS_DE_LOG: Record<LogLevel, number> = {
 };
 
 interface LogEntry {
-  // Metadados
   timestamp: string;
   level: LogLevel;
   env: string;
-  module: string; // "contexto" anterior
-  traceId?: string; // "requestId" anterior
-  
-  // Conteúdo
+  module: string;
+  traceId?: string;
   message: string;
-  
-  // Dados estruturados (payload, erro, etc.)
   data?: any;
 }
 
-// --- LÓGICA DE MASCARAMENTO (Mantida do original) ---
+// --- LÓGICA DE MASCARAMENTO ---
 
 const chavesSensiveis = ['token', 'password', 'senha', 'authorization', 'secret', 'apiKey', 'clientSecret'];
 
 const mascararDados = (data: any): any => {
-  if (typeof data !== 'object' || data === null) {
-    return data;
-  }
-
-  if (Array.isArray(data)) {
-    return data.map(mascararDados);
-  }
+  if (typeof data !== 'object' || data === null) return data;
+  if (Array.isArray(data)) return data.map(mascararDados);
 
   return Object.keys(data).reduce((acc, key) => {
     if (chavesSensiveis.some(chaveSensivel => new RegExp(chaveSensivel, 'i').test(key))) {
@@ -52,96 +42,67 @@ const mascararDados = (data: any): any => {
   }, {} as Record<string, any>);
 };
 
-// --- SERVIÇO DE LOG ESTRUTURADO ---
+// --- NÚCLEO DO SERVIÇO DE LOG ---
 
-class LogProvider {
-  static ativo: boolean = true;
-  static levelMinimo: number = NIVEIS_DE_LOG.DEBUG;
+const performLog = (level: LogLevel, module: string, message: any, data: any = null, traceId?: string) => {
+  const levelNumber = NIVEIS_DE_LOG[level];
+  if (levelNumber < (NIVEIS_DE_LOG.DEBUG)) return; // Ajustar conforme o ambiente
 
-  private static log(level: LogLevel, module: string, message: any, data: any = null, traceId?: string) {
-    const levelNumber = NIVEIS_DE_LOG[level];
-    if (!LogProvider.ativo || levelNumber < LogProvider.levelMinimo) {
-      return;
-    }
+  const logEntry: LogEntry = {
+    timestamp: new Date().toISOString(),
+    level,
+    env: VariaveisFrontend.mode || 'development',
+    module,
+    traceId,
+    message: String(message),
+    data: mascararDados(data),
+  };
 
-    let finalModule = module;
-    let finalMessage = message;
-    let finalData = data;
-
-    // Lida com o uso incorreto do LogProvider, onde módulo e mensagem são trocados.
-    if (typeof finalMessage === 'object' && finalMessage !== null && finalMessage.contexto) {
-        finalMessage = finalModule; // O módulo original é a mensagem
-        finalModule = message.contexto; // A propriedade 'contexto' é o módulo
-        
-        // Limpa o objeto de dados se ele foi usado apenas para o contexto
-        const { contexto, ...rest } = message;
-        if (Object.keys(rest).length > 0) {
-          finalData = { ...(finalData || {}), ...rest };
-        }
-    } else if (typeof finalMessage !== 'string') {
-        finalMessage = String(finalMessage);
-    }
-
-    // Mantém a integração com o rastreador de erros críticos
-    if (level === 'ERROR' || level === 'FATAL') {
-        const error = finalData instanceof Error ? finalData : new Error(finalMessage);
-        rastreadorDeEventos.trackCriticalError(error, { module: finalModule, traceId, extraData: finalData });
-    }
-
-    const logEntry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      env: VariaveisFrontend.mode || 'development',
-      module: finalModule,
-      traceId,
-      message: finalMessage,
-      data: mascararDados(finalData),
-    };
-
-    // Imprime o objeto JSON estruturado no console
-    const logFunction = console[level.toLowerCase() as 'info'] || console.log;
-    logFunction(JSON.stringify(logEntry, null, 2));
-    
-    // Envia o log para o backend
-    this.enviarLogParaBackend(logEntry);
+  if (level === 'ERROR' || level === 'FATAL') {
+    const error = data instanceof Error ? data : new Error(String(message));
+    rastreadorDeEventos.trackCriticalError(error, { module, traceId, extraData: data });
   }
 
-  private static async enviarLogParaBackend(logEntry: LogEntry) {
-    try {
-      await fetch('/api/log/frontend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(logEntry),
-      });
-    } catch (error) {
-      console.error('Falha ao enviar log para o backend:', error);
-    }
+  const logFunction = console[level.toLowerCase() as 'info'] || console.log;
+  logFunction(JSON.stringify(logEntry, null, 2));
+  enviarLogParaBackend(logEntry);
+};
+
+const enviarLogParaBackend = async (logEntry: LogEntry) => {
+  try {
+    await fetch('/api/log/frontend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logEntry),
+    });
+  } catch (error) {
+    console.error('Falha ao enviar log para o backend:', error);
   }
+};
 
+// --- FÁBRICA DE LOGGER (A Nova Abordagem) ---
 
-  // --- INTERFACE PÚBLICA (Mantida do original para compatibilidade) ---
+/**
+ * Cria uma instância de logger para um módulo específico.
+ * @param module O nome do módulo (e.g., 'Hook.Login.Google').
+ * @returns Um objeto com métodos de log (`info`, `warn`, `error`, `debug`).
+ */
+export const createLogger = (module: string) => ({
+  log: (message: string, data?: any) => performLog('INFO', module, message, data), // Alias para info
+  info: (message: string, data?: any) => performLog('INFO', module, message, data),
+  warn: (message: string, data?: any) => performLog('WARN', module, message, data),
+  error: (message: string, error?: any) => performLog('ERROR', module, message, error),
+  debug: (message: string, data?: any) => performLog('DEBUG', module, message, data),
+});
 
-  static info(module: string, message: string, data: any = null, traceId?: string) {
-    this.log('INFO', module, message, data, traceId);
-  }
+// --- INTERFACE PÚBLICA LEGADA (Para Compatibilidade) ---
 
-  static warn(module: string, message: string, data: any = null, traceId?: string) {
-    this.log('WARN', module, message, data, traceId);
-  }
-
-  static error(module: string, message: string, error: any = null, traceId?: string) {
-    this.log('ERROR', module, message, error, traceId);
-  }
-
-  static fatal(module: string, message: string, error: any = null, traceId?: string) {
-    this.log('FATAL', module, message, error, traceId);
-  }
-
-  static debug(module: string, message: string, data: any = null, traceId?: string) {
-    this.log('DEBUG', module, message, data, traceId);
-  }
-}
+const LogProvider = {
+  info: (module: string, message: string, data: any = null, traceId?: string) => performLog('INFO', module, message, data, traceId),
+  warn: (module: string, message: string, data: any = null, traceId?: string) => performLog('WARN', module, message, data, traceId),
+  error: (module: string, message: string, error: any = null, traceId?: string) => performLog('ERROR', module, message, error, traceId),
+  fatal: (module: string, message: string, error: any = null, traceId?: string) => performLog('FATAL', module, message, error, traceId),
+  debug: (module: string, message: string, data: any = null, traceId?: string) => performLog('DEBUG', module, message, data, traceId),
+};
 
 export default LogProvider;

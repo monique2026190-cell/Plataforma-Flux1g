@@ -2,12 +2,12 @@
 /**
  * @file Log.Hook.Login.Google.ts
  * @description Módulo de logging especializado para o hook `useLoginGoogle`.
- * Centraliza todos os logs relacionados ao processo de autenticação via Google.
  */
 
-import LogProvider from './Log.Provider';
+import { createLogger } from './Log.Provider';
 
-const CONTEXTO = 'Hook.Login.Google';
+// Cria uma instância de logger específica para este módulo
+const logger = createLogger('Hook.Login.Google');
 
 /**
  * @namespace LogLoginGoogle
@@ -18,7 +18,7 @@ const LogLoginGoogle = {
    * Registra o início do fluxo de autenticação com Google.
    */
   inicioFluxo: () => {
-    LogProvider.info('Início do fluxo de autenticação com Google.', { contexto: CONTEXTO });
+    logger.info('Início do fluxo de autenticação com Google.');
   },
 
   /**
@@ -26,7 +26,7 @@ const LogLoginGoogle = {
    * @param {string} code - O código de autorização recebido.
    */
   callbackRecebido: (code: string) => {
-    LogProvider.info('Callback do Google recebido com sucesso.', { contexto: CONTEXTO, code });
+    logger.info('Callback do Google recebido com sucesso.', { code });
   },
 
   /**
@@ -35,21 +35,21 @@ const LogLoginGoogle = {
    * @param {boolean} isNewUser - Indica se é um novo usuário.
    */
   loginSucesso: (userId: string, isNewUser: boolean) => {
-    LogProvider.success('Login com Google realizado com sucesso.', {
-      contexto: CONTEXTO,
+    // O método `success` não existe mais; usamos `info` com dados que indicam o sucesso.
+    logger.info('Login com Google realizado com sucesso.', {
       userId,
       novoUsuario: isNewUser,
+      status: 'sucesso'
     });
   },
 
   /**
    * Registra a falha no processo de login via Google.
    * @param {Error} error - O objeto de erro capturado.
-   * @param {string} [stage='desconhecido'] - O estágio em que a falha ocorreu (ex: 'callback', 'redirect').
+   * @param {string} [stage='desconhecido'] - O estágio em que a falha ocorreu.
    */
   loginFalha: (error: Error, stage: string = 'desconhecido') => {
-    LogProvider.error('Falha no processo de login com Google.', {
-      contexto: CONTEXTO,
+    logger.error(`Falha no processo de login com Google.`, {
       estagio: stage,
       errorMessage: error.message,
       stack: error.stack,
