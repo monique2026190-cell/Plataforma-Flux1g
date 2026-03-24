@@ -1,95 +1,87 @@
 
-import dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
+// --- IMPORTS ---
+// Módulos principais do Node.js
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath as fileURLToPath_log } from 'url';
-
-// --- Início do Código de Log Personalizado ---
-const __filename_log = fileURLToPath_log(import.meta.url);
-const __dirname_log = path.dirname(__filename_log);
-const logDir = path.join(__dirname_log, '..', 'logs');
-
-if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-}
-
-const logFile = fs.createWriteStream(path.join(logDir, 'app.log'), { flags: 'a' });
-
-const originalLog = console.log;
-const originalError = console.error;
-const originalWarn = console.warn;
-const originalInfo = console.info;
-
-const logTimestamp = () => `[${new Date().toISOString()}]`;
-
-console.log = (...args) => {
-    const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-    logFile.write(`${logTimestamp()} [LOG] ${message}\n`);
-    originalLog.apply(console, args);
-};
-
-console.error = (...args) => {
-    const message = args.map(arg => arg instanceof Error ? arg.stack : (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg)).join(' ');
-    logFile.write(`${logTimestamp()} [ERROR] ${message}\n`);
-    originalError.apply(console, args);
-};
-
-console.warn = (...args) => {
-    const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-    logFile.write(`${logTimestamp()} [WARN] ${message}\n`);
-    originalWarn.apply(console, args);
-};
-
-console.info = (...args) => {
-    const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-    logFile.write(`${logTimestamp()} [INFO] ${message}\n`);
-    originalInfo.apply(console, args);
-};
-
-process.on('uncaughtException', (err, origin) => {
-    console.error(`Exceção Não Capturada: ${err.message}`, { stack: err.stack, origin });
-    fs.writeSync(logFile.fd, `${logTimestamp()} [FATAL] Uncaught Exception: ${err.stack}\n`);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Rejeição de Promise Não Tratada:', reason);
-    fs.writeSync(logFile.fd, `${logTimestamp()} [FATAL] Unhandled Rejection: ${reason}\n`);
-});
-
-console.log('--- Sistema de Log em Arquivo Inicializado. Saída será gravada em logs/app.log ---');
-
-// VERIFICAÇÃO DE VARIÁVEIS DE AMBIENTE CRÍTICAS
-if (!process.env.JWT_SECRET) {
-    console.error('ERRO FATAL: A variável de ambiente JWT_SECRET não está definida.');
-    console.error('O servidor não pode iniciar sem esta chave de segurança.');
-    process.exit(1); // Encerra o processo com um código de erro.
-}
-
-import express from 'express';
 import http from 'http';
 import { fileURLToPath } from 'url';
-import { Server } from 'socket.io'; // Importa o Server do socket.io
+
+// Módulos de terceiros
+import dotenv from 'dotenv';
+import express from 'express';
+import { Server } from 'socket.io';
+
+// Módulos internos da aplicação
 import { run as runMigrations } from '../scripts/executar-migracoes.js';
 import { setupMiddlewares } from './config/Sistema.Middleware.js';
 import { db, auditorDoPostgreSQL } from './database/Sistema.Banco.Dados.js';
 import apiRoutes from './RotasBackend/Rotas.js';
-
-// --- [INÍCIO] LÓGICA DE AUDITORIA DE ENDPOINTS ---
 import { extrairTodasAsRotas } from './util/rota-extractor.js';
 import { registrarRotas as registrarRotasDeAuditoria } from './Logs/BK.Log.Supremo.js';
-// --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
+
+// --- CONFIGURAÇÃO INICIAL ---
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PORT = process.env.PORT || 3000;
+
+// --- CONFIGURAÇÃO DO LOGGER GLOBAL ---
+/**
+ * Configura um sistema de log global que escreve a saída do console para um arquivo (logs/app.log)
+ * e trata exceções não capturadas e rejeições de promessas para garantir que nenhum erro passe despercebido.
+ */
+const setupGlobalLogger = () => {
+    const logDir = path.join(__dirname, '..', 'logs');
+    if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+    }
+    const logFile = fs.createWriteStream(path.join(logDir, 'app.log'), { flags: 'a' });
+    const logTimestamp = () => `[${new Date().toISOString()}]`;
+
+    const wrapConsoleMethod = (method, prefix) => {
+        const originalMethod = console[method];
+        console[method] = (...args) => {
+            const message = args.map(arg => {
+                if (arg instanceof Error) return arg.stack;
+                if (typeof arg === 'object' && arg !== null) return JSON.stringify(arg, null, 2);
+                return String(arg);
+            }).join(' ');
+            logFile.write(`${logTimestamp()} [${prefix}] ${message}\n`);
+            originalMethod.apply(console, args);
+        };
+    };
+
+    wrapConsoleMethod('log', 'LOG');
+    wrapConsoleMethod('error', 'ERROR');
+    wrapConsoleMethod('warn', 'WARN');
+    wrapConsoleMethod('info', 'INFO');
+
+    process.on('uncaughtException', (err, origin) => {
+        console.error(`Exceção Não Capturada: ${err.message}`, { stack: err.stack, origin });
+        fs.writeSync(logFile.fd, `${logTimestamp()} [FATAL] Uncaught Exception: ${err.stack}\n`);
+        process.exit(1);
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Rejeição de Promise Não Tratada:', reason);
+        fs.writeSync(logFile.fd, `${logTimestamp()} [FATAL] Unhandled Rejection: ${String(reason)}\n`);
+    });
+
+    console.log('--- Sistema de Log em Arquivo Inicializado ---');
+};
+
+// --- INICIALIZAÇÃO DA APLICAÇÃO CORE ---
+setupGlobalLogger(); // Ativa o logger antes de qualquer outra coisa
+
+// Validação crítica de variáveis de ambiente
+if (!process.env.JWT_SECRET) {
+    console.error('ERRO FATAL: A variável de ambiente JWT_SECRET não está definida. O servidor não pode iniciar.');
+    process.exit(1);
+}
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 const httpServer = http.createServer(app);
-
-// Inicia o Socket.IO
 const io = new Server(httpServer, {
     cors: {
         origin: true,
@@ -99,97 +91,94 @@ const io = new Server(httpServer, {
     }
 });
 
-// Configura os middlewares, agora passando a instância do io
+// --- CONFIGURAÇÃO DE MIDDLEWARES ---
+// Aplica middlewares de segurança, parsing de corpo, CORS, etc.
 setupMiddlewares(app, io);
 
+// --- CONFIGURAÇÃO DE ROTAS ---
+// Rotas da API principal
 app.use('/api', apiRoutes);
 
-// --- [INÍCIO] LÓGICA DE AUDITORIA DE ENDPOINTS ---
-const rotasDoApp = extrairTodasAsRotas(app);
-registrarRotasDeAuditoria(rotasDoApp);
-console.log(`[AUDITORIA] ${rotasDoApp.length} endpoints registrados para auditoria.`);
-// --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
-
+// Servir arquivos estáticos do frontend (pasta 'dist')
 const distPath = path.resolve(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
+// Handler para rotas de API não encontradas (deve vir após as rotas da API)
 app.use('/api', (req, res) => {
-    req.logger.warn('NOT_FOUND', { path: req.path, method: req.method });
-    res.status(404).json({ error: 'Endpoint não encontrado.', traceId: req.traceId });
+    (req.logger || console).warn('NOT_FOUND_API', { path: req.path, method: req.method });
+    res.status(404).json({ error: 'Endpoint da API não encontrado.', traceId: req.traceId });
 });
 
-// --- TRATAMENTO DE ERRO GLOBAL (REVISADO) ---
-app.use((err, req, res, next) => {
-    const logger = req.logger || console;
-    const traceId = req.traceId || 'untraced-error';
-
-    // Garante que o log seja informativo, mesmo que 'err' não seja um objeto Error padrão.
-    let errorInfo = {};
-    if (err instanceof Error) {
-        errorInfo = { message: err.message, stack: err.stack };
-    } else if (typeof err === 'object' && err !== null) {
-        errorInfo = { message: 'Ocorreu um erro com um objeto não-Error.', details: err };
-    } else {
-        errorInfo = { message: 'Ocorreu um erro com um tipo primitivo.', details: err };
-    }
-
-    logger.error('GLOBAL_UNHANDLED_ERROR', {
-        error: errorInfo,
-        path: req.path,
-        method: req.method,
-        traceId: traceId
-    });
-
-    if (res.headersSent) {
-        return next(err); // Se a resposta já foi enviada, passa o erro para o próximo manipulador do Express.
-    }
-
-    // Responde apenas para rotas de API. Outras rotas (como de arquivos estáticos)
-    // podem ter seu próprio tratamento ou deixar o Express lidar com elas.
-    if (req.path.startsWith('/api')) {
-        return res.status(500).json({
-            error: 'Ocorreu um erro inesperado no servidor.',
-            message: errorInfo.message, // Fornece uma mensagem mais específica em desenvolvimento
-            traceId: traceId
-        });
-    }
-
-    // Para erros fora da API, podemos ter uma página de erro genérica ou apenas passar adiante
-    next(err);
-});
-
+// Handler catch-all para servir o `index.html` do frontend (deve ser um dos últimos)
 app.get('*', (req, res) => {
     const indexPath = path.join(distPath, 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
         console.warn('FRONTEND_BUILD_MISSING', { path: req.path });
-        res.status(404).send('Frontend build not found.');
+        res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
     }
 });
 
+// --- AUDITORIA DE ENDPOINTS ---
+// Executa após a configuração de todas as rotas para registrá-las.
+try {
+    const rotasDoApp = extrairTodasAsRotas(app);
+    registrarRotasDeAuditoria(rotasDoApp);
+    console.log(`[AUDITORIA] ${rotasDoApp.length} endpoints registrados para auditoria.`);
+} catch (e) {
+    console.warn("[AUDITORIA] Falha ao registrar rotas para auditoria.", e);
+}
 
+// --- MANIPULADOR DE ERRO GLOBAL ---
+// Este deve ser o último middleware a ser registrado
+app.use((err, req, res, next) => {
+    const logger = req.logger || console;
+    const traceId = req.traceId || 'untraced-error';
+
+    const errorInfo = (err instanceof Error)
+        ? { message: err.message, stack: err.stack }
+        : { message: 'Ocorreu um erro inesperado.', details: err };
+
+    logger.error('GLOBAL_UNHANDLED_ERROR', { 
+        error: errorInfo, 
+        path: req.path, 
+        method: req.method, 
+        traceId 
+    });
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(500).json({
+        error: 'Ocorreu um erro inesperado no servidor.',
+        message: errorInfo.message,
+        traceId: traceId
+    });
+});
+
+// --- INICIALIZAÇÃO DO SERVIDOR ---
 const startApp = async () => {
+    console.log("Iniciando a aplicação...");
     try {
         await runMigrations();
-        console.log('MIGRATION_SUCCESS', { message: 'Migrações do banco de dados aplicadas com sucesso.' });
+        console.log('Migrações do banco de dados aplicadas com sucesso.');
 
         await db.init();
-        console.log('DB_INIT', { message: 'Database system initialized successfully.' });
+        console.log('Sistema de banco de dados inicializado com sucesso.');
 
+        // Inicia o auditor do banco de dados para verificações de rotina
         setTimeout(() => {
             auditorDoPostgreSQL.inspectDatabases();
         }, 5000);
 
         httpServer.listen(PORT, '0.0.0.0', () => {
-            console.log('SERVER_START', { port: PORT, env: process.env.NODE_ENV });
+            console.log(`Servidor iniciado com sucesso na porta ${PORT} no ambiente ${process.env.NODE_ENV || 'development'}.`);
         });
 
     } catch (error) {
-        console.error('APP_STARTUP_FAILURE', {
-            error: { message: error.message, stack: error.stack },
-            reason: 'Falha crítica durante a inicialização da aplicação.'
-        });
+        console.error('Falha crítica durante a inicialização da aplicação.', error);
         process.exit(1);
     }
 };
