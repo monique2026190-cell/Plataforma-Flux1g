@@ -6,6 +6,7 @@ import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
 import { servicoSincronizacao } from './Servico.Sincronizacao';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
+import LogLoginGoogle from '../SistemaObservabilidade/Log.Hook.Login.Google'; // Importe o logger
 
 // Garantir a inicialização dos módulos de log
 if (!LogSupremo.Depuracao) {
@@ -102,15 +103,18 @@ const createAuthService = () => {
                 throw error;
             }
         },
-        async loginWithGoogle(code: string, referredBy?: string) {
-            LogSupremo.Depuracao.log("loginWithGoogle chamado com:", { code, referredBy });
+        async loginWithGoogle(credential: string, referredBy?: string) {
+            LogLoginGoogle.inicioFluxo();
             setState({ loading: true, error: null });
+
             try {
-                const { data } = await authApi.resolverSessaoLogin(code);
-                const { user, isNewUser } = data; // A API retorna se o usuário é novo
+                LogLoginGoogle.callbackRecebido(credential.substring(0, 15) + '...');
+                const { data } = await authApi.resolverSessaoLogin(credential);
+                const { user, isNewUser } = data;
+
+                LogLoginGoogle.loginSucesso(user.id, isNewUser);
                 setState({ user, loading: false, error: null });
 
-                // Redirecionamento condicional para o ambiente de produção
                 if (config.VITE_APP_ENV === 'production') {
                     const targetUrl = isNewUser ? '/completar-perfil' : '/feed';
                     window.location.href = targetUrl;
@@ -118,6 +122,7 @@ const createAuthService = () => {
                 
                 return data;
             } catch (error: any) {
+                LogLoginGoogle.loginFalha(error, 'submissao_login');
                 setState({ user: null, loading: false, error });
                 throw error;
             }
