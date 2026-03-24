@@ -1,11 +1,26 @@
 
 import { config } from '../ValidaçãoDeAmbiente/config';
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo'; // Caminho do log corrigido
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
 import { RegistroUsuarioDTO, LoginUsuarioDTO } from '../../../types/Entrada/Dto.Estrutura.Usuario';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
 import { servicoSincronizacao } from './Servico.Sincronizacao';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
+
+// Garantir a inicialização dos módulos de log
+if (!LogSupremo.Depuracao) {
+    LogSupremo.Depuracao = {
+        log: (message, data) => LogSupremo.log('Depuracao', message, data),
+    };
+}
+
+if (!LogSupremo.Log) {
+    LogSupremo.Log = {
+        info: (message, data) => LogSupremo.log('Info', message, data),
+        error: (message, data) => LogSupremo.log('Error', message, data),
+        warn: (message, data) => LogSupremo.log('Warn', message, data),
+    };
+}
 
 // --- Types & Interfaces ---
 interface User extends Usuario {}
@@ -91,7 +106,6 @@ const createAuthService = () => {
             LogSupremo.Depuracao.log("loginWithGoogle chamado com:", { code, referredBy });
             setState({ loading: true, error: null });
             try {
-                // O método resolverSessaoLogin agora é parte do authApi
                 const { data } = await authApi.resolverSessaoLogin(code);
                 const { user } = data;
                 setState({ user, loading: false, error: null });
@@ -104,7 +118,6 @@ const createAuthService = () => {
         async logout() {
             setState({ loading: true, error: null });
             try {
-                // Lógica de logout aqui, se necessário (ex: chamar um endpoint de logout)
                 localStorage.removeItem('userToken');
                 localStorage.removeItem('user');
                 setState({ user: null, loading: false });
@@ -131,7 +144,6 @@ const createAuthService = () => {
     return service;
 };
 
-// --- Singleton Export ---
 const SistemaAutenticacaoSupremo = createAuthService();
 
 LogSupremo.Log.info(`[AuthService] Sistema de Autenticação (full-cycle) inicializado em modo: ${config.VITE_APP_ENV}`);

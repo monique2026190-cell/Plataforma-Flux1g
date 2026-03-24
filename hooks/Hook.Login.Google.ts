@@ -5,6 +5,17 @@ import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutentica
 import { trackingService } from '../ServiçosFrontend/ServiçoDeRastreamento/ServiçoDeRastreamento.js';
 import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
 
+// Garantir que o objeto de log para Hook.Login.Google exista.
+if (!LogSupremo.Hook.LoginGoogle) {
+    LogSupremo.Hook.LoginGoogle = {
+        log: (estagio, dados) => LogSupremo.log('Hook.Login.Google', estagio, dados),
+        inicioFluxo: () => LogSupremo.Hook.LoginGoogle.log('inicio_fluxo', {}),
+        callbackRecebido: (credencial) => LogSupremo.Hook.LoginGoogle.log('callback_recebido', { credencial }),
+        loginSucesso: (usuarioId, isNewUser) => LogSupremo.Hook.LoginGoogle.log('login_sucesso', { usuarioId, isNewUser }),
+        loginFalha: (erro, estagio) => LogSupremo.Hook.LoginGoogle.log('login_falha', { erro: erro.message, estagio }),
+    };
+}
+
 export const useGoogleLogin = () => {
     const location = useLocation();
     const [processando, setProcessando] = useState(false);
