@@ -1,8 +1,6 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { trackingService } from '../ServiçosFrontend/ServiçoDeRastreamento/ServiçoDeRastreamento.js';
 import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
 
 // Garantir que o objeto de log para Hook.Login.Google exista.
@@ -17,18 +15,8 @@ if (!LogSupremo.Hook.LoginGoogle) {
 }
 
 export const useGoogleLogin = () => {
-    const location = useLocation();
     const [processando, setProcessando] = useState(false);
     const [erro, setErro] = useState<any>(null);
-
-    useEffect(() => {
-        try {
-            trackingService.captureUrlParams();
-        } catch (error: any) {
-            // Usando o logger de falhas do próprio hook para consistência
-            LogSupremo.Hook.LoginGoogle.loginFalha(error, 'captura_parametros_url');
-        }
-    }, [location]);
 
     const submeterLoginGoogle = useCallback(async (credentialResponse: any) => {
         LogSupremo.Hook.LoginGoogle.inicioFluxo();
@@ -45,9 +33,7 @@ export const useGoogleLogin = () => {
         setErro(null);
 
         try {
-            const referredBy = trackingService.getAffiliateRef() || undefined;
-            // Supondo que o serviço de autenticação retorne o usuário e se ele é novo
-            const { user, isNewUser } = await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, referredBy);
+            const { user, isNewUser } = await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, undefined);
             
             LogSupremo.Hook.LoginGoogle.loginSucesso(user.id, isNewUser);
 

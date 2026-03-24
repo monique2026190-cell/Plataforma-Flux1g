@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo'; 
-import { trackingService } from '../ServiçosFrontend/ServiçoDeRastreamento/ServiçoDeRastreamento.js';
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo'; // Importa o logger supremo
 
@@ -16,15 +15,6 @@ export const useLoginEmailSenha = () => {
 
     const [email, definirEmail] = useState('');
     const [senha, definirSenha] = useState('');
-
-    // Captura parâmetros de URL para tracking de afiliados
-    useEffect(() => {
-        try {
-            trackingService.captureUrlParams();
-        } catch (error) {
-            console.error("Falha ao capturar parâmetros de URL para rastreamento:", error);
-        }
-    }, [location]);
 
     const handleRedirect = useCallback((user: Usuario) => {
         setProcessando(false);
