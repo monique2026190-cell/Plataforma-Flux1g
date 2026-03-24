@@ -12,10 +12,10 @@ import express from 'express';
 import { Server } from 'socket.io';
 
 // Módulos internos da aplicação
-import { run as runMigrations } from '../scripts/executar-migracoes.js';
-import { setupMiddlewares } from './config/Sistema.Middleware.js';
-import { db, auditorDoPostgreSQL } from './database/Sistema.Banco.Dados.js';
-import apiRoutes from './RotasBackend/Rotas.js';
+import { run as runMigrations } from './scripts/executar-migracoes.js';
+import { setupMiddlewares } from './backend/config/Sistema.Middleware.js';
+import { db, auditorDoPostgreSQL } from './backend/database/Sistema.Banco.Dados.js';
+import apiRoutes from './backend/RotasBackend/Rotas.js';
 
 // --- CONFIGURAÇÃO INICIAL ---
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 
 // --- CONFIGURAÇÃO DO LOGGER GLOBAL ---
 const setupGlobalLogger = () => {
-    const logDir = path.join(__dirname, '..', 'logs');
+    const logDir = path.join(__dirname, 'logs');
     if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });
     }

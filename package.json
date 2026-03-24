@@ -3,12 +3,12 @@
   "private": true,
   "version": "1.2.3",
   "type": "module",
-  "main": "backend/server.js",
+  "main": "server.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:prod": "npm run clean && vite build",
-    "start": "node --import=dotenv/config backend/server.js",
+    "start": "node --import=dotenv/config server.js",
     "clean": "rm -rf dist node_modules",
     "migrate": "node scripts/executar-migracoes.js"
   },
