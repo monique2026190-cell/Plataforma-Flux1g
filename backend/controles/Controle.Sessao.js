@@ -6,7 +6,6 @@ import ServicoResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 import validadorSessao from '../validators/Validator.Estrutura.Sessao.js';
 import variaveis from '../config/Variaveis.Backend.js';
-import * as Log from '../Logs/BK.Log.Supremo.js';
 
 const oAuth2Client = new OAuth2Client(
   variaveis.google.clientId,
@@ -19,7 +18,7 @@ const registrar = async (req, res) => {
 
     try {
         const dadosUsuarioValidados = validadorUsuario.validarRegistro(req.body);
-        Log.controller.info('Iniciando registro de usuário', { event: 'INICIANDO_REGISTRO', email: dadosUsuarioValidados.email });
+        console.log('Iniciando registro de usuário', { event: 'INICIANDO_REGISTRO', email: dadosUsuarioValidados.email });
 
         const usuario = await servicoUsuario.registrarNovoUsuario(dadosUsuarioValidados);
 
@@ -29,11 +28,11 @@ const registrar = async (req, res) => {
 
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
-        Log.controller.info('Registro de usuário bem-sucedido', { event: 'REGISTRO_SUCESSO', userId: usuario.id });
+        console.log('Registro de usuário bem-sucedido', { event: 'REGISTRO_SUCESSO', userId: usuario.id });
         return ServicoResposta.sucesso(res, { token, user: usuario.paraRespostaHttp() }, 201);
 
     } catch (error) {
-        Log.controller.error('Falha no registro de usuário', { event: 'FALHA_REGISTRO', email: req.body.email, errorMessage: error.message });
+        console.error('Falha no registro de usuário', { event: 'FALHA_REGISTRO', email: req.body.email, errorMessage: error.message });
         if (error.message.includes('está em uso')) {
             return ServicoResposta.conflito(res, error.message);
         }
@@ -46,7 +45,7 @@ const login = async (req, res) => {
 
     try {
         const dadosLoginValidados = validadorUsuario.validarLogin(req.body);
-        Log.controller.info('Iniciando login de usuário', { event: 'INICIANDO_LOGIN', email: dadosLoginValidados.email });
+        console.log('Iniciando login de usuário', { event: 'INICIANDO_LOGIN', email: dadosLoginValidados.email });
 
         const usuario = await servicoUsuario.autenticarUsuarioPorCredenciais(dadosLoginValidados);
 
@@ -56,11 +55,11 @@ const login = async (req, res) => {
 
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
-        Log.controller.info('Login de usuário bem-sucedido', { event: 'LOGIN_SUCESSO', userId: usuario.id });
+        console.log('Login de usuário bem-sucedido', { event: 'LOGIN_SUCESSO', userId: usuario.id });
         return ServicoResposta.sucesso(res, { token, user: usuario.paraRespostaHttp() });
 
     } catch (error) {
-        Log.controller.error('Falha no login de usuário', { event: 'FALHA_LOGIN', email: req.body.email, errorMessage: error.message });
+        console.error('Falha no login de usuário', { event: 'FALHA_LOGIN', email: req.body.email, errorMessage: error.message });
         if (error.message.includes('Credenciais inválidas')) {
             return ServicoResposta.nãoAutorizado(res, error.message);
         }
@@ -77,12 +76,12 @@ const googleAuth = async (req, res) => {
     }
 
     try {
-        Log.controller.info('Iniciando autenticação com Google', { event: 'INICIANDO_GOOGLE_AUTH' });
+        console.log('Iniciando autenticação com Google', { event: 'INICIANDO_GOOGLE_AUTH' });
         
         const { tokens } = await oAuth2Client.getToken(code);
         
         if (!tokens.id_token) {
-            Log.controller.error('ID token do Google não obtido', { event: 'GOOGLE_AUTH_NO_ID_TOKEN' });
+            console.error('ID token do Google não obtido', { event: 'GOOGLE_AUTH_NO_ID_TOKEN' });
             return ServicoResposta.erro(res, "Falha ao obter o ID token do Google.");
         }
 
@@ -112,7 +111,7 @@ const googleAuth = async (req, res) => {
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
-        Log.controller.info('Autenticação com Google bem-sucedida', { event: 'GOOGLE_AUTH_SUCESSO', userId: usuario.id });
+        console.log('Autenticação com Google bem-sucedida', { event: 'GOOGLE_AUTH_SUCESSO', userId: usuario.id });
         return ServicoResposta.sucesso(res, { 
             token, 
             user: usuario.paraRespostaHttp(),
@@ -120,7 +119,7 @@ const googleAuth = async (req, res) => {
         });
 
     } catch (error) {
-        Log.controller.error('Falha na autenticação com Google', { event: 'FALHA_GOOGLE_AUTH', errorMessage: error.message, error });
+        console.error('Falha na autenticação com Google', { event: 'FALHA_GOOGLE_AUTH', errorMessage: error.message, error });
         if (error.message.includes('Faça login com sua senha')) {
             return ServicoResposta.conflito(res, error.message);
         }
@@ -135,11 +134,11 @@ const logout = async (req, res) => {
             return ServicoResposta.nãoAutorizado(res, 'Token não fornecido');
         }
         await servicoSessao.encerrarSessao(token);
-        Log.controller.info('Logout bem-sucedido', { event: 'LOGOUT_SUCESSO' });
+        console.log('Logout bem-sucedido', { event: 'LOGOUT_SUCESSO' });
         return ServicoResposta.sucesso(res, { message: 'Logout bem-sucedido' });
 
     } catch (error) {
-        Log.controller.error('Falha no logout', { event: 'FALHA_LOGOUT', errorMessage: error.message });
+        console.error('Falha no logout', { event: 'FALHA_LOGOUT', errorMessage: error.message });
         return ServicoResposta.erro(res, 'Falha ao fazer logout');
     }
 };

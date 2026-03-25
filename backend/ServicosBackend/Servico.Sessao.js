@@ -4,7 +4,6 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import repositorioSessao from '../Repositorios/Repositorio.Sessao.js';
-import * as Log from '../Logs/BK.Log.Supremo.js';
 import Sessao from '../models/Models.Estrutura.Sessao.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_segredo_jwt_super_secreto';
@@ -19,7 +18,7 @@ const prepararNovaSessao = async (data) => {
         throw new Error('Dados de usuário inválidos para criar sessão.');
     }
 
-    Log.service.info('Preparando nova sessão', { event: 'SESSION_PREPARE_START', userId: usuario.id });
+    console.log('Preparando nova sessão', { event: 'SESSION_PREPARE_START', userId: usuario.id });
 
     const payload = { user: usuario.paraRespostaHttp() };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
@@ -38,7 +37,7 @@ const prepararNovaSessao = async (data) => {
  * Salva os dados de uma sessão validada no repositório.
  */
 const salvarSessao = async (dadosSessaoValidados) => {
-    Log.service.info('Salvando sessão', { event: 'SESSION_SAVE_START', userId: dadosSessaoValidados.idUsuario });
+    console.log('Salvando sessão', { event: 'SESSION_SAVE_START', userId: dadosSessaoValidados.idUsuario });
     
     const novaSessao = new Sessao({
         id: uuidv4(),
@@ -47,7 +46,7 @@ const salvarSessao = async (dadosSessaoValidados) => {
     });
 
     await repositorioSessao.criar(novaSessao.paraBancoDeDados());
-    Log.service.info('Sessão salva com sucesso', { event: 'SESSION_SAVE_SUCCESS', userId: dadosSessaoValidados.idUsuario });
+    console.log('Sessão salva com sucesso', { event: 'SESSION_SAVE_SUCCESS', userId: dadosSessaoValidados.idUsuario });
 };
 
 
@@ -55,11 +54,11 @@ const salvarSessao = async (dadosSessaoValidados) => {
  * Invalida um token de sessão (logout).
  */
 const encerrarSessao = async (token) => {
-    Log.service.info("Iniciando processo de logout.", { event: 'SESSION_END_START' });
+    console.log("Iniciando processo de logout.", { event: 'SESSION_END_START' });
 
     await repositorioSessao.invalidar(token);
 
-    Log.service.info("Sessão invalidada com sucesso.", { event: 'SESSION_END_SUCCESS' });
+    console.log("Sessão invalidada com sucesso.", { event: 'SESSION_END_SUCCESS' });
     return { message: "Logout bem-sucedido" };
 };
 

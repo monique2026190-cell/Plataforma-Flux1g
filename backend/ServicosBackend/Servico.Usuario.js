@@ -3,14 +3,13 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import * as Log from '../Logs/BK.Log.Supremo.js';
 import Usuario from '../models/Models.Estrutura.Usuario.js';
 import repositorioUsuario from '../Repositorios/Repositorio.Usuario.js';
 
 const registrarNovoUsuario = async (dadosUsuario) => {
     const { nome, email, senha } = dadosUsuario;
     
-    Log.service.info('Iniciando registro de novo usuário', { event: 'REGISTRATION_START', email });
+    console.log('Iniciando registro de novo usuário', { event: 'REGISTRATION_START', email });
 
     const usuarioExistente = await repositorioUsuario.encontrarPorEmail(email);
     if (usuarioExistente) {
@@ -28,7 +27,7 @@ const registrarNovoUsuario = async (dadosUsuario) => {
     await novoUsuario.criptografarSenha();
 
     const usuarioDb = await repositorioUsuario.criar(novoUsuario.paraBancoDeDados());
-    Log.service.info('Usuário registrado com sucesso', { event: 'REGISTRATION_SUCCESS', userId: usuarioDb.id, email });
+    console.log('Usuário registrado com sucesso', { event: 'REGISTRATION_SUCCESS', userId: usuarioDb.id, email });
 
     return Usuario.deBancoDeDados(usuarioDb);
 };
@@ -36,7 +35,7 @@ const registrarNovoUsuario = async (dadosUsuario) => {
 const autenticarUsuarioPorCredenciais = async (credenciais) => {
     const { email, senha } = credenciais;
     
-    Log.service.info('Iniciando autenticação por credenciais', { event: 'AUTH_CREDENTIALS_START', email });
+    console.log('Iniciando autenticação por credenciais', { event: 'AUTH_CREDENTIALS_START', email });
 
     const usuarioDb = await repositorioUsuario.encontrarPorEmail(email);
     if (!usuarioDb || !usuarioDb.password_hash) {
@@ -48,14 +47,14 @@ const autenticarUsuarioPorCredenciais = async (credenciais) => {
         throw new Error('Credenciais inválidas.');
     }
 
-    Log.service.info('Usuário autenticado com sucesso', { event: 'AUTH_CREDENTIALS_SUCCESS', email, userId: usuarioDb.id });
+    console.log('Usuário autenticado com sucesso', { event: 'AUTH_CREDENTIALS_SUCCESS', email, userId: usuarioDb.id });
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
 const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
     const { nome, email, google_id } = dadosGoogle;
     
-    Log.service.info('Iniciando autenticação ou criação por Google', { event: 'AUTH_GOOGLE_START', email });
+    console.log('Iniciando autenticação ou criação por Google', { event: 'AUTH_GOOGLE_START', email });
 
     let usuarioDb = await repositorioUsuario.encontrarPorGoogleId(google_id);
     let isNewUser = false;
@@ -77,7 +76,7 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
         });
         
         usuarioDb = await repositorioUsuario.criar(novoUsuario.paraBancoDeDados());
-        Log.service.info('Novo usuário criado via Google', { event: 'AUTH_GOOGLE_NEW_USER', userId: usuarioDb.id, email });
+        console.log('Novo usuário criado via Google', { event: 'AUTH_GOOGLE_NEW_USER', userId: usuarioDb.id, email });
     }
 
     return {
@@ -87,7 +86,7 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
 };
 
 const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
-    Log.service.info('Iniciando atualização de perfil de usuário', { event: 'PROFILE_UPDATE_START', userId: idUsuario });
+    console.log('Iniciando atualização de perfil de usuário', { event: 'PROFILE_UPDATE_START', userId: idUsuario });
 
     const usuarioExistente = await repositorioUsuario.encontrarPorId(idUsuario);
     if (!usuarioExistente) {
@@ -104,13 +103,13 @@ const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
 
     const usuarioAtualizadoDb = await repositorioUsuario.atualizar(idUsuario, dadosParaAtualizar);
     
-    Log.service.info('Perfil de usuário atualizado com sucesso', { event: 'PROFILE_UPDATE_SUCCESS', userId: idUsuario });
+    console.log('Perfil de usuário atualizado com sucesso', { event: 'PROFILE_UPDATE_SUCCESS', userId: idUsuario });
 
     return Usuario.deBancoDeDados(usuarioAtualizadoDb);
 };
 
 const encontrarUsuarioPorId = async (id) => {
-    Log.service.info('Buscando usuário por ID', { event: 'FIND_USER_BY_ID', userId: id });
+    console.log('Buscando usuário por ID', { event: 'FIND_USER_BY_ID', userId: id });
     const usuarioDb = await repositorioUsuario.encontrarPorId(id);
     if (!usuarioDb) {
         return null;

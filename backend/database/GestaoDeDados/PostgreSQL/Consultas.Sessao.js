@@ -1,6 +1,5 @@
 
 import pool from '../../pool.js';
-import * as Log from '../../../Logs/BK.Log.Supremo.js';
 
 const criar = async (dadosSessao) => {
     const { id, user_id, token, expires_at, user_agent, ip_address, created_at } = dadosSessao;
@@ -13,10 +12,10 @@ const criar = async (dadosSessao) => {
 
     try {
         const resultado = await pool.query(query, params);
-        Log.database.info(`Sessão criada para o usuário ${user_id}`, { event: 'DB_CREATE_SESSION_SUCCESS' });
+        console.log(`Sessão criada para o usuário ${user_id}`, { event: 'DB_CREATE_SESSION_SUCCESS' });
         return resultado.rows[0];
     } catch (error) {
-        Log.database.error('Erro ao criar sessão no banco de dados', {
+        console.error('Erro ao criar sessão no banco de dados', {
             event: 'DB_CREATE_SESSION_ERROR',
             errorMessage: error.message,
             stack: error.stack,
@@ -33,7 +32,7 @@ const encontrarPorToken = async (token) => {
         const resultado = await pool.query(query, [token]);
         return resultado.rows[0];
     } catch (error) {
-        Log.database.error('Erro ao buscar sessão por token', {
+        console.error('Erro ao buscar sessão por token', {
             event: 'DB_FIND_SESSION_BY_TOKEN_ERROR',
             errorMessage: error.message,
             stack: error.stack
@@ -47,10 +46,10 @@ const deletarPorToken = async (token) => {
 
     try {
         const resultado = await pool.query(query, [token]);
-        Log.database.info(`Sessão com token ${token} deletada.`, { event: 'DB_DELETE_SESSION_SUCCESS' });
+        console.log(`Sessão com token ${token} deletada.`, { event: 'DB_DELETE_SESSION_SUCCESS' });
         return resultado.rows[0];
     } catch (error) {
-        Log.database.error('Erro ao deletar sessão por token', {
+        console.error('Erro ao deletar sessão por token', {
             event: 'DB_DELETE_SESSION_ERROR',
             errorMessage: error.message,
             stack: error.stack

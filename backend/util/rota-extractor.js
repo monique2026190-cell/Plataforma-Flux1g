@@ -1,5 +1,3 @@
-import { registrarRotas as registrarRotasDeAuditoria } from '../Logs/BK.Log.Supremo.js';
-
 const extrairCaminhoCompleto = (rota) => {
   let caminho = '/';
   let no = rota;
