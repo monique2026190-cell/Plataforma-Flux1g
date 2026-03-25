@@ -25,15 +25,21 @@ class ServicoEmailSenhaAuthReal implements IServicoEmailSenhaAuth {
 
 // --- Simulated Implementation ---
 class ServicoEmailSenhaAuthSimulado implements IServicoEmailSenhaAuth {
-    async autenticar(dadosLogin: LoginDto): Promise<{ token: string; user: Usuario | null }> {
+    async autenticar(dadosLogin: LoginDto): Promise<{ token: string; user: any | null }> {
         console.log("Simulated Email/Senha Auth: Iniciando autenticação...");
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const user = await servicoGestaoPerfil.getOwnProfile();
         
+        // Adicionar uma senha simulada ao objeto de usuário
+        const userComSenha = {
+            ...user,
+            password: 'password_simulada'
+        };
+
         const simulatedResponse = {
             token: 'simulated-email-jwt-token',
-            user: user as Usuario
+            user: userComSenha
         };
 
         console.log("Simulated Email/Senha Auth: Autenticação bem-sucedida.");

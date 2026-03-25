@@ -4,9 +4,10 @@ import { Usuario } from "../../../types/Saida/Types.Estrutura.Usuario";
 // --- ESTADO DA SIMULAÇÃO ---
 
 // Mock para o perfil do usuário "próprio" (logado)
-const mockOwnProfile: Usuario = {
+const mockOwnProfile: any = {
     id: 'uuid-proprio-simulado-123',
     email: 'proprio@email.simulado.com',
+    password: 'password_simulada',
     nome: 'Usuario Proprio Simulado',
     apelido: 'proprio_simulado',
     urlFoto: 'https://i.pravatar.cc/150?u=proprio',
