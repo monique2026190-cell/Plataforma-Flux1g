@@ -71,7 +71,6 @@ const googleAuth = async (req, res, next) => {
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
     
     try {
-        // O frontend envia o ID Token do Google diretamente.
         const { token: idToken } = req.body;
         if (!idToken) {
             return ServicoResposta.requisicaoInvalida(res, "O token de ID do Google é obrigatório.");
@@ -79,13 +78,16 @@ const googleAuth = async (req, res, next) => {
 
         console.log('Iniciando autenticação com Google via ID Token', { event: 'INICIANDO_GOOGLE_AUTH_ID_TOKEN' });
         
-        // Verifica o ID Token recebido do frontend.
         const loginTicket = await oAuth2Client.verifyIdToken({
             idToken: idToken,
             audience: variaveis.google.clientId,
         });
 
         const payload = loginTicket.getPayload();
+        
+        // Log detalhado do payload recebido do Google
+        console.log('Payload recebido do Google:', payload);
+
         if (!payload) {
             throw new Error('Não foi possível obter os dados do usuário do Google.');
         }
@@ -97,12 +99,13 @@ const googleAuth = async (req, res, next) => {
             foto: payload.picture,
         };
 
+        // Log dos dados que serão enviados para validação
+        console.log('Dados mapeados para validação:', dadosGoogle);
+
         const dadosGoogleValidados = validadorUsuario.validarGoogleAuth(dadosGoogle);
 
-        // Cria ou autentica o usuário com base nos dados do Google.
         const { usuario, isNewUser } = await servicoUsuario.autenticarOuCriarPorGoogle(dadosGoogleValidados);
 
-        // Prepara uma nova sessão para o usuário.
         const { token: sessionToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
 
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
@@ -110,7 +113,6 @@ const googleAuth = async (req, res, next) => {
 
         console.log('Autenticação com Google bem-sucedida', { event: 'GOOGLE_AUTH_SUCESSO', userId: usuario.id });
         
-        // Retorna o token da nossa sessão, os dados do usuário e se é um novo usuário.
         return ServicoResposta.sucesso(res, { 
             token: sessionToken, 
             user: usuario.paraRespostaHttp(),
