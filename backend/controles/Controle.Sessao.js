@@ -13,7 +13,7 @@ const oAuth2Client = new OAuth2Client(
   variaveis.google.redirectUri
 );
 
-const registrar = async (req, res) => {
+const registrar = async (req, res, next) => {
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
 
     try {
@@ -29,18 +29,18 @@ const registrar = async (req, res) => {
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
         console.log('Registro de usuário bem-sucedido', { event: 'REGISTRO_SUCESSO', userId: usuario.id });
-        return ServicoResposta.sucesso(res, { token, user: usuario.paraRespostaHttp() }, 201);
+        return ServicoResposta.criado(res, { token, user: usuario.paraRespostaHttp() });
 
     } catch (error) {
         console.error('Falha no registro de usuário', { event: 'FALHA_REGISTRO', email: req.body.email, errorMessage: error.message });
         if (error.message.includes('está em uso')) {
-            return ServicoResposta.conflito(res, error.message);
+            return ServicoResposta.requisicaoInvalida(res, error.message);
         }
-        return ServicoResposta.requisiçãoInválida(res, error.message);
+        next(error);
     }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
 
     try {
@@ -61,21 +61,21 @@ const login = async (req, res) => {
     } catch (error) {
         console.error('Falha no login de usuário', { event: 'FALHA_LOGIN', email: req.body.email, errorMessage: error.message });
         if (error.message.includes('Credenciais inválidas')) {
-            return ServicoResposta.nãoAutorizado(res, error.message);
+            return ServicoResposta.naoAutorizado(res, error.message);
         }
-        return ServicoResposta.requisiçãoInválida(res, error.message);
+        next(error);
     }
 };
 
-const googleAuth = async (req, res) => {
+const googleAuth = async (req, res, next) => {
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
-    const { code } = req.body;
-
-    if (!code) {
-        return ServicoResposta.requisiçãoInválida(res, "O código de autorização do Google é obrigatório.");
-    }
-
+    
     try {
+        const { code } = req.body;
+        if (!code) {
+            return ServicoResposta.requisicaoInvalida(res, "O código de autorização do Google é obrigatório.");
+        }
+
         console.log('Iniciando autenticação com Google', { event: 'INICIANDO_GOOGLE_AUTH' });
         
         const { tokens } = await oAuth2Client.getToken(code);
@@ -121,17 +121,17 @@ const googleAuth = async (req, res) => {
     } catch (error) {
         console.error('Falha na autenticação com Google', { event: 'FALHA_GOOGLE_AUTH', errorMessage: error.message, error });
         if (error.message.includes('Faça login com sua senha')) {
-            return ServicoResposta.conflito(res, error.message);
+            return ServicoResposta.requisicaoInvalida(res, error.message);
         }
-        return ServicoResposta.erro(res, `Erro no servidor durante a autenticação com Google: ${error.message}`);
+        next(error);
     }
 };
 
-const logout = async (req, res) => {
+const logout = async (req, res, next) => {
     try {
         const token = req.headers['authorization']?.split(' ')[1];
         if (!token) {
-            return ServicoResposta.nãoAutorizado(res, 'Token não fornecido');
+            return ServicoResposta.naoAutorizado(res, 'Token não fornecido');
         }
         await servicoSessao.encerrarSessao(token);
         console.log('Logout bem-sucedido', { event: 'LOGOUT_SUCESSO' });
@@ -139,7 +139,7 @@ const logout = async (req, res) => {
 
     } catch (error) {
         console.error('Falha no logout', { event: 'FALHA_LOGOUT', errorMessage: error.message });
-        return ServicoResposta.erro(res, 'Falha ao fazer logout');
+        next(error);
     }
 };
 

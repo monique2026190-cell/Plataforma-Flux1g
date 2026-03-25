@@ -12,10 +12,10 @@ if (config.stripeSecretKey) {
     console.warn('Stripe Connect não configurado', { event: 'STRIPE_CONNECT_NOT_CONFIGURED' });
 }
 
-const createAccountLink = async (req, res) => {
+const createAccountLink = async (req, res, next) => {
     if (!stripe) {
         console.error('Stripe Connect não está disponível', { event: 'STRIPE_CONNECT_UNAVAILABLE', errorMessage: 'Stripe not configured' });
-        return ServicoHTTPResposta.erro(res, "O sistema de pagamentos não está configurado. Contate o suporte.", 503);
+        return ServicoHTTPResposta.servicoIndisponivel(res, "O sistema de pagamentos não está configurado. Contate o suporte.");
     }
 
     const { accountId, refresh_url, return_url } = req.body;
@@ -33,14 +33,14 @@ const createAccountLink = async (req, res) => {
         return ServicoHTTPResposta.sucesso(res, { url: accountLink.url });
     } catch (error) {
         console.error('Falha ao criar link de conta Stripe', { event: 'STRIPE_CREATE_ACCOUNT_LINK_ERROR', errorMessage: error.message, accountId });
-        return ServicoHTTPResposta.erro(res, 'Falha ao criar link de conta Stripe.', 400, error.message);
+        next(error);
     }
 };
 
-const getAccountDetails = async (req, res) => {
+const getAccountDetails = async (req, res, next) => {
     if (!stripe) {
         console.error('Stripe Connect não está disponível', { event: 'STRIPE_CONNECT_UNAVAILABLE', errorMessage: 'Stripe not configured' });
-        return ServicoHTTPResposta.erro(res, "O sistema de pagamentos não está configurado. Contate o suporte.", 503);
+        return ServicoHTTPResposta.servicoIndisponivel(res, "O sistema de pagamentos não está configurado. Contate o suporte.");
     }
 
     const { accountId } = req.params;
@@ -52,17 +52,17 @@ const getAccountDetails = async (req, res) => {
         return ServicoHTTPResposta.sucesso(res, account);
     } catch (error) {
         console.error('Falha ao obter detalhes da conta Stripe', { event: 'STRIPE_GET_ACCOUNT_DETAILS_ERROR', errorMessage: error.message, accountId });
-        return ServicoHTTPResposta.erro(res, 'Falha ao obter detalhes da conta Stripe.', 400, error.message);
+        next(error);
     }
 };
 
-const disconnectAccount = (req, res) => {
+const disconnectAccount = (req, res, next) => {
     const { accountId } = req.body;
     console.warn('Solicitação de desconexão de conta Stripe recebida', { event: 'STRIPE_DISCONNECT_ACCOUNT_REQUESTED', accountId });
 
     if (!stripe) {
         console.error('Stripe Connect não está disponível', { event: 'STRIPE_CONNECT_UNAVAILABLE', errorMessage: 'Stripe not configured' });
-        return ServicoHTTPResposta.erro(res, "O sistema de pagamentos não está configurado. Contate o suporte.", 503);
+        return ServicoHTTPResposta.servicoIndisponivel(res, "O sistema de pagamentos não está configurado. Contate o suporte.");
     }
     
     console.log('Implementação de desconexão da conta Stripe pendente', { event: 'STRIPE_DISCONNECT_ACCOUNT_IMPLEMENTATION_PENDING', accountId });

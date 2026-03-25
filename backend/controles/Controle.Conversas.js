@@ -2,7 +2,7 @@
 import servicoConversas from '../ServicosBackend/Servico.Conversas.js';
 import ServicoRespostaHTTP from '../ServicosBackend/Servico.HTTP.Resposta.js';
 
-const obterConversas = async (req, res) => {
+const obterConversas = async (req, res, next) => {
     const userId = req.user.id;
     console.log('Buscando conversas do usuário', { event: 'CONVERSAS_GET_START', userId });
 
@@ -14,8 +14,7 @@ const obterConversas = async (req, res) => {
         return ServicoRespostaHTTP.sucesso(res, conversas, "Conversas obtidas com sucesso");
     } catch (error) {
         console.error('Erro ao buscar conversas do usuário', { event: 'CONVERSAS_GET_ERROR', errorMessage: error.message, userId });
-
-        return ServicoRespostaHTTP.erro(res, 'Falha ao obter conversas.', 500, error.message);
+        next(error);
     }
 };
 

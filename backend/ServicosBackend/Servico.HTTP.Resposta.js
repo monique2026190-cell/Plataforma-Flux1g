@@ -16,6 +16,13 @@ class ServicoRespostaHTTP {
     });
   }
 
+  static requisicaoInvalida(res, mensagem = "Requisição inválida") {
+    return res.status(400).json({
+      sucesso: false,
+      mensagem
+    });
+  }
+
   static erro(res, mensagem = "Erro interno") {
     return res.status(500).json({
       sucesso: false,

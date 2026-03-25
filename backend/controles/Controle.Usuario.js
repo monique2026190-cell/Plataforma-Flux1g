@@ -4,7 +4,7 @@ import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import ServicoResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 
-const atualizarPerfil = async (req, res) => {
+const atualizarPerfil = async (req, res, next) => {
     const idUsuario = req.user.id;
 
     try {
@@ -19,11 +19,11 @@ const atualizarPerfil = async (req, res) => {
 
     } catch (error) {
         console.error('Falha na atualização de perfil', { event: 'FALHA_ATUALIZACAO_PERFIL', userId: idUsuario, errorMessage: error.message });
-        return ServicoResposta.requisiçãoInválida(res, error.message);
+        next(error);
     }
 };
 
-const obterPerfil = async (req, res) => {
+const obterPerfil = async (req, res, next) => {
     const idUsuario = req.params.id;
 
     try {
@@ -32,14 +32,14 @@ const obterPerfil = async (req, res) => {
         const usuario = await servicoUsuario.encontrarUsuarioPorId(idUsuario);
 
         if (!usuario) {
-            return ServicoResposta.nãoEncontrado(res, "Usuário não encontrado");
+            return ServicoResposta.naoEncontrado(res, "Usuário não encontrado");
         }
 
         return ServicoResposta.sucesso(res, { user: usuario.paraRespostaHttp() });
 
     } catch (error) {
         console.error('Falha ao buscar perfil', { event: 'FALHA_BUSCAR_PERFIL', userId: idUsuario, errorMessage: error.message });
-        return ServicoResposta.erro(res, "Falha ao buscar perfil do usuário");
+        next(error);
     }
 }
 
