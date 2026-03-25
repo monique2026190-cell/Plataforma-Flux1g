@@ -10,6 +10,7 @@ import { setupErrorHandlers } from './backend/config/Processo.ErrorHandler.js';
 import { configureExpress } from './backend/config/Processo.Express.js';
 import { configureSocket } from './backend/config/Processo.Socket.js';
 import { initializeDatabase } from './backend/database/Database.Init.js';
+import logger from './backend/config/logger.js';
 
 // --- CONFIGURAÇÃO INICIAL ---
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -20,20 +21,10 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 
 // --- INICIALIZAÇÃO DA APLICAÇÃO CORE ---
-console.info({
-    camada: 'Backend',
-    componente: 'Core',
-    arquivo: 'server.js',
-    mensagem: '--- Inicializando o Servidor ---'
-});
+logger.info('--- Inicializando o Servidor ---');
 
 if (!process.env.JWT_SECRET) {
-    console.error({
-        camada: 'Backend',
-        componente: 'Configuração',
-        arquivo: 'server.js',
-        mensagem: 'ERRO FATAL: A variável de ambiente JWT_SECRET não está definida. O servidor não pode iniciar.'
-    });
+    logger.error('ERRO FATAL: A variável de ambiente JWT_SECRET não está definida. O servidor não pode iniciar.');
     process.exit(1);
 }
 
@@ -45,33 +36,16 @@ configureExpress(app, io);
 
 // --- INICIALIZAÇÃO DO SERVIDOR ---
 const startApp = async () => {
-    console.info({ 
-        camada: 'Backend', 
-        componente: 'Core', 
-        arquivo: 'server.js', 
-        mensagem: "Iniciando a aplicação..."
-    });
+    logger.info("Iniciando a aplicação...");
     try {
         await initializeDatabase();
 
         httpServer.listen(PORT, '0.0.0.0', () => {
-            console.log({
-                camada: 'Backend',
-                componente: 'Core',
-                arquivo: 'server.js',
-                mensagem: `Servidor iniciado com sucesso na porta ${PORT}`,
-                dados: { ambiente: process.env.NODE_ENV || 'development' }
-            });
+            logger.info(`Servidor iniciado com sucesso na porta ${PORT}`);
         });
 
     } catch (error) {
-        console.error({
-            camada: 'Backend',
-            componente: 'Core',
-            arquivo: 'server.js',
-            mensagem: `Falha crítica durante a inicialização da aplicação: ${error.message}`,
-            error
-        });
+        logger.error(`Falha crítica durante a inicialização da aplicação: ${error.message}`);
         process.exit(1);
     }
 };
