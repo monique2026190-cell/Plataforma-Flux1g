@@ -9,7 +9,7 @@ import express from 'express';
 import { setupErrorHandlers } from './backend/config/Processo.ErrorHandler.js';
 import { configureExpress } from './backend/config/Processo.Express.js';
 import { configureSocket } from './backend/config/Processo.Socket.js';
-import { initializeDatabase } from './backend/database/Database.Init.js';
+import initDatabase from './backend/database/Database.Init.js'; // Alterado aqui
 import logger from './backend/config/logger.js';
 
 // --- CONFIGURAÇÃO INICIAL ---
@@ -38,7 +38,7 @@ configureExpress(app, io);
 const startApp = async () => {
     logger.info("Iniciando a aplicação...");
     try {
-        await initializeDatabase();
+        await initDatabase(); // Alterado aqui
 
         httpServer.listen(PORT, '0.0.0.0', () => {
             logger.info(`Servidor iniciado com sucesso na porta ${PORT}`);
