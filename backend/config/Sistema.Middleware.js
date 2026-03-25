@@ -3,7 +3,6 @@
 
 import { configurarSeguranca } from './Middleware.Seguranca.js';
 import { configurarOtimizacao } from './Middleware.Otimizacao.js';
-import { requestLoggerMiddleware } from './Middleware.Log.js';
 import { configurarSocket } from './Middleware.Socket.js';
 
 export const setupMiddlewares = (app, io) => {
@@ -12,9 +11,6 @@ export const setupMiddlewares = (app, io) => {
 
     // Aplica as configurações de otimização e parsing
     configurarOtimizacao(app);
-
-    // Configura o sistema de logging
-    app.use(requestLoggerMiddleware);
 
     // Anexa o 'io' do Socket.IO a cada requisição
     app.use(configurarSocket(io));
