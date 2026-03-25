@@ -1,17 +1,50 @@
 
-// backend/config/Middleware.Log.js
-import * as Log from '../Logs/BK.Log.Supremo.js';
+import { backendLogger } from './Sistema.Escritor.Logs.js';
 
 export const configurarLog = (app) => {
-    // Middleware de Debug para todas as requisições
     app.use((req, res, next) => {
-        // Ignora o log para o próprio endpoint de logs do frontend
-        if (req.path !== '/api/log/frontend') {
-            console.log(`[DEBUG] Requisição Recebida: ${req.method} ${req.path}`);
-        }
+        const start = Date.now();
+
+        res.on('finish', () => {
+            const duration = Date.now() - start;
+            const { method, url, ip, headers, body, query, params } = req;
+            const { statusCode, statusMessage } = res;
+
+            const logData = {
+                camada: 'Backend',
+                componente: 'API',
+                arquivo: 'Middleware.Log.js',
+                mensagem: `Requisição ${method} ${url} finalizada com status ${statusCode}`,
+                dados: {
+                    request: {
+                        method,
+                        url,
+                        ip: ip || req.socket.remoteAddress,
+                        userAgent: headers['user-agent'],
+                        headers,
+                        body,
+                        query,
+                        params,
+                    },
+                    response: {
+                        statusCode,
+                        statusMessage,
+                    },
+                    performance: {
+                        durationMs: duration,
+                    },
+                },
+            };
+
+            if (statusCode >= 500) {
+                backendLogger.error(logData);
+            } else if (statusCode >= 400) {
+                backendLogger.warn(logData);
+            } else {
+                backendLogger.info(logData);
+            }
+        });
+
         next();
     });
-
-    // Middleware de log de requisições do sistema supremo
-    app.use(Log.requestLoggerMiddleware);
 };

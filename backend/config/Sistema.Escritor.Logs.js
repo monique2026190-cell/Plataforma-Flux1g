@@ -11,30 +11,26 @@ if (!fs.existsSync(logDirectory)) {
 
 /**
  * Gera uma representação formatada do stack trace a partir de um objeto de Erro.
- * @param {Error} [error] - Um erro opcional para extrair o stack trace. Se não for fornecido,
- * um novo erro será criado para capturar a pilha de chamadas atual.
+ * @param {Error} [error] - Um erro opcional para extrair o stack trace.
  * @returns {string} - Uma string contendo o stack trace formatado.
  */
 function gerarTraceDePilha(error) {
-  const err = error || new Error();
-
-  if (!err.stack) {
+  if (!error || !error.stack) {
     return '🔍 Trace:\n  → Stack trace não disponível.';
   }
 
-  const stackLines = err.stack.split('\n').slice(1);
-
+  const stackLines = error.stack.split('\n');
   const formattedTrace = stackLines
+    .slice(1)
     .map(line => {
       const trimmedLine = line.trim();
-      // Tenta extrair o nome da função e o nome do arquivo da linha do stack.
       const match = trimmedLine.match(/^at (?:(.*?) \()?.*[\\/]([^\\/:]+):\d+:\d+\)?$/);
       if (match) {
         const functionName = match[1] || 'anônima';
         const fileName = match[2];
         return `  → ${fileName}:${functionName}()`;
       }
-      return `  → ${trimmedLine}`; // Fallback para linhas não reconhecidas
+      return `  → ${trimmedLine}`;
     })
     .join('\n');
 
@@ -58,35 +54,33 @@ const createLogger = (fileName) => {
         const { camada, componente, arquivo, mensagem, dados, error } = logData;
         const timestamp = new Date().toLocaleString('pt-BR', { timeZone: 'UTC' });
 
-        // Constrói a mensagem de log hierárquica
         let logMessage = '\n';
         if (camada) logMessage += `🏠 ${camada}\n`;
         if (componente) logMessage += `  📂 ${componente}\n`;
         if (arquivo) logMessage += `    📄 ${arquivo}\n`;
         
-        const indent = '      '; // Indentação base para as informações
+        const indent = '      ';
         logMessage += `${indent}🕒 ${timestamp} - ${level.toUpperCase()}\n`;
         logMessage += `${indent}  ✉️ Mensagem: ${mensagem}\n`;
 
-        // Adiciona dados estruturados (IDs, Metadata, etc.)
         if (dados) {
             for (const [key, value] of Object.entries(dados)) {
-                if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                    logMessage += `${indent}  📝 ${key}:\n`;
-                    for (const [subKey, subValue] of Object.entries(value)) {
-                        logMessage += `${indent}    • ${subKey}: ${JSON.stringify(subValue)}\n`;
-                    }
-                } else {
-                    // Usa 🆔 para identificadores ou valores simples
-                    logMessage += `${indent}  🆔 ${key}: ${JSON.stringify(value)}\n`;
-                }
+                logMessage += `${indent}  - ${key}: ${JSON.stringify(value, null, 2)}\n`;
             }
         }
         
-        // Gera e anexa o trace da pilha
-        const trace = gerarTraceDePilha(error);
-        const indentedTrace = trace.split('\n').map(line => `${indent}  ${line}`).join('\n');
-        logMessage += `${indentedTrace}\n`;
+        if (error) {
+            logMessage += `${indent}  🔥 Erro: ${error.message}\n`;
+            if (error.code) {
+                logMessage += `${indent}    - Código: ${error.code}\n`;
+            }
+            if (error.data) {
+                logMessage += `${indent}    - Dados do Erro: ${JSON.stringify(error.data, null, 2)}\n`;
+            }
+            const trace = gerarTraceDePilha(error);
+            const indentedTrace = trace.split('\n').map(line => `${indent}  ${line}`).join('\n');
+            logMessage += `${indentedTrace}\n`;
+        }
 
         fs.appendFileSync(logFile, logMessage);
     };
