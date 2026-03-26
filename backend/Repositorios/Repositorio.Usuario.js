@@ -7,7 +7,7 @@ const createUser = async (userData) => {
         email: userData.email 
     });
     try {
-        const newUser = await userQueries.create(userData);
+        const newUser = await userQueries.criar(userData);
         console.log('User created successfully in data management.', { 
             event: 'DB_CREATE_USER_SUCCESS',
             userId: newUser.id 
@@ -29,7 +29,7 @@ const findByEmail = async (email) => {
         email 
     });
     try {
-        const user = await userQueries.findByEmail(email);
+        const user = await userQueries.encontrarPorEmail(email);
         console.log(user ? 'User found.' : 'User not found.', { 
             event: user ? 'DB_FIND_BY_EMAIL_FOUND' : 'DB_FIND_BY_EMAIL_NOT_FOUND',
             email 
@@ -51,7 +51,7 @@ const findByGoogleId = async (googleId) => {
         googleId 
     });
     try {
-        const user = await userQueries.findByGoogleId(googleId);
+        const user = await userQueries.encontrarPorGoogleId(googleId);
         console.log(user ? 'User found.' : 'User not found.', { 
             event: user ? 'DB_FIND_BY_GOOGLE_ID_FOUND' : 'DB_FIND_BY_GOOGLE_ID_NOT_FOUND',
             googleId 
@@ -73,7 +73,7 @@ const updateUser = async (userId, updateData) => {
         userId 
     });
     try {
-        const updatedUser = await userQueries.update(userId, updateData);
+        const updatedUser = await userQueries.atualizar(userId, updateData);
         console.log('User updated successfully in data management.', { 
             event: 'DB_UPDATE_USER_SUCCESS',
             userId 
