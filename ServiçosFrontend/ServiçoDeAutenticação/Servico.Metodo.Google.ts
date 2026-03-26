@@ -3,7 +3,7 @@ import { config } from '../ValidaçãoDeAmbiente/config';
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 
 // Importa as implementações real e simulada
-import * as APIGoogle from '../APIs/APIsServicoAutenticacao/API.Servico.Metodo.Google';
+import APIGoogle from '../APIs/APIsServicoAutenticacao/API.Servico.Metodo.Google';
 import * as SimulacaoGoogle from '../ServiçoDeSimulação/simulacoes/Simulacao.Servico.Metodo.Google';
 
 /**
