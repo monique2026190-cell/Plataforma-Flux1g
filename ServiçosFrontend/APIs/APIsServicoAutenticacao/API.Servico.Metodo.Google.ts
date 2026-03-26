@@ -65,7 +65,7 @@ class ServicoMetodoGoogle implements IServicoMetodoGoogle {
         const dadosParaBackend: HandleAuthCallbackRequest = HandleAuthCallbackRequestSchema.parse({ code, referredBy });
 
         try {
-            const respostaBackend = await ClienteBackend.post(ENDPOINTS_AUTH.GOOGLE, dadosParaBackend);
+            const respostaBackend = await ClienteBackend.post(ENDPOINTS_AUTH.GOOGLE_CALLBACK, dadosParaBackend);
             
             // 2. Validar a resposta do backend com o schema
             const dadosValidados = HandleAuthCallbackResponseSchema.parse(respostaBackend.data);
