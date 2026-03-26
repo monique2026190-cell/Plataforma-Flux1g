@@ -7,18 +7,25 @@ const logger = createModelLogger('Models.Estrutura.Sessao.js');
 
 class Sessao {
     constructor(data) {
-        logger.info('Criando nova instância de Sessão.', { sessionId: data.id, userId: data.idUsuario });
+        // Padroniza o recebimento do ID do usuário, aceitando ambos os formatos.
+        const userId = data.user_id || data.idUsuario;
+        logger.info('Criando nova instância de Sessão.', { sessionId: data.id, userId });
+        
         this.id = data.id;
-        this.idUsuario = data.idUsuario;
+        this.idUsuario = userId; // Utiliza o ID padronizado.
         this.token = data.token;
-        this.expiraEm = data.expiraEm;
-        this.userAgent = data.userAgent;
-        this.enderecoIp = data.enderecoIp;
-        this.dataCriacao = data.dataCriacao || new Date();
+        this.expiraEm = data.expires_at || data.expiraEm;
+        this.userAgent = data.user_agent || data.userAgent;
+        this.enderecoIp = data.ip_address || data.enderecoIp;
+        this.dataCriacao = data.created_at || data.dataCriacao || new Date();
     }
 
     paraBancoDeDados() {
         logger.info('Convertendo modelo de sessão para formato de banco de dados.', { sessionId: this.id });
+        if (!this.idUsuario) {
+            logger.error('Erro crítico: idUsuario está nulo ao preparar dados para o banco.', { session: this });
+            throw new Error('O ID do usuário é obrigatório para salvar a sessão.');
+        }
         return {
             id: this.id,
             user_id: this.idUsuario,
