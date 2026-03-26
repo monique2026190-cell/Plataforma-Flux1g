@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ItemConfiguracao } from './ItemConfiguracao';
-import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { ModalDeSelecaoDeIdioma, IDIOMAS } from './ModalDeSelecaoDeIdioma';
 
 interface SessaoContaProps {
@@ -14,11 +15,11 @@ export const SessaoConta: React.FC<SessaoContaProps> = ({ isPrivate, onTogglePri
     const navigate = useNavigate();
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
     
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
     const { user } = authState;
 
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe();
     }, []);
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 
 export const HookPerfilTerceiro = (userId: string) => {
@@ -15,7 +16,7 @@ export const HookPerfilTerceiro = (userId: string) => {
 
         setIsLoading(true);
         try {
-            const data: Usuario = await SistemaAutenticacaoSupremo.getProfile(userId);
+            const data: Usuario = await authService.getProfile(userId);
             setProfile(data);
         } catch (err) {
             if (err instanceof Error) {

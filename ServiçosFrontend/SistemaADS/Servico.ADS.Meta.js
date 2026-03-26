@@ -1,11 +1,13 @@
 
-import SistemaAutenticacaoSupremo from '../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+
+const authService = getInstanciaSuprema();
 
 const BASE_URL = 'http://localhost:3000/api/grupos';
 
 export const servicoDeMetaAd = {
   async salvarCredenciaisMeta(groupId, pixelId, accessToken) {
-    const token = SistemaAutenticacaoSupremo.getToken();
+    const token = authService.getToken();
     if (!token) throw new Error('Token de autenticação não encontrado');
 
     const response = await fetch(`${BASE_URL}/${groupId}/meta-ads`, {
@@ -25,7 +27,7 @@ export const servicoDeMetaAd = {
   },
 
   async obterCredenciaisMeta(groupId) {
-    const token = SistemaAutenticacaoSupremo.getToken();
+    const token = authService.getToken();
     if (!token) throw new Error('Token de autenticação não encontrado');
 
     const response = await fetch(`${BASE_URL}/${groupId}/meta-ads`, {

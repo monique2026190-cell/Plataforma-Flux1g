@@ -3,7 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { VirtuosoHandle } from 'react-virtuoso';
 import { Group, Message } from '../tipos';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { chatService } from '../ServiçosFrontend/ServiçoDeChat/chatService';
 
@@ -23,9 +24,9 @@ export const useGroupChat = () => {
     const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
 
     useEffect(() => {
-        const currentState = SistemaAutenticacaoSupremo.getState();
+        const currentState = authService.getState();
         setCurrentUserEmail(currentState.user?.email?.toLowerCase() || null);
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(state => {
+        const unsubscribe = authService.subscribe(state => {
             setCurrentUserEmail(state.user?.email?.toLowerCase() || null);
         });
         return () => unsubscribe();
@@ -117,7 +118,7 @@ export const useGroupChat = () => {
     };
 
     const handleConfirmForward = async (targetChatIds: string[]) => {
-        const token = SistemaAutenticacaoSupremo.getState().token;
+        const token = authService.getState().token;
         if (!token) {
             alert('Autenticação necessária.');
             return;

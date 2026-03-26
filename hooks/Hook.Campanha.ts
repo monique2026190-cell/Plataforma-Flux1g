@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 // CORREÇÃO: A importação do groupService foi removida.
 // import { groupService } from '../ServiçosFrontend/ServiçoDeGrupos/groupService.js';
 // import { adService } from '../ServiçosFrontend/ServiçoDeAnúncios/adService.js';
@@ -69,7 +70,7 @@ export const HookCampanha = () => {
                 }));
             }
 
-            const user = SistemaAutenticacaoSupremo.getCurrentUser();
+            const user = authService.getCurrentUser();
             const token = localStorage.getItem('authToken');
             if (user && token) {
                 // CORREÇÃO: Lógica de busca de grupos removida.
@@ -150,7 +151,7 @@ export const HookCampanha = () => {
 
     const submitCampaign = async () => {
         setIsLoading(true);
-        const user = SistemaAutenticacaoSupremo.getCurrentUser();
+        const user = authService.getCurrentUser();
         const token = localStorage.getItem('authToken');
         if (user && token) {
             const finalCampaign = { ...campaign, ownerId: user.id };

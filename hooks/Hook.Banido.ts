@@ -1,12 +1,13 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 export const HookBanido = () => {
     const navigate = useNavigate();
     const [reason, setReason] = useState('Violação das diretrizes da comunidade.');
-    const user = SistemaAutenticacaoSupremo.getCurrentUser();
+    const user = authService.getCurrentUser();
 
     useEffect(() => {
         if (user && user.isBanned) {
@@ -19,7 +20,7 @@ export const HookBanido = () => {
     }, [user, navigate]);
 
     const handleLogout = () => {
-        SistemaAutenticacaoSupremo.logout();
+        authService.logout();
         navigate('/', { replace: true });
     };
 

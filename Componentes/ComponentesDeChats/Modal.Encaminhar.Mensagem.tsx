@@ -2,7 +2,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SistemaGrupoSupremo } from '../../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
 import { chatService } from '../../ServiçosFrontend/ServiçoDeChat/chatService';
-import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
+
 
 interface Conversation {
   id: string;
@@ -29,7 +31,7 @@ export const ModalEncaminharMensagem: React.FC<ModalEncaminharMensagemProps> = (
         setLoading(true);
         try {
           const groupData = await SistemaGrupoSupremo.getGroupList();
-          const token = SistemaAutenticacaoSupremo.getToken();
+          const token = authService.getToken();
           const chatData = token ? await chatService.listConversations(token) : [];
           
           const groups: Conversation[] = groupData.map((g: any) => ({

@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ModalOpcoesPagamentosSyncPay } from './CardsOpcoesDePagamentos/ModalOpcoesPagamentosSyncPay';
 import { ModalOpcoesPagamentosPayPal } from './CardsOpcoesDePagamentos/ModalOpcoesPagamentosPayPal';
 import { ModalOpcoesPagamentosStripe } from './CardsOpcoesDePagamentos/ModalOpcoesPagamentosStripe';
-import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { GeoData } from '../../ServiçosFrontend/geoService';
 import { ConversionResult } from '../../ServiçosFrontend/currencyService';
 import { Group } from '../../types';
@@ -27,7 +28,7 @@ export const PaymentFlowModal: React.FC<PaymentFlowModalProps> = (props) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [txId, setTxId] = useState('');
 
-    const user = SistemaAutenticacaoSupremo.getCurrentUser();
+    const user = authService.getCurrentUser();
     const isCreator = user?.email === group.creatorEmail;
 
     useEffect(() => {
@@ -40,7 +41,7 @@ export const PaymentFlowModal: React.FC<PaymentFlowModalProps> = (props) => {
     const handleError = (msg: string) => { setStatus('error'); setErrorMessage(msg); };
 
     const handleRedeem = () => {
-        const email = SistemaAutenticacaoSupremo.getCurrentUserEmail() || localStorage.getItem('guest_email_capture');
+        const email = authService.getCurrentUserEmail() || localStorage.getItem('guest_email_capture');
         if (!email) {
             sessionStorage.setItem('redirect_after_login', `/payment-success-bridge/${group.id}`);
             navigate('/register');

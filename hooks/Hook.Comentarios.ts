@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Comentario, DadosCriacaoComentario, ErrosComentario } from '../tipos';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 // Presumindo a existência de um serviço para comentários, seguindo o padrão do projeto
 import ServiçoComentarios from '../ServiçosFrontend/ServiçoDeComentários/index.js';
 
@@ -40,7 +41,7 @@ export const useComments = (postId: string) => {
    * @param dadosComentario Os dados para o novo comentário.
    */
   const handleCreateComment = useCallback(async (dadosComentario: Omit<DadosCriacaoComentario, 'postId'>) => {
-    const currentUser = SistemaAutenticacaoSupremo.getCurrentUser();
+    const currentUser = authService.getCurrentUser();
     if (!currentUser) {
         setError({ geral: 'Você precisa estar logado para comentar.' });
         return;

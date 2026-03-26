@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { BusinessDashboardData } from '../types';
 
 // Dados simulados de campanhas, já que o serviço foi removido
@@ -39,11 +40,11 @@ export const HookMinhaLoja = () => {
     const [loading, setLoading] = useState(true);
 
     // --- Gerenciamento de Estado de Autenticação Reativo ---
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
     const { user } = authState;
 
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe(); // Limpa a inscrição ao desmontar
     }, []);
 

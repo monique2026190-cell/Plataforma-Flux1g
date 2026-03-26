@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 
 // Interface simplificada para o estado do formulário
@@ -35,12 +36,12 @@ export const HookCriarPost = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<{ geral?: string } | null>(null);
     
-    // CORREÇÃO: Substituindo a chamada inexistente por um estado reativo que ouve o SistemaAutenticacaoSupremo.
-    const [currentUser, setCurrentUser] = useState(SistemaAutenticacaoSupremo.getState().user);
+    // CORREÇÃO: Substituindo a chamada inexistente por um estado reativo que ouve o authService.
+    const [currentUser, setCurrentUser] = useState(authService.getState().user);
 
     useEffect(() => {
         // Se inscreve para atualizações no estado de autenticação.
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(state => {
+        const unsubscribe = authService.subscribe(state => {
             setCurrentUser(state.user);
         });
         // Limpa a inscrição ao desmontar o componente.

@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { chatService } from '../ServiçosFrontend/ServiçoDeChat/chatService';
 import { User } from '../types';
 
@@ -12,7 +13,7 @@ export const HookPesquisaGlobal = () => {
   const [loading, setLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const currentUserEmail = SistemaAutenticacaoSupremo.getState().user?.email;
+  const currentUserEmail = authService.getState().user?.email;
 
   // Efeito para buscar usuários com base no termo de pesquisa
   useEffect(() => {

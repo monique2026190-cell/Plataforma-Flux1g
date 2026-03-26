@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { Group } from '../types';
 
 export const HookTopGruposPrivados = () => {
@@ -30,7 +31,7 @@ export const HookTopGruposPrivados = () => {
   }, [loadData]);
 
   const handleGroupAction = useCallback((group: Group) => {
-      const currentUserId = SistemaAutenticacaoSupremo.getCurrentUserId();
+      const currentUserId = authService.getCurrentUserId();
       if (!currentUserId) return;
       
       const isMember = group.memberIds?.includes(currentUserId);

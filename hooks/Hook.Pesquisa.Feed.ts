@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 import { Autor } from '../types/Saida/Types.Estrutura.Autor';
 
@@ -19,7 +20,7 @@ export const HookPesquisaFeed = () => {
     const [userResults, setUserResults] = useState<Autor[]>([]);
     const [loading, setLoading] = useState(false);
     
-    const currentUser = SistemaAutenticacaoSupremo.getState().user;
+    const currentUser = authService.getState().user;
 
     const handleSearch = useCallback(async (query: string, tab: SearchTab) => {
         if (!query.trim()) {

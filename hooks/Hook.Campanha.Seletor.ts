@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 
 export const HookCampanhaSeletor = () => {
@@ -13,7 +14,7 @@ export const HookCampanhaSeletor = () => {
     useEffect(() => {
         const loadContent = async () => {
             setLoading(true);
-            const user = SistemaAutenticacaoSupremo.getCurrentUser();
+            const user = authService.getCurrentUser();
             if (user && user.id) {
                 try {
                     const allPosts = await feedPublicationService.getPosts();

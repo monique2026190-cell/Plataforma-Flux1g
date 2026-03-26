@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
 import { marketplacePublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Marketplace';
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
@@ -19,11 +20,11 @@ export const HookPerfilProprio = () => {
     const [error, setError] = useState<string | null>(null);
 
     // Se inscreve no estado de autenticação
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
     const isAuthenticated = !!authState.user;
 
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe();
     }, []);
 

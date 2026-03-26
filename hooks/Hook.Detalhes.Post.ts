@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 import { HookAcoesPost } from './Hook.Acoes.Post';
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
@@ -14,7 +15,7 @@ export const HookDetalhesPost = () => {
   const [commentText, setCommentText] = useState('');
   const [replyingTo, setReplyingTo] = useState<{ id: string, username: string } | null>(null);
 
-  const currentUser = SistemaAutenticacaoSupremo.getCurrentUser();
+  const currentUser = authService.getCurrentUser();
   const currentUserId = currentUser?.id;
 
   const loadData = useCallback(async () => {

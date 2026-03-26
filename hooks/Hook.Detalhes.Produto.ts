@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { marketplaceService } from '../ServiçosFrontend/ServiçoDeMarketplace/marketplaceService.js';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { chatService } from '../ServiçosFrontend/ServiçoDeChat/chatService';
 import { MarketplaceItem, Comment as CommentType } from '../types';
 import { useMarketplaceItemActions } from './useMarketplaceItemActions';
@@ -20,7 +21,7 @@ export const useProductDetails = () => {
   const [replyingTo, setReplyingTo] = useState<{ id: string, username: string } | null>(null);
   const [zoomedMedia, setZoomedMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
 
-  const currentUser = SistemaAutenticacaoSupremo.getCurrentUser();
+  const currentUser = authService.getCurrentUser();
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -30,7 +31,7 @@ export const useProductDetails = () => {
       if (foundItem) {
         setItem(foundItem);
         setQuestions(foundItem.comments || []);
-        const user = SistemaAutenticacaoSupremo.getCurrentUser();
+        const user = authService.getCurrentUser();
         setIsSeller(user?.email === foundItem.sellerId || user?.id === foundItem.sellerId);
       }
     }

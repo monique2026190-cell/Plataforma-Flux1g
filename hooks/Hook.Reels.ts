@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Reel, Comment, User } from '../types';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 const IS_SIMULATING = localStorage.getItem('isSimulating') === 'true';
 
@@ -21,7 +22,7 @@ export const useReels = () => {
     const [replyingTo, setReplyingTo] = useState<{ id: string, username: string } | null>(null);
 
     useEffect(() => {
-        const user = SistemaAutenticacaoSupremo.getCurrentUser();
+        const user = authService.getCurrentUser();
         setCurrentUser(user);
         loadReels();
     }, []);

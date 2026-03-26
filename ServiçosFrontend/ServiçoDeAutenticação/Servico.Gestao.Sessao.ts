@@ -1,5 +1,5 @@
 
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
+import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import ClienteBackend from '../Cliente.Backend';
@@ -7,16 +7,19 @@ import { config } from '../ValidaçãoDeAmbiente/config';
 
 interface User extends Usuario {}
 
+const log = createServiceLogger('Servico.Gestao.Sessao');
+
 const realSessionService = {
     /**
      * Obtém o usuário atualmente logado do localStorage.
      */
     getCurrentUser: (): User | null => {
+        const operation = 'getCurrentUser';
         try {
             const item = localStorage.getItem('user');
             return item ? JSON.parse(item) : null;
         } catch (error) {
-            LogSupremo.Log.error('[SessionManager] Erro ao buscar usuário do localStorage:', error);
+            log.logOperationError(operation, error);
             return null;
         }
     },
@@ -46,36 +49,22 @@ const realSessionService = {
 
     /**
      * Resolve uma sessão de login a partir de um ID de sessão (ex: do callback do Google).
-     * @param sessionId O ID da sessão a ser resolvido.
-     * @returns O destino de redirecionamento e os dados da sessão.
      */
     resolverRedirecionamentoLogin: async (sessionId: string) => {
+        const operation = 'resolverRedirecionamentoLogin';
         try {
-            // Supondo que o authApi terá um método para isso.
-            // Se não, teremos que adicionar: `resolveLoginSession: (sessionId) => ClienteBackend.post('/auth/resolve-session', { sessionId })`
             const { data } = await authApi.resolverSessaoLogin(sessionId);
-            
             const { token, user, redirect } = data;
 
-            // Armazena o novo token e os dados do usuário
             localStorage.setItem('userToken', token);
             localStorage.setItem('user', JSON.stringify(user));
-
-            // Configura o cabeçalho de autorização para as próximas requisições
             ClienteBackend.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-            // Dispara um evento para notificar outras partes da aplicação sobre a mudança de autenticação
             window.dispatchEvent(new Event('authChange'));
             
-            // Retorna o objeto de redirecionamento
             return redirect;
 
         } catch (error) {
-            LogSupremo.Log.error('[SessionManager] Erro ao resolver a sessão de login:', { 
-                sessionId,
-                detalhes: error 
-            });
-            // Garante que o estado de login inconsistente seja limpo
+            log.logOperationError(operation, error, { sessionId });
             localStorage.removeItem('userToken');
             localStorage.removeItem('user');
             window.dispatchEvent(new Event('authChange'));
@@ -84,7 +73,7 @@ const realSessionService = {
     },
 };
 
-// Serviço simulado permanece o mesmo por enquanto
+// Serviço simulado permanece o mesmo
 const simulatedSessionService = {
     getCurrentUser: (): User | null => {
         try {
@@ -104,12 +93,11 @@ const simulatedSessionService = {
     resolverRedirecionamentoLogin: async (sessionId: string) => {
         console.log('Simulando resolução de sessão com ID:', sessionId);
         await new Promise(res => setTimeout(res, 1000));
-        // Simula um usuário e redirecionamento para o feed
         const fakeUser = { id: 'simulated-123', nome: 'Usuário Simulado', email: 'simulado@flux.com', completeProfile: true };
         localStorage.setItem('userToken', 'simulated-token');
         localStorage.setItem('user', JSON.stringify(fakeUser));
         window.dispatchEvent(new Event('authChange'));
-        return { type: 'feed' }; // Redirecionamento simulado
+        return { type: 'feed' };
     }
 };
 

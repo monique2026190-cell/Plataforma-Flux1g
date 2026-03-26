@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 
 export const useGroupSettings = () => {
@@ -38,7 +39,7 @@ export const useGroupSettings = () => {
 
                 setGroup(groupData);
 
-                const currentUser = SistemaAutenticacaoSupremo.getCurrentUser();
+                const currentUser = authService.getCurrentUser();
                 const owner = groupData.ownerId === currentUser?.id;
                 setIsOwner(owner);
 

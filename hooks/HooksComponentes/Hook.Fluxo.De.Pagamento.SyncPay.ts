@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ServicoGestaoCredencialSyncPay as syncPayService } from '../../ServiçosFrontend/ServiçoDeProvedoresDePagamentos/ServiçoGestãoCredencialSyncPay.js';
-import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { Group, User } from '../../types';
 
 export type SyncPayView = 'selection' | 'pix' | 'boleto';
@@ -21,11 +22,11 @@ export const useFluxoDePagamentoSyncPay = ({ group, onSuccess, onError, onTransa
     const [isLoading, setIsLoading] = useState(false);
     const pollingInterval = useRef<any>(null);
 
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
     const { user } = authState;
 
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe();
     }, []);
 

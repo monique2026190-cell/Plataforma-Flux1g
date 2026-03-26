@@ -4,7 +4,9 @@ import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import ClienteBackend from '../Cliente.Backend';
 import servicoMetodoGoogle from './Servico.Metodo.Google';
 import { servicoMetodoEmailSenha } from './Servico.Metodo.EmailSenha';
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
+import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
+
+const log = createServiceLogger('Servico.Gestao.Login');
 
 /**
  * @file Gerencia o processo de login, seja por email/senha ou via Google,
@@ -12,18 +14,18 @@ import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
  */
 
 // --- Manipulador Central da Sessão ---
-// Função auxiliar para padronizar o que acontece após qualquer tipo de login bem-sucedido.
 const handleSuccessfulLogin = (authResult: { token: string; user: Usuario | null, isNewUser?: boolean }) => {
-    LogSupremo.Depuracao.log("Iniciando handleSuccessfulLogin com:", authResult);
+    const operation = 'handleSuccessfulLogin';
+    log.logOperationStart(operation, authResult);
     const { token, user, isNewUser } = authResult;
     if (token && user) {
         localStorage.setItem('userToken', token);
         localStorage.setItem('user', JSON.stringify(user));
         ClienteBackend.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        LogSupremo.Depuracao.log("Sessão do usuário armazenada com sucesso.", { token, user, isNewUser });
+        log.logOperationSuccess(operation, { token, user, isNewUser });
         return { token, user, isNewUser };
     }
-    LogSupremo.Depuracao.error("handleSuccessfulLogin falhou: token ou usuário ausente.");
+    log.logOperationError(operation, new Error('Token ou usuário ausente.'));
     throw new Error('Resultado de autenticação inválido recebido.');
 };
 
@@ -46,17 +48,16 @@ const servicoGestaoLogin = {
 
     /**
      * Lida com o callback do Google, trocando o código de autorização por um token de sessão.
-     * @param code O código de autorização fornecido pelo Google no redirecionamento.
-     * @param referredBy O código de referência de afiliado (opcional).
      */
     handleGoogleCallback: async (code: string, referredBy?: string) => {
-        LogSupremo.Depuracao.log("handleGoogleCallback chamado com:", { code, referredBy });
+        const operation = 'handleGoogleCallback';
+        log.logOperationStart(operation, { code, referredBy });
         try {
             const authResult = await servicoMetodoGoogle.handleAuthCallback(code, referredBy);
-            LogSupremo.Depuracao.log("Resultado recebido de handleAuthCallback:", authResult);
+            log.logInfo('Resultado recebido de handleAuthCallback:', authResult);
             return handleSuccessfulLogin(authResult);
         } catch (error) {
-            LogSupremo.Depuracao.error("Erro em handleGoogleCallback:", error);
+            log.logOperationError(operation, error);
             throw error;
         }
     },

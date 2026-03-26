@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { useAuth } from '../ServiçosFrontend/ServiçoDeAutenticação/Provedor.Autenticacao';
 import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
 
@@ -19,7 +20,7 @@ export const useLogout = () => {
         setErro('');
         
         try {
-            await SistemaAutenticacaoSupremo.logout();
+            await authService.logout();
             hookLogger.logSuccess('submeterLogout', { userId: user?.id });
             navigate('/login');
         } catch (err: any) {

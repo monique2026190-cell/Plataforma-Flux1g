@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 
@@ -24,11 +25,11 @@ export const HookFeed = (initialCategory: string = 'all') => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
-  const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+  const [authState, setAuthState] = useState(authService.getState());
   const currentUserId = authState.user?.id;
 
   useEffect(() => {
-    const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+    const unsubscribe = authService.subscribe(setAuthState);
     return () => unsubscribe();
   }, []);
 
@@ -55,7 +56,7 @@ export const HookFeed = (initialCategory: string = 'all') => {
         if (err instanceof Error) {
           setError(err.message);
           if (err.message.includes('Token inválido')) {
-            SistemaAutenticacaoSupremo.logout();
+            authService.logout();
             navigate('/login');
           }
         }

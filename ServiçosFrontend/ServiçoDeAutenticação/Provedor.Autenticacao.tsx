@@ -1,37 +1,66 @@
 
-import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo } from 'react';
-import SistemaAutenticacaoSupremo from './Sistema.Autenticacao.Supremo';
-import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
+// ServiçosFrontend/ServiçoDeAutenticação/Provedor.Autenticacao.tsx
 
-// --- Types & Interfaces ---
-interface AuthState {
-    user: Usuario | null;
-    loading: boolean;
-    error: Error | null;
+import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo } from 'react';
+import { getInstanciaSuprema } from './Sistema.Autenticacao.Supremo';
+import { UsuarioAutenticado } from '../Contratos/Contrato.Autenticacao';
+import api from '../Cliente.Backend'; // Importa a instância da API
+
+// --- Tipos & Interfaces ---
+type StatusSessao = 'carregando' | 'autenticado' | 'anonimo';
+
+interface EstadoAutenticacao {
+  usuario: UsuarioAutenticado | null;
+  status: StatusSessao;
+  erro: Error | null;
 }
 
-const AuthContext = createContext<AuthState | undefined>(undefined);
+interface ContextoAutenticacao extends EstadoAutenticacao {
+  servico: any; // O tipo real do serviço, se necessário expor métodos
+}
 
-// --- Dumb Provider Component ---
+const AuthContext = createContext<ContextoAutenticacao | undefined>(undefined);
+
+// --- Componente Provedor ---
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [authState, setAuthState] = useState<AuthState>(() => SistemaAutenticacaoSupremo.getState());
+    const servicoAutenticacao = useMemo(() => getInstanciaSuprema(api), []);
+
+    const [estado, setEstado] = useState<EstadoAutenticacao>({
+        usuario: null,
+        status: 'carregando',
+        erro: null,
+    });
 
     useEffect(() => {
-        // A subscrição retorna a função de limpeza (unsubscribe)
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
-        return unsubscribe;
-    }, []);
+        const verificarSessao = async () => {
+            try {
+                const { usuario } = await servicoAutenticacao.verificarSessao();
+                if (usuario) {
+                    setEstado({ usuario, status: 'autenticado', erro: null });
+                } else {
+                    setEstado({ usuario: null, status: 'anonimo', erro: null });
+                }
+            } catch (err) {
+                setEstado({ usuario: null, status: 'anonimo', erro: err as Error });
+            }
+        };
 
-    const value = useMemo(() => authState, [authState]);
+        verificarSessao();
+    }, [servicoAutenticacao]);
+
+    const contextoValor = useMemo(() => ({
+        ...estado,
+        servico: servicoAutenticacao, // Expondo o serviço para os componentes filhos
+    }), [estado, servicoAutenticacao]);
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={contextoValor}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-// --- Custom Hook ---
+// --- Hook Customizado ---
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {

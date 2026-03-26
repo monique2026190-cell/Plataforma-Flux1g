@@ -1,7 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
+
 
 export const HookRedefinirSenha = () => {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export const HookRedefinirSenha = () => {
     
     try {
         if (email) {
-            await SistemaAutenticacaoSupremo.resetPassword(email, password);
+            await authService.resetPassword(email, password);
             localStorage.removeItem('reset_email'); // Cleanup
             alert("Senha alterada com sucesso!");
             navigate('/');

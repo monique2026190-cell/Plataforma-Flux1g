@@ -1,7 +1,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
+
 
 export const HookVerificarEmail = () => {
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ export const HookVerificarEmail = () => {
   const [canResend, setCanResend] = useState(false);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  const user = SistemaAutenticacaoSupremo.getCurrentUser();
+  const user = authService.getCurrentUser();
   const email = user?.email;
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export const HookVerificarEmail = () => {
     setLoading(true);
     setError('');
     try {
-      await SistemaAutenticacaoSupremo.verifyCode(email, code.join(''));
+      await authService.verifyCode(email, code.join(''));
       navigate('/complete-profile');
     } catch (err: any) {
       setError(err.message || 'Código inválido ou expirado.');
@@ -63,7 +65,7 @@ export const HookVerificarEmail = () => {
     setError('');
 
     try {
-      await SistemaAutenticacaoSupremo.sendVerificationCode(email);
+      await authService.sendVerificationCode(email);
     } catch (err: any) {
       setError(err.message || 'Falha ao reenviar o código.');
       setCanResend(true);

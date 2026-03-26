@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 
 export const useEditProfile = () => {
@@ -27,7 +28,7 @@ export const useEditProfile = () => {
   const [rawImage, setRawImage] = useState<string>('');
 
   useEffect(() => {
-      const user: Usuario | null = SistemaAutenticacaoSupremo.getState().user;
+      const user: Usuario | null = authService.getState().user;
       if (!user) {
           navigate('/');
           return;
@@ -113,7 +114,7 @@ export const useEditProfile = () => {
             urlFoto: finalPhotoUrl 
           };
 
-          await SistemaAutenticacaoSupremo.completeProfile(updatedProfile);
+          await authService.completeProfile(updatedProfile);
           
           alert('Perfil atualizado com sucesso!');
           navigate('/profile', { replace: true });

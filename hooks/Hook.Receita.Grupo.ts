@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { Group, CurrencyCode } from '../types';
 
 interface UnifiedMetric {
@@ -34,11 +35,11 @@ export const useGroupRevenue = () => {
     const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('BRL');
     const [conversionRate, setConversionRate] = useState(1);
 
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
     const { user } = authState;
 
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe();
     }, []);
 

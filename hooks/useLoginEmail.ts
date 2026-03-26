@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
 
 const hookLogger = createHookLogger('useLoginEmail');
@@ -23,7 +24,7 @@ export const useLoginEmail = () => {
         setErro('');
 
         try {
-            const result = await SistemaAutenticacaoSupremo.login({ email, senha });
+            const result = await authService.login({ email, senha });
             if (result && result.user) {
                 hookLogger.logSuccess('loginComEmail', { userId: result.user.id, email });
             }

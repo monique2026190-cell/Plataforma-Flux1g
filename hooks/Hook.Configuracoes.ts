@@ -1,16 +1,17 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 export const HookConfiguracoes = () => {
     const [isPrivate, setIsPrivate] = useState(false);
     const [isAdultContent, setIsAdultContent] = useState(() => localStorage.getItem('settings_18_plus') === 'true');
     
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
     const { user } = authState;
 
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe();
     }, []);
 
@@ -25,7 +26,7 @@ export const HookConfiguracoes = () => {
         setIsPrivate(newState);
         if (user && user.email && user.profile) {
             try {
-                await SistemaAutenticacaoSupremo.completeProfile(user.email, { ...user.profile, isPrivate: newState });
+                await authService.completeProfile(user.email, { ...user.profile, isPrivate: newState });
                 return newState;
             } catch (e) {
                 console.error(e);
@@ -43,7 +44,7 @@ export const HookConfiguracoes = () => {
     }, [isAdultContent]);
 
     const logout = () => {
-        SistemaAutenticacaoSupremo.logout();
+        authService.logout();
     };
 
     return {

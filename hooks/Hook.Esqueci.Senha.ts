@@ -1,7 +1,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
+
 
 export const HookEsqueciSenha = () => {
     const navigate = useNavigate();
@@ -34,7 +36,7 @@ export const HookEsqueciSenha = () => {
         setLoading(true);
         setError('');
         try {
-            await SistemaAutenticacaoSupremo.sendVerificationCode(email, 'reset');
+            await authService.sendVerificationCode(email, 'reset');
             setStage('code');
             setTimer(30); // Start 30-second timer
         } catch (err: any) {
@@ -61,7 +63,7 @@ export const HookEsqueciSenha = () => {
             return;
         }
         try {
-            await SistemaAutenticacaoSupremo.verifyCode(email, fullCode, true);
+            await authService.verifyCode(email, fullCode, true);
             localStorage.setItem('reset_email', email);
             navigate('/reset-password');
         } catch (err: any) {

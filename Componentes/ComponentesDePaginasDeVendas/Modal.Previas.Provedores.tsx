@@ -1,7 +1,8 @@
 
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 import { ModalPreviaSyncPay } from './Modal.Previa.SyncPay';
 import { ModalPreviaStripe } from './Modal.Previa.Stripe';
@@ -23,7 +24,7 @@ export const ModalPreviasProvedores: React.FC<ProviderSelectorModalProps> = ({
     const navigate = useNavigate();
     
     const connectedProviders = useMemo(() => {
-        const user = SistemaAutenticacaoSupremo.getCurrentUser();
+        const user = authService.getCurrentUser();
         if (!user) return [];
         
         const list: { id: string; name: string; icon: string }[] = [];

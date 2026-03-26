@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { servicoGestaoListaGrupo } from '../ServiçosFrontend/ServiçoDeGrupos/Servico.Gestao.Lista.Grupo';
 import { Group } from '../tipos/types.Grupo';
 
@@ -9,11 +10,11 @@ export const HookListaGrupos = () => {
   const navigate = useNavigate();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+  const [authState, setAuthState] = useState(authService.getState());
 
   // Inscreve-se nas mudanças de estado da autenticação
   useEffect(() => {
-    const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+    const unsubscribe = authService.subscribe(setAuthState);
     return () => unsubscribe();
   }, []);
 
@@ -32,7 +33,7 @@ export const HookListaGrupos = () => {
     }
   }, [loading]); // Adicionado loading como dependência para evitar re-execuções desnecessárias
 
-  // Reage às mudanças de estado de autenticação e ao estado de loading do SistemaAutenticacaoSupremo
+  // Reage às mudanças de estado de autenticação e ao estado de loading do authService
   useEffect(() => {
     const { user, loading: authLoading } = authState;
 

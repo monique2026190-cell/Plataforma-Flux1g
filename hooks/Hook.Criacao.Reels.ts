@@ -1,7 +1,8 @@
 
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { ServiçoPublicacaoReels } from '../ServiçosFrontend/ServiçosDePublicações/ServiçoPublicaçãoReels.js';
 import { DadosCriacaoReel, ErrosCriacaoReel } from '../tipos';
 
@@ -56,7 +57,7 @@ export const HookCriarReel = () => {
     setErrors({});
 
     try {
-      const user = SistemaAutenticacaoSupremo.getCurrentUser();
+      const user = authService.getCurrentUser();
       if (!user) {
         throw new Error("Usuário não autenticado.");
       }

@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 export const HookHistoricoVendasVip = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export const HookHistoricoVendasVip = () => {
   useEffect(() => {
       const loadData = async () => {
           setLoading(true);
-          const user = SistemaAutenticacaoSupremo.getCurrentUser();
+          const user = authService.getCurrentUser();
           if (!user || !id) {
               setLoading(false);
               return;

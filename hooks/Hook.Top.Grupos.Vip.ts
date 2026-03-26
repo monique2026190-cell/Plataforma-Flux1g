@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { Group } from '../types';
 
 export const HookTopGruposVip = () => {
@@ -30,7 +31,7 @@ export const HookTopGruposVip = () => {
   }, [loadData]);
 
   const handleGroupAction = useCallback((group: Group) => {
-      const currentUserId = SistemaAutenticacaoSupremo.getCurrentUserId();
+      const currentUserId = authService.getCurrentUserId();
       if (!currentUserId) {
           // Ação para usuário não logado, como navegar para a página de login.
           return;

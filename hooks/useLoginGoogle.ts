@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
 
 const hookLogger = createHookLogger('useLoginGoogle');
@@ -23,7 +24,8 @@ export const useLoginGoogle = () => {
         setErro('');
 
         try {
-            await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, undefined);
+            // O método foi renomeado de loginWithGoogle para resolverSessaoLogin
+            await authService.resolverSessaoLogin({ code: credentialResponse.credential, referredBy: undefined });
             hookLogger.logSuccess('loginComGoogle');
         } catch (err: any) {
             hookLogger.logError('loginComGoogle', err);

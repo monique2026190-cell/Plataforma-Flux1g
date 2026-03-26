@@ -1,8 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { CriacaoContaDto } from '../types/Entrada/Dto.Estrutura.Conta.Flux';
+
 
 export const useHookCriacaoPerfilFlux = () => {
     const navigate = useNavigate();
@@ -61,8 +63,7 @@ export const useHookCriacaoPerfilFlux = () => {
         setErrors({});
 
         try {
-            await SistemaAutenticacaoSupremo.register(dados);
-            
+            await authService.criarConta(dados);
             navigate('/verify-email');
 
         } catch (err: any) {

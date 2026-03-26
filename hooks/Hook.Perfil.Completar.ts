@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 export const useCompleteProfile = () => {
     const navigate = useNavigate();
-    const [authState, setAuthState] = useState(SistemaAutenticacaoSupremo.getState());
+    const [authState, setAuthState] = useState(authService.getState());
 
     // Estado para o upload e corte da imagem de perfil (mantido)
     const [previaImagem, setPreviaImagem] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export const useCompleteProfile = () => {
 
     // Hooks para verificar o estado de autenticação (mantidos)
     useEffect(() => {
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe(setAuthState);
+        const unsubscribe = authService.subscribe(setAuthState);
         return () => unsubscribe();
     }, []);
 
@@ -68,7 +69,7 @@ export const useCompleteProfile = () => {
             // TODO: Adicionar lógica de upload da imagem (arquivoSelecionado)
             // const urlDaFoto = arquivoSelecionado ? await servicoDeArquivos.upload(arquivoSelecionado) : '';
 
-            await SistemaAutenticacaoSupremo.completeProfile({
+            await authService.completeProfile({
                 ...data,
                 urlFoto: '' // Substituir pela urlDaFoto quando o upload for implementado
             });
@@ -92,7 +93,7 @@ export const useCompleteProfile = () => {
     };
 
     const aoSair = () => {
-        SistemaAutenticacaoSupremo.logout();
+        authService.logout();
         navigate('/');
     };
 

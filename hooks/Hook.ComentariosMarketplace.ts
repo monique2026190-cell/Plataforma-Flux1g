@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Comentario } from '../tipos';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 // Corrigido: Usa importação nomeada para o objeto de serviço
 import { ServiçoPublicacaoComentariosMarketplace } from '../ServiçosFrontend/ServiçosDePublicações/ServiçoPublicaçãoComentáriosMarketplace.js';
 
@@ -44,7 +45,7 @@ export const HookComentariosMarketplace = (itemId: string) => {
    * @param texto O conteúdo do comentário.
    */
   const postarComentario = useCallback(async (texto: string) => {
-    const currentUser = SistemaAutenticacaoSupremo.getCurrentUser();
+    const currentUser = authService.getCurrentUser();
     if (!currentUser) {
       setError({ geral: 'Você precisa estar logado para comentar.' });
       return;

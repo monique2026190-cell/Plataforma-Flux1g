@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 
 export const useCreatePaidGroup = () => {
     const navigate = useNavigate();
@@ -49,7 +50,7 @@ export const useCreatePaidGroup = () => {
         if (!groupName || price <= 0) return;
 
         setIsCreating(true);
-        const currentUser = SistemaAutenticacaoSupremo.getCurrentUser();
+        const currentUser = authService.getCurrentUser();
         if (!currentUser) {
             alert("Usuário não autenticado!");
             setIsCreating(false);

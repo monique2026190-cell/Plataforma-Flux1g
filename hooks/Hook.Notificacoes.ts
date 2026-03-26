@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import servicoNotificacao from '../ServiçosFrontend/ServicoNotificacao/Servico.Notificacao';
 import { Notificacao, Grupo, InfoPreco } from '../types/Saida/Types.Estrutura.Notificacao';
 
@@ -16,7 +17,7 @@ export const HookNotificacoes = () => {
 
     useEffect(() => {
         const verificarAutenticacaoEBuscarDados = async () => {
-            const estadoAtual = await SistemaAutenticacaoSupremo.confirmarAutenticacao();
+            const estadoAtual = await authService.confirmarAutenticacao();
 
             if (estadoAtual.isAuthenticated && estadoAtual.token) {
                 setCarregando(true);
@@ -39,7 +40,7 @@ export const HookNotificacoes = () => {
 
         verificarAutenticacaoEBuscarDados();
 
-        const unsubscribe = SistemaAutenticacaoSupremo.subscribe((estado) => {
+        const unsubscribe = authService.subscribe((estado) => {
             if (!estado.isAuthenticated) {
                 console.log("HookNotificacoes: Usuário deslogado. Limpando notificações.");
                 setNotificacoes([]);

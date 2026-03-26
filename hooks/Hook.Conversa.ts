@@ -3,7 +3,8 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { chatService } from '../ServiçosFrontend/ServiçoDeChat/chatService';
 import { ChatMessage, User } from '../types';
-import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+const authService = getInstanciaSuprema();
 import { servicoDeSimulacao } from '../ServiçosFrontend/ServiçoDeSimulação';
 import { VirtuosoHandle } from 'react-virtuoso';
 import { socketService } from '../ServiçosFrontend/ServiçoDeSoquete/ServiçoDeSoquete.js';
@@ -36,7 +37,7 @@ export const HookConversa = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
 
-    const currentUserEmail = useMemo(() => SistemaAutenticacaoSupremo.getState().user?.email?.toLowerCase(), []);
+    const currentUserEmail = useMemo(() => authService.getState().user?.email?.toLowerCase(), []);
 
     const loadChatData = useCallback(async (isSilent = false) => {
         if (!chatId) {
@@ -61,13 +62,13 @@ export const HookConversa = () => {
                 setContactStatus('Online'); 
 
             } else {
-                const token = SistemaAutenticacaoSupremo.getToken();
+                const token = authService.getToken();
                 if (!token) { navigate('/'); return; }
                 chatData = await chatService.getChat(token, chatId);
                 
                 const otherParticipant = chatData.participants.find((p: any) => p.email.toLowerCase() !== currentUserEmail);
                 if (otherParticipant) {
-                    const userDetails: User = await SistemaAutenticacaoSupremo.fetchUserByHandle(otherParticipant.email.split('@')[0]);
+                    const userDetails: User = await authService.fetchUserByHandle(otherParticipant.email.split('@')[0]);
                     setContactName(userDetails.profile?.nickname || userDetails.profile?.name || 'Usuário');
                     setContactAvatar(userDetails.profile?.photoUrl);
                     setContactHandle(userDetails.profile?.name || '');
@@ -103,7 +104,7 @@ export const HookConversa = () => {
 
     const handleSendMessage = (text: string) => {
         if (!chatId) return;
-        const userInfo = SistemaAutenticacaoSupremo.getState().user;
+        const userInfo = authService.getState().user;
         const newMessage: Partial<ChatMessage> = {
             id: Date.now().toString(), text, contentType: 'text',
             senderEmail: userInfo?.email, 
@@ -163,7 +164,7 @@ export const HookConversa = () => {
     };
 
     const handleConfirmForward = async (targetChatIds: string[]) => {
-        const token = SistemaAutenticacaoSupremo.getToken();
+        const token = authService.getToken();
         if (!token) {
             alert('Autenticação necessária.');
             return;
