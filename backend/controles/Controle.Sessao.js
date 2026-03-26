@@ -24,6 +24,12 @@ const registrar = async (req, res, next) => {
     try {
         const dadosUsuarioValidados = validadorUsuario.validarRegistro(req.body);
         const usuario = await servicoUsuario.registrarNovoUsuario(dadosUsuarioValidados);
+        
+        logger.info("Tipo do usuario recebido no Controle (registrar)", {
+            tipo: usuario?.constructor?.name,
+            temMetodo: typeof usuario?.paraRespostaHttp
+        });
+
         const { token, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
@@ -48,6 +54,12 @@ const login = async (req, res, next) => {
     try {
         const dadosLoginValidados = validadorUsuario.validarLogin(req.body);
         const usuario = await servicoUsuario.autenticarUsuarioPorCredenciais(dadosLoginValidados);
+
+        logger.info("Tipo do usuario recebido no Controle (login)", {
+            tipo: usuario?.constructor?.name,
+            temMetodo: typeof usuario?.paraRespostaHttp
+        });
+
         const { token, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
@@ -88,6 +100,12 @@ const googleAuth = async (req, res, next) => {
         const dadosGoogleValidados = validadorUsuario.validarGoogleAuth(dadosGoogle);
 
         const { usuario, isNewUser } = await servicoUsuario.autenticarOuCriarPorGoogle(dadosGoogleValidados);
+        
+        logger.info("Tipo do usuario recebido no Controle (googleAuth)", {
+            tipo: usuario?.constructor?.name,
+            temMetodo: typeof usuario?.paraRespostaHttp
+        });
+
         const { token: sessionToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);

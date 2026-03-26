@@ -17,6 +17,11 @@ const calcularDataExpiracao = () => {
 };
 
 const prepararNovaSessao = async ({ usuario, dadosRequisicao }) => {
+    logger.info("Tipo do usuario recebido no Servico.Sessao", {
+        tipo: usuario?.constructor?.name,
+        temMetodo: typeof usuario?.paraRespostaHttp
+    });
+
     if (!usuario || !usuario.id) {
         throw new Error('Dados de usuário inválidos para criar a sessão.');
     }
