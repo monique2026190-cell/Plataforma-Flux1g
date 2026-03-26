@@ -1,23 +1,67 @@
-import { inserirGrupo } from '../database/GestaoDeDados/PostgreSQL/Consultas.Grupo.js';
 
-class RepositorioEstruturaGrupos {
-    
+import { 
+    inserirGrupo, 
+    buscarGrupoPorId, 
+    atualizarGrupo, 
+    deletarGrupo 
+} from '../database/GestaoDeDados/PostgreSQL/Consultas.Grupo.js';
+
+class GroupRepository {
     /**
-     * Cria um novo grupo no banco de dados.
-     * @param {object} dadosDoGrupo - Objeto contendo os dados do grupo, 
-     *                                geralmente vindo de `modelo.paraBancoDeDados()`.
-     * @returns {Promise<object>} - O registro do grupo como foi salvo no banco.
+     * Creates a new group in the database.
+     * @param {object} groupData - Object containing group data, 
+     *                               usually from `model.paraBancoDeDados()`.
+     * @returns {Promise<object>} - The group record as it was saved in the database.
      */
-    async criar(dadosDoGrupo) { 
+    async create(groupData) { 
         try {
-            return await inserirGrupo(dadosDoGrupo);
+            // The function in Consultas.Grupo.js is already named inserirGrupo
+            return await inserirGrupo(groupData);
         } catch (error) {
-            // O erro já foi logado na camada de consulta, então apenas o relançamos.
+            // The error is already logged in the query layer, so we just re-throw it.
             throw error;
         }
     }
 
-    // Futuramente, outros métodos como buscarPorId, atualizar, etc., podem ser adicionados.
+    /**
+     * Finds a group by its ID.
+     * @param {string} id - The UUID of the group.
+     * @returns {Promise<object|null>} - The group record or null if not found.
+     */
+    async findById(id) {
+        try {
+            return await buscarGrupoPorId(id);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Updates a group's data.
+     * @param {string} id - The UUID of the group.
+     * @param {object} updates - An object with the fields to be updated.
+     * @returns {Promise<object>} - The updated group record.
+     */
+    async update(id, updates) {
+        try {
+            return await atualizarGrupo(id, updates);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Deletes a group by its ID.
+     * @param {string} id - The UUID of the group.
+     * @returns {Promise<boolean>} - True if the deletion was successful, false otherwise.
+     */
+    async delete(id) {
+        try {
+            return await deletarGrupo(id);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
-export default new RepositorioEstruturaGrupos();
+export default new GroupRepository();

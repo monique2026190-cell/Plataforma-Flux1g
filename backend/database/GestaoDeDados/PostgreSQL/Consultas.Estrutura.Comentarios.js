@@ -1,12 +1,6 @@
 
 import pool from '../../Processo.Conexao.Banco.Dados.js';
 
-// IMPORTANTE: Os parâmetros tableName e parentIdColumn não são parametrizados nas queries
-// e são injetados diretamente na string SQL. Isso geralmente é inseguro e pode levar
-// a injeção de SQL se esses valores vierem da entrada do usuário. Nesta aplicação, esses valores
-// são codificados na camada de serviço, tornando-a segura. Não exponha esses parâmetros
-// à entrada controlada pelo usuário.
-
 const criar = async (tableName, parentIdColumn, commentData) => {
     const { user_id, content } = commentData;
     const parentId = commentData[parentIdColumn];
@@ -20,8 +14,9 @@ const criar = async (tableName, parentIdColumn, commentData) => {
 };
 
 const buscarPorParentId = async (tableName, parentIdColumn, parentId, { limit = 10, offset = 0 }) => {
+    // CORREÇÃO: Trocado u.username por u.nickname e u.avatar_url por u.photo_url com aliases
     const query = `
-        SELECT c.*, u.username, u.avatar_url
+        SELECT c.*, u.nickname as username, u.photo_url as avatar_url
         FROM ${tableName} c
         JOIN users u ON c.user_id = u.id
         WHERE c.${parentIdColumn} = $1

@@ -1,36 +1,36 @@
 
 import pool from '../../Processo.Conexao.Banco.Dados.js';
 
+// Função criar refatorada para inserir todos os dados na tabela 'users'
 const criar = async (dadosUsuario) => {
     const cliente = await pool.connect();
     
+    // Todas as colunas estão na tabela 'users'
     const { 
         id, name, email, password_hash, google_id, 
         nickname, bio, website, photo_url, is_private, profile_completed 
     } = dadosUsuario;
 
-    const queryUser = `
-        INSERT INTO users (id, name, email, password_hash, google_id)
-        VALUES ($1, $2, $3, $4, $5)
+    // Apenas uma query para inserir tudo em 'users'
+    const query = `
+        INSERT INTO users (
+            id, name, email, password_hash, google_id, 
+            nickname, bio, website, photo_url, is_private, profile_completed
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING id;
     `;
-    const valuesUser = [id, name, email, password_hash, google_id];
-
-    const queryProfile = `
-        INSERT INTO profiles (user_id, nickname, bio, website, photo_url, is_private, profile_completed)
-        VALUES ($1, $2, $3, $4, $5, $6, $7);
-    `;
-    const valuesProfile = [id, nickname, bio, website, photo_url, is_private, profile_completed];
+    const values = [
+        id, name, email, password_hash, google_id, 
+        nickname, bio, website, photo_url, is_private, profile_completed
+    ];
 
     try {
         await cliente.query('BEGIN');
         console.log('Iniciando transação para criar novo usuário.', { event: 'DB_TX_CREATE_USER_BEGIN', email });
 
-        await cliente.query(queryUser, valuesUser);
+        await cliente.query(query, values);
         console.log('Inserido na tabela users.', { event: 'DB_TX_CREATE_USER_INSERT_USERS', userId: id });
-
-        await cliente.query(queryProfile, valuesProfile);
-        console.log('Inserido na tabela profiles.', { event: 'DB_TX_CREATE_USER_INSERT_PROFILES', userId: id });
 
         await cliente.query('COMMIT');
         console.log('Transação concluída. Usuário criado com sucesso.', { event: 'DB_TX_CREATE_USER_COMMIT', userId: id });
@@ -47,7 +47,7 @@ const criar = async (dadosUsuario) => {
             errorCode: error.code
         });
         if (error.code === '23505') { // unique_violation
-            throw new Error('Email ou ID do Google já está em uso.');
+            throw new Error('Email, nickname ou ID do Google já está em uso.');
         }
         throw new Error('Erro ao registrar usuário no banco de dados');
     } finally {
@@ -55,19 +55,9 @@ const criar = async (dadosUsuario) => {
     }
 };
 
-const queryJoin = `
-    SELECT
-        u.id, u.name, u.email, u.google_id, u.password_hash,
-        p.nickname, p.bio, p.website, p.photo_url, p.is_private, p.profile_completed,
-        u.created_at, u.updated_at
-    FROM
-        users u
-    LEFT JOIN
-        profiles p ON u.id = p.user_id
-`;
-
+// queryJoin removida, queries de busca simplificadas
 const encontrarPorId = async (id, cliente = pool) => {
-    const query = `${queryJoin} WHERE u.id = $1`;
+    const query = `SELECT * FROM users WHERE id = $1`;
     console.log(`Buscando usuário com o id: ${id}`, { event: 'DB_FIND_USER_BY_ID_START' });
     
     try {
@@ -85,7 +75,7 @@ const encontrarPorId = async (id, cliente = pool) => {
 }
 
 const encontrarPorEmail = async (email) => {
-    const query = `${queryJoin} WHERE u.email = $1`;
+    const query = `SELECT * FROM users WHERE email = $1`;
     console.log(`Buscando usuário com o email: ${email}`, { event: 'DB_FIND_USER_BY_EMAIL_START' });
     
     try {
@@ -103,7 +93,7 @@ const encontrarPorEmail = async (email) => {
 };
 
 const encontrarPorGoogleId = async (googleId) => {
-    const query = `${queryJoin} WHERE u.google_id = $1`;
+    const query = `SELECT * FROM users WHERE google_id = $1`;
     console.log(`Buscando usuário com o Google ID: ${googleId}`, { event: 'DB_FIND_USER_BY_GOOGLE_ID_START' });
 
     try {
@@ -120,37 +110,18 @@ const encontrarPorGoogleId = async (googleId) => {
     }
 };
 
+// Função de atualização simplificada para usar apenas a tabela 'users'
 const atualizar = async (idUsuario, dados) => {
     const cliente = await pool.connect();
-
-    const camposTabelaUser = ['name', 'email', 'password_hash'];
-    const camposTabelaProfile = ['nickname', 'bio', 'website', 'photo_url', 'is_private', 'profile_completed'];
-
-    const dadosUser = {};
-    const dadosProfile = {};
-
-    Object.keys(dados).forEach(key => {
-        if (camposTabelaUser.includes(key)) {
-            dadosUser[key] = dados[key];
-        } else if (camposTabelaProfile.includes(key)) {
-            dadosProfile[key] = dados[key];
-        }
-    });
 
     try {
         await cliente.query('BEGIN');
         console.log(`Iniciando transação para atualizar o usuário ${idUsuario}.`, { event: 'DB_TX_UPDATE_USER_BEGIN' });
 
-        if (Object.keys(dadosUser).length > 0) {
-            const queryUser = buildUpdateQuery('users', dadosUser, 'id', idUsuario);
-            await cliente.query(queryUser.query, queryUser.values);
+        if (Object.keys(dados).length > 0) {
+            const { query, values } = buildUpdateQuery('users', dados, 'id', idUsuario);
+            await cliente.query(query, values);
             console.log("Tabela 'users' atualizada.", { event: 'DB_TX_UPDATE_USER_USERS_UPDATED', userId: idUsuario });
-        }
-
-        if (Object.keys(dadosProfile).length > 0) {
-            const queryProfile = buildUpdateQuery('profiles', dadosProfile, 'user_id', idUsuario);
-            await cliente.query(queryProfile.query, queryProfile.values);
-            console.log("Tabela 'profiles' atualizada.", { event: 'DB_TX_UPDATE_USER_PROFILES_UPDATED', userId: idUsuario });
         }
 
         await cliente.query('COMMIT');
@@ -172,11 +143,11 @@ const atualizar = async (idUsuario, dados) => {
     }
 };
 
+// Função deletar simplificada para remover apenas da tabela 'users'
 const deletar = async (id) => {
     const cliente = await pool.connect();
     try {
         await cliente.query('BEGIN');
-        await cliente.query('DELETE FROM profiles WHERE user_id = $1', [id]);
         await cliente.query('DELETE FROM users WHERE id = $1', [id]);
         await cliente.query('COMMIT');
         return true;
@@ -196,18 +167,19 @@ const deletar = async (id) => {
 const buildUpdateQuery = (tabela, dados, colunaId, idUsuario) => {
     const fields = Object.keys(dados);
     const values = Object.values(dados);
-    const setClause = fields.map((field, index) => `\"${field}\" = $${index + 1}`).join(', ');
+    // Adiciona o timestamp de atualização
+    const setClause = [...fields.map((field, index) => `"${field}" = $${index + 1}`), `"updated_at" = NOW()`].join(', ');
     
-    const query = `UPDATE ${tabela} SET ${setClause} WHERE ${colunaId} = $${fields.length + 1}`;
+    const query = `UPDATE ${tabela} SET ${setClause} WHERE "${colunaId}" = $${fields.length + 1}`;
     
     return { query, values: [...values, idUsuario] };
-}
-
+};
 
 const consultasUsuario = {
     criar,
     encontrarPorEmail,
     encontrarPorGoogleId,
+    encontrarPorId, // Adicionado para exportar
     atualizar,
     deletar
 };

@@ -1,20 +1,20 @@
 
-import consultasUsuario from '../database/GestaoDeDados/PostgreSQL/Consultas.Usuario.js';
+import userQueries from '../database/GestaoDeDados/PostgreSQL/Consultas.Usuario.js';
 
-const criar = async (dadosUsuario) => {
-    console.log('Chamando camada de gestão de dados para criar usuário.', { 
+const createUser = async (userData) => {
+    console.log('Calling data management layer to create user.', { 
         event: 'DB_CREATE_USER_START',
-        email: dadosUsuario.email 
+        email: userData.email 
     });
     try {
-        const novoUsuario = await consultasUsuario.criar(dadosUsuario);
-        console.log('Usuário criado com sucesso na gestão de dados.', { 
+        const newUser = await userQueries.create(userData);
+        console.log('User created successfully in data management.', { 
             event: 'DB_CREATE_USER_SUCCESS',
-            userId: novoUsuario.id 
+            userId: newUser.id 
         });
-        return novoUsuario;
+        return newUser; // Retorna dados brutos
     } catch (error) {
-        console.error('Erro ao criar usuário na gestão de dados', { 
+        console.error('Error creating user in data management', { 
             event: 'DB_CREATE_USER_ERROR',
             errorMessage: error.message,
             stack: error.stack
@@ -23,20 +23,20 @@ const criar = async (dadosUsuario) => {
     }
 };
 
-const encontrarPorEmail = async (email) => {
-    console.log('Chamando camada de gestão de dados para buscar usuário por email.', { 
+const findByEmail = async (email) => {
+    console.log('Calling data management layer to find user by email.', { 
         event: 'DB_FIND_BY_EMAIL_START',
         email 
     });
     try {
-        const usuario = await consultasUsuario.encontrarPorEmail(email);
-        console.log(usuario ? 'Usuário encontrado.' : 'Usuário não encontrado.', { 
-            event: usuario ? 'DB_FIND_BY_EMAIL_FOUND' : 'DB_FIND_BY_EMAIL_NOT_FOUND',
+        const user = await userQueries.findByEmail(email);
+        console.log(user ? 'User found.' : 'User not found.', { 
+            event: user ? 'DB_FIND_BY_EMAIL_FOUND' : 'DB_FIND_BY_EMAIL_NOT_FOUND',
             email 
         });
-        return usuario;
+        return user; // Retorna dados brutos
     } catch (error) {
-        console.error('Erro ao buscar usuário por email na gestão de dados', { 
+        console.error('Error finding user by email in data management', { 
             event: 'DB_FIND_BY_EMAIL_ERROR',
             errorMessage: error.message,
             stack: error.stack
@@ -45,20 +45,20 @@ const encontrarPorEmail = async (email) => {
     }
 };
 
-const encontrarPorGoogleId = async (googleId) => {
-    console.log('Chamando camada de gestão de dados para buscar usuário por Google ID.', { 
+const findByGoogleId = async (googleId) => {
+    console.log('Calling data management layer to find user by Google ID.', { 
         event: 'DB_FIND_BY_GOOGLE_ID_START',
         googleId 
     });
     try {
-        const usuario = await consultasUsuario.encontrarPorGoogleId(googleId);
-        console.log(usuario ? 'Usuário encontrado.' : 'Usuário não encontrado.', { 
-            event: usuario ? 'DB_FIND_BY_GOOGLE_ID_FOUND' : 'DB_FIND_BY_GOOGLE_ID_NOT_FOUND',
+        const user = await userQueries.findByGoogleId(googleId);
+        console.log(user ? 'User found.' : 'User not found.', { 
+            event: user ? 'DB_FIND_BY_GOOGLE_ID_FOUND' : 'DB_FIND_BY_GOOGLE_ID_NOT_FOUND',
             googleId 
         });
-        return usuario;
+        return user; // Retorna dados brutos
     } catch (error) {
-        console.error('Erro ao buscar usuário por Google ID na gestão de dados', { 
+        console.error('Error finding user by Google ID in data management', { 
             event: 'DB_FIND_BY_GOOGLE_ID_ERROR',
             errorMessage: error.message,
             stack: error.stack
@@ -67,20 +67,20 @@ const encontrarPorGoogleId = async (googleId) => {
     }
 };
 
-const atualizar = async (idUsuario, dados) => {
-    console.log('Chamando camada de gestão de dados para atualizar usuário.', { 
+const updateUser = async (userId, updateData) => {
+    console.log('Calling data management layer to update user.', { 
         event: 'DB_UPDATE_USER_START',
-        idUsuario 
+        userId 
     });
     try {
-        const usuarioAtualizado = await consultasUsuario.atualizar(idUsuario, dados);
-        console.log('Usuário atualizado com sucesso na gestão de dados.', { 
+        const updatedUser = await userQueries.update(userId, updateData);
+        console.log('User updated successfully in data management.', { 
             event: 'DB_UPDATE_USER_SUCCESS',
-            idUsuario 
+            userId 
         });
-        return usuarioAtualizado;
+        return updatedUser; // Retorna dados brutos
     } catch (error) {
-        console.error('Erro ao atualizar usuário na gestão de dados', { 
+        console.error('Error updating user in data management', { 
             event: 'DB_UPDATE_USER_ERROR',
             errorMessage: error.message,
             stack: error.stack
@@ -89,12 +89,11 @@ const atualizar = async (idUsuario, dados) => {
     }
 };
 
-
-const repositorioUsuario = {
-    criar,
-    encontrarPorEmail,
-    encontrarPorGoogleId,
-    atualizar,
+const userRepository = {
+    createUser,
+    findByEmail,
+    findByGoogleId,
+    updateUser,
 };
 
-export default repositorioUsuario;
+export default userRepository;

@@ -1,34 +1,34 @@
 
 // backend/Repositorios/Repositorio.Estrutura.Comentarios.js
-import ConsultasComentarios from '../database/GestaoDeDados/PostgreSQL/Consultas.Estrutura.Comentarios.js';
+import CommentQueries from '../database/GestaoDeDados/PostgreSQL/Consultas.Estrutura.Comentarios.js';
 
-const criarComentario = (tableName, parentIdColumn) => async (commentData) => {
-    return ConsultasComentarios.criar(tableName, parentIdColumn, commentData);
+const createComment = (tableName, parentIdColumn) => async (commentData) => {
+    return CommentQueries.createComment(tableName, parentIdColumn, commentData);
 };
 
-const buscarComentariosPorParentId = (tableName, parentIdColumn) => async (parentId, options) => {
-    return ConsultasComentarios.buscarPorParentId(tableName, parentIdColumn, parentId, options);
+const findCommentsByParentId = (tableName, parentIdColumn) => async (parentId, options) => {
+    return CommentQueries.findCommentsByParentId(tableName, parentIdColumn, parentId, options);
 };
 
-const buscarComentarioPorId = (tableName) => async (commentId) => {
-    return ConsultasComentarios.buscarPorId(tableName, commentId);
+const findCommentById = (tableName) => async (commentId) => {
+    return CommentQueries.findCommentById(tableName, commentId);
 };
 
-const atualizarComentario = (tableName) => async (commentId, updates) => {
-    return ConsultasComentarios.atualizar(tableName, commentId, updates);
+const updateComment = (tableName) => async (commentId, updates) => {
+    return CommentQueries.updateComment(tableName, commentId, updates);
 };
 
-const deletarComentario = (tableName) => async (commentId) => {
-    return ConsultasComentarios.remover(tableName, commentId);
+const deleteComment = (tableName) => async (commentId) => {
+    return CommentQueries.deleteComment(tableName, commentId);
 };
 
-// Factory para criar um repositório de comentários para uma entidade específica
-const criarRepositorioDeComentarios = (tableName, parentIdColumn) => ({
-    criarComentario: criarComentario(tableName, parentIdColumn),
-    buscarComentariosPorParentId: buscarComentariosPorParentId(tableName, parentIdColumn),
-    buscarComentarioPorId: buscarComentarioPorId(tableName),
-    atualizarComentario: atualizarComentario(tableName),
-    deletarComentario: deletarComentario(tableName),
+// Factory to create a comment repository for a specific entity
+const createCommentRepository = (tableName, parentIdColumn) => ({
+    createComment: createComment(tableName, parentIdColumn),
+    findCommentsByParentId: findCommentsByParentId(tableName, parentIdColumn),
+    findCommentById: findCommentById(tableName),
+    updateComment: updateComment(tableName),
+    deleteComment: deleteComment(tableName),
 });
 
-export { criarRepositorioDeComentarios };
+export { createCommentRepository };

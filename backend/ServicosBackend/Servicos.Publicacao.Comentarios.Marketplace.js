@@ -1,9 +1,9 @@
 
 // backend/ServicosBackend/Servicos.Publicacao.Comentarios.Marketplace.js
-import { criarRepositorioDeComentarios } from '../Repositorios/Repositorio.Estrutura.Comentarios.js';
+import { createCommentRepository } from '../Repositorios/Repositorio.Estrutura.Comentarios.js';
 import Comentario from '../models/Models.Estrutura.Comentarios.js';
 
-const RepositorioComentariosMarketplace = criarRepositorioDeComentarios('marketplace_comments', 'item_id');
+const RepositorioComentariosMarketplace = createCommentRepository('marketplace_comments', 'item_id');
 
 const checkPermissions = (userId, comentarioModel) => {
     if (!comentarioModel || !comentarioModel.autorId) {
@@ -23,13 +23,13 @@ const criarComentario = async (itemId, userId, content) => {
         conteudo: content
     });
 
-    const comentarioCriado = await RepositorioComentariosMarketplace.criarComentario(novoComentario.paraBancoDeDados());
+    const comentarioCriado = await RepositorioComentariosMarketplace.createComment(novoComentario.paraBancoDeDados());
     const comentarioModel = Comentario.deBancoDeDados(comentarioCriado);
     return comentarioModel.paraRespostaHttp();
 };
 
 const obterComentariosPorItemId = async (itemId) => {
-    const comentariosDoBanco = await RepositorioComentariosMarketplace.buscarComentariosPorParentId(itemId, {});
+    const comentariosDoBanco = await RepositorioComentariosMarketplace.findCommentsByParentId(itemId, {});
 
     return comentariosDoBanco.map(dados => {
         const comentarioModel = Comentario.deBancoDeDados(dados);
@@ -42,7 +42,7 @@ const atualizarComentario = async (commentId, userId, content) => {
         throw new Error('O conteúdo do comentário é obrigatório para atualização.');
     }
 
-    const dadosComentario = await RepositorioComentariosMarketplace.buscarComentarioPorId(commentId);
+    const dadosComentario = await RepositorioComentariosMarketplace.findCommentById(commentId);
     if (!dadosComentario) {
         throw new Error('Comentário não encontrado.');
     }
@@ -53,13 +53,13 @@ const atualizarComentario = async (commentId, userId, content) => {
         throw new Error('Acesso negado. Você só pode editar seus próprios comentários.');
     }
 
-    const comentarioAtualizado = await RepositorioComentariosMarketplace.atualizarComentario(commentId, { content });
+    const comentarioAtualizado = await RepositorioComentariosMarketplace.updateComment(commentId, { content });
     const modeloAtualizado = Comentario.deBancoDeDados(comentarioAtualizado);
     return modeloAtualizado.paraRespostaHttp();
 };
 
 const deletarComentario = async (commentId, userId) => {
-    const dadosComentario = await RepositorioComentariosMarketplace.buscarComentarioPorId(commentId);
+    const dadosComentario = await RepositorioComentariosMarketplace.findCommentById(commentId);
     if (!dadosComentario) {
         throw new Error('Comentário não encontrado.');
     }
@@ -70,7 +70,7 @@ const deletarComentario = async (commentId, userId) => {
         throw new Error('Acesso negado. Você só pode deletar seus próprios comentários.');
     }
 
-    await RepositorioComentariosMarketplace.deletarComentario(commentId);
+    await RepositorioComentariosMarketplace.deleteComment(commentId);
 };
 
 export default {
