@@ -42,7 +42,14 @@ export function configureExpress(app, io) {
 
     app.use((err, req, res, next) => {
         const traceId = req.traceId || 'untraced-error';
-        const errorMessage = (err instanceof Error) ? err.message : 'Ocorreu um erro inesperado.';
+        let errorMessage = (err instanceof Error) ? err.message : 'Ocorreu um erro inesperado.';
+        let statusCode = 500;
+
+        // Tratamento específico para violação de NOT NULL
+        if (err.message && err.message.includes('violates not-null constraint')) {
+            errorMessage = 'Falha ao criar registro: um campo obrigatório não foi preenchido.';
+            statusCode = 400; // Bad Request
+        }
 
         console.error({
             camada: 'Backend',
@@ -57,7 +64,7 @@ export function configureExpress(app, io) {
             return next(err);
         }
 
-        res.status(500).json({
+        res.status(statusCode).json({
             error: 'Ocorreu um erro inesperado no servidor.',
             message: errorMessage,
             traceId

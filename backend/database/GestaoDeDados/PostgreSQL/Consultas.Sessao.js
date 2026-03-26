@@ -2,13 +2,14 @@
 import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 const criar = async (dadosSessao) => {
-    const { id, user_id, token, expires_at, user_agent, ip_address, created_at } = dadosSessao;
+    // Removido `created_at` da desestruturação, pois o BD deve gerenciá-lo.
+    const { id, user_id, token, expires_at, user_agent, ip_address } = dadosSessao;
     const query = `
-        INSERT INTO sessions (id, user_id, token, expires_at, user_agent, ip_address, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO sessions (id, user_id, token, expires_at, user_agent, ip_address)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
     `;
-    const params = [id, user_id, token, expires_at, user_agent, ip_address, created_at];
+    const params = [id, user_id, token, expires_at, user_agent, ip_address];
 
     try {
         const resultado = await pool.query(query, params);
@@ -21,7 +22,8 @@ const criar = async (dadosSessao) => {
             stack: error.stack,
             userId: user_id
         });
-        throw new Error('Erro ao criar sessão no banco de dados');
+        // Relança o erro para ser tratado pelo middleware de erro do Express
+        throw error;
     }
 };
 

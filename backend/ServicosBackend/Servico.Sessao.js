@@ -33,11 +33,11 @@ const prepararNovaSessao = async (data) => {
     const dataExpiracao = calcularDataExpiracao();
 
     const dadosSessao = {
-        idUsuario: usuario.id,
+        user_id: usuario.id,
         token,
-        userAgent: dadosRequisicao.userAgent,
-        enderecoIp: dadosRequisicao.ipAddress,
-        expires_at: dataExpiracao, // Corrigido aqui
+        user_agent: dadosRequisicao.userAgent,
+        ip_address: dadosRequisicao.ipAddress,
+        expires_at: dataExpiracao,
     };
     
     return { token, dadosSessao };
@@ -47,7 +47,7 @@ const prepararNovaSessao = async (data) => {
  * Salva os dados de uma sessão validada no repositório.
  */
 const salvarSessao = async (dadosSessaoValidados) => {
-    console.log('Salvando sessão', { event: 'SESSION_SAVE_START', userId: dadosSessaoValidados.idUsuario });
+    console.log('Salvando sessão', { event: 'SESSION_SAVE_START', userId: dadosSessaoValidados.user_id });
     
     const novaSessao = new Sessao({
         id: uuidv4(),
@@ -55,7 +55,7 @@ const salvarSessao = async (dadosSessaoValidados) => {
     });
 
     await repositorioSessao.criar(novaSessao.paraBancoDeDados());
-    console.log('Sessão salva com sucesso', { event: 'SESSION_SAVE_SUCCESS', userId: dadosSessaoValidados.idUsuario });
+    console.log('Sessão salva com sucesso', { event: 'SESSION_SAVE_SUCCESS', userId: dadosSessaoValidados.user_id });
 };
 
 
