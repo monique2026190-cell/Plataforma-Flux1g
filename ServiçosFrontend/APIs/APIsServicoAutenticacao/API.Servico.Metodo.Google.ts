@@ -46,7 +46,7 @@ class ServicoMetodoGoogle implements IServicoMetodoGoogle {
             client_id: googleClientId,
             redirect_uri: redirectUri,
             scope: 'openid email profile',
-            response_type: 'code',
+            response_type: 'id_token',
             access_type: 'offline',
             prompt: 'consent',
         });
@@ -57,12 +57,12 @@ class ServicoMetodoGoogle implements IServicoMetodoGoogle {
         window.location.href = authUrl;
     }
 
-    async handleAuthCallback(code: string, referredBy?: string): Promise<HandleAuthCallbackResponse> {
+    async handleAuthCallback(token: string, referredBy?: string): Promise<HandleAuthCallbackResponse> {
         const traceId = obterTraceIdAuth();
-        apiLogger.logRequest('handleAuthCallback', { code, referredBy, traceId });
+        apiLogger.logRequest('handleAuthCallback', { token, referredBy, traceId });
 
         // 1. Validar os dados de entrada com o schema
-        const dadosParaBackend: HandleAuthCallbackRequest = HandleAuthCallbackRequestSchema.parse({ code, referredBy });
+        const dadosParaBackend: HandleAuthCallbackRequest = HandleAuthCallbackRequestSchema.parse({ token, referredBy });
 
         try {
             const respostaBackend = await ClienteBackend.post(ENDPOINTS_AUTH.GOOGLE_CALLBACK, dadosParaBackend);
@@ -74,7 +74,7 @@ class ServicoMetodoGoogle implements IServicoMetodoGoogle {
 
             return dadosValidados;
         } catch (error) {
-            apiLogger.logFailure('handleAuthCallback', error, { code, referredBy, traceId });
+            apiLogger.logFailure('handleAuthCallback', error, { token, referredBy, traceId });
             
             throw error;
         }

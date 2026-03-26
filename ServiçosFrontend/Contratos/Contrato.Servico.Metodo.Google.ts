@@ -19,7 +19,7 @@ export const UsuarioSchema = z.object({
 
 // 2. Schema para validar o corpo da requisição enviada ao backend.
 export const HandleAuthCallbackRequestSchema = z.object({
-  code: z.string().min(1, "O código de autorização não pode estar vazio."),
+  token: z.string().min(1, "O token de ID do Google não pode estar vazio."),
   referredBy: z.string().optional(), // Opcional, pode não estar presente.
 });
 
@@ -38,12 +38,12 @@ export type HandleAuthCallbackResponse = z.infer<typeof HandleAuthCallbackRespon
 // --- Interface do Serviço ---
 export interface IServicoMetodoGoogle {
   /**
-   * Lida com o callback do Google, enviando o código de autorização para o backend.
-   * @param code O código de autorização fornecido pelo Google.
+   * Lida com o callback do Google, enviando o token de ID para o backend.
+   * @param token O token de ID fornecido pelo Google.
    * @param referredBy Opcional, o ID de quem indicou o usuário.
    * @returns Uma promessa que resolve com o token, os dados do usuário e se é um novo usuário.
    */
-  handleAuthCallback(code: string, referredBy?: string): Promise<HandleAuthCallbackResponse>;
+  handleAuthCallback(token: string, referredBy?: string): Promise<HandleAuthCallbackResponse>;
   
   /**
    * Redireciona o navegador do usuário para a página de autenticação do Google.
