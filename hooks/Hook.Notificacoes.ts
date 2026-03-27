@@ -1,14 +1,11 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-const authService = servicoAutenticacao;
-import servicoNotificacao from '../ServiçosFrontend/ServicoNotificacao/Servico.Notificacao';
+import { notificacoesApplicationService } from '../ServiçosFrontend/ServicosDeAplicacao/Notificacoes.ServicoDeAplicacao';
 import { Notificacao, Grupo, InfoPreco } from '../types/Saida/Types.Estrutura.Notificacao';
 
 export const HookNotificacoes = () => {
-    const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-    const [carregando, setCarregando] = useState(true);
+    const [state, setState] = useState(notificacoesApplicationService.getState());
     const [filtro, setFiltro] = useState('all');
     const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
     const [grupoSelecionado, setGrupoSelecionado] = useState<Grupo | null>(null);
@@ -16,40 +13,20 @@ export const HookNotificacoes = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const verificarAutenticacaoEBuscarDados = async () => {
-            const estadoAtual = await authService.confirmarAutenticacao();
-
-            if (estadoAtual.isAuthenticated && estadoAtual.token) {
-                setCarregando(true);
-                try {
-                    // CORREÇÃO: Chamar o método correto 'getNotifications' e passar o token.
-                    const dados = await servicoNotificacao.getNotifications(estadoAtual.token);
-                    setNotificacoes(dados);
-                } catch (error) {
-                    console.error("HookNotificacoes: Erro ao buscar notificações:", error);
-                    setNotificacoes([]);
-                } finally {
-                    setCarregando(false);
-                }
-            } else {
-                // Se não estiver autenticado, não há necessidade de navegar aqui, pois o serviço de auth já cuida disso.
-                console.log("HookNotificacoes: Usuário não autenticado.");
-                setCarregando(false);
-            }
-        };
-
-        verificarAutenticacaoEBuscarDados();
-
-        const unsubscribe = authService.subscribe((estado) => {
-            if (!estado.isAuthenticated) {
-                console.log("HookNotificacoes: Usuário deslogado. Limpando notificações.");
-                setNotificacoes([]);
-                navigate('/');
-            }
-        });
-
+        const unsubscribe = notificacoesApplicationService.subscribe(setState);
+        notificacoesApplicationService.carregarNotificacoes(); // Inicia o carregamento
         return () => unsubscribe();
-    }, [navigate]);
+    }, []);
+
+    const notificacoesFiltradas = useMemo(() => {
+        return state.notificacoes.filter(notif => {
+            if (filtro === 'all') return true;
+            if (filtro === 'mentions') return notif.tipo === 'mention';
+            if (filtro === 'follow') return notif.tipo === 'SEGUIDOR';
+            if (filtro === 'likes') return notif.tipo === 'like';
+            return false;
+        });
+    }, [state.notificacoes, filtro]);
 
     const alternarSeguir = useCallback(async (id: number, username: string) => {
         console.log('Ação de seguir/deixar de seguir não implementada.');
@@ -67,20 +44,10 @@ export const HookNotificacoes = () => {
         console.log('Ação de pagamento não implementada.');
     }, []);
 
-    const notificacoesFiltradas = useMemo(() => {
-        return notificacoes.filter(notif => {
-            if (filtro === 'all') return true;
-            if (filtro === 'mentions') return notif.tipo === 'mention';
-            // CORREÇÃO: Os tipos de notificação são "SEGUIDOR" e "like"
-            if (filtro === 'follow') return notif.tipo === 'SEGUIDOR';
-            if (filtro === 'likes') return notif.tipo === 'like';
-            return false;
-        });
-    }, [notificacoes, filtro]);
-
     return {
-        notificacoes,
-        carregando,
+        notificacoes: state.notificacoes,
+        carregando: state.loading,
+        error: state.error,
         filtro,
         setFiltro,
         notificacoesFiltradas,

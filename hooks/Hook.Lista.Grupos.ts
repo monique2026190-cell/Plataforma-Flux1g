@@ -1,62 +1,24 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-const authService = servicoAutenticacao;
-import { servicoGestaoListaGrupo } from '../ServiçosFrontend/ServiçoDeGrupos/Servico.Gestao.Lista.Grupo';
+import { listaGruposApplicationService } from '../ServiçosFrontend/ServicosDeAplicacao/ListaGrupos.ServicoDeAplicacao';
 import { Group } from '../tipos/types.Grupo';
 
 export const HookListaGrupos = () => {
   const navigate = useNavigate();
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [authState, setAuthState] = useState(authService.getState());
+  const [state, setState] = useState(listaGruposApplicationService.getState());
+  const currentUser = servicoAutenticacao.getCurrentUser();
 
-  // Inscreve-se nas mudanças de estado da autenticação
   useEffect(() => {
-    const unsubscribe = authService.subscribe(setAuthState);
+    const unsubscribe = listaGruposApplicationService.subscribe(setState);
+    listaGruposApplicationService.carregarGrupos();
     return () => unsubscribe();
   }, []);
 
-  const loadGroups = useCallback(async () => {
-    // Garante que o loading comece apenas quando a busca é iniciada
-    if (!loading) setLoading(true);
-    try {
-      const uniqueGroups = await servicoGestaoListaGrupo.obterGrupos();
-      setGroups(uniqueGroups);
-    } catch (error) {
-      console.error("HookListaGrupos: Falha ao carregar grupos:", error);
-      setGroups([]); // Reseta em caso de erro
-    } finally {
-      // Essencial: Finaliza o estado de loading independentemente do resultado
-      setLoading(false);
-    }
-  }, [loading]); // Adicionado loading como dependência para evitar re-execuções desnecessárias
-
-  // Reage às mudanças de estado de autenticação e ao estado de loading do authService
-  useEffect(() => {
-    const { user, loading: authLoading } = authState;
-
-    // Se o serviço de autenticação ainda está carregando, o hook também espera.
-    if (authLoading) {
-        setLoading(true);
-        return;
-    }
-
-    // Se o usuário está autenticado, carrega os grupos.
-    if (user) {
-      loadGroups();
-    } else {
-      // Se não há usuário e a autenticação já terminou, o usuário não está logado.
-      setLoading(false);
-      navigate('/');
-    }
-  }, [authState, loadGroups, navigate]);
-
-
   const navigateToGroup = (group: Group) => {
-    const currentUserId = authState.user?.id;
-    if (!currentUserId) return; // Segurança: não faz nada se não houver usuário
+    const currentUserId = currentUser?.id;
+    if (!currentUserId) return;
 
     const isCreator = group.creatorId === currentUserId;
     const isMember = (group.memberIds || []).includes(currentUserId);
@@ -74,13 +36,8 @@ export const HookListaGrupos = () => {
     }
   };
 
-  const deleteGroup = async (groupId: string) => {
-    try {
-      await servicoGestaoListaGrupo.excluirGrupo(groupId);
-      setGroups(prev => prev.filter(g => g.id !== groupId));
-    } catch (error) {
-      console.error(`HookListaGrupos: Falha ao deletar o grupo ${groupId}:`, error);
-    }
+  const deleteGroup = (groupId: string) => {
+    listaGruposApplicationService.deletarGrupo(groupId);
   };
 
   const getUnreadCount = (groupId: string) => {
@@ -88,8 +45,9 @@ export const HookListaGrupos = () => {
   };
 
   return {
-    groups,
-    loading,
+    groups: state.grupos,
+    loading: state.loading,
+    error: state.error,
     navigateToGroup,
     deleteGroup,
     getUnreadCount,

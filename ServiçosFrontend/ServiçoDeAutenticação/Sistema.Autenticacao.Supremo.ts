@@ -1,13 +1,8 @@
 
-// ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo.ts
-
-import { z } from 'zod';
 import { IAutenticacaoServico, LoginRequest, LoginResponse, GoogleLoginRequest, GoogleLoginResponse } from '../Contratos/Contrato.Autenticacao';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 import { CriacaoContaDto } from '../../types/Entrada/Dto.Estrutura.Conta.Flux';
 import { PerfilUsuario } from '../Contratos/Contrato.Perfil.Usuario';
-
-// Módulos de processo desacoplados
 import { servicoGestaoLogin } from './Processo.Login';
 import { processoGestaoSessao } from './Processo.Gestao.Sessao';
 import { processoGestaoConta, Usuario } from './Processo.Gestao.Conta';
@@ -15,27 +10,75 @@ import { processoCriacaoUsuario } from './Processo.Criacao.Usuario';
 
 const log = createServiceLogger('Sistema.Autenticacao.Supremo');
 
+interface AuthState {
+  user: Usuario | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
 class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   private gestaoLogin;
   private gestaoSessao;
   private gestaoConta;
   private criacaoUsuario;
 
-  constructor() { 
+  private state: AuthState = {
+    user: null,
+    isAuthenticated: false,
+    loading: true,
+    error: null,
+  };
+
+  private listeners: ((state: AuthState) => void)[] = [];
+
+  constructor() {
     this.gestaoSessao = processoGestaoSessao;
     this.gestaoLogin = servicoGestaoLogin;
     this.gestaoConta = processoGestaoConta;
     this.criacaoUsuario = processoCriacaoUsuario;
-
+    this.init();
     log.logInfo('Sistema de Autenticação Supremo inicializado.');
   }
 
+  private async init() {
+    try {
+      const user = await this.gestaoSessao.getCurrentUser();
+      this.updateState({ user, isAuthenticated: !!user, loading: false });
+    } catch (error) {
+      log.logError('Falha na inicialização da sessão', error);
+      this.updateState({ user: null, isAuthenticated: false, loading: false, error: 'Falha ao verificar a sessão.' });
+    }
+  }
+
+  public subscribe(listener: (state: AuthState) => void): () => void {
+    this.listeners.push(listener);
+    listener(this.state); // Envia o estado atual imediatamente
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  public getState(): AuthState {
+    return this.state;
+  }
+
+  private updateState(newState: Partial<AuthState>) {
+    this.state = { ...this.state, ...newState };
+    this.listeners.forEach(listener => listener(this.state));
+  }
+
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const { token, user } = await this.gestaoLogin.login(data);
-    // @ts-ignore
-    this.gestaoSessao.iniciarSessao(token, user);
-    // @ts-ignore
-    return { user };
+    try {
+      const { token, user } = await this.gestaoLogin.login(data);
+      this.gestaoSessao.iniciarSessao(token, user);
+      this.updateState({ user, isAuthenticated: true, error: null });
+      return { user };
+    } catch (error) {
+      log.logError('Falha no login', error);
+      this.updateState({ error: (error as Error).message });
+      throw error;
+    }
   }
 
   iniciarLoginComGoogle(): void {
@@ -43,80 +86,74 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   }
 
   async resolverSessaoLogin(data: GoogleLoginRequest): Promise<GoogleLoginResponse> {
-    const { token, user, isNewUser } = await this.gestaoLogin.handleGoogleCallback(data.code, data.referredBy);
-    // @ts-ignore
-    this.gestaoSessao.iniciarSessao(token, user);
-    // @ts-ignore
-    return { user, isNewUser };
+    try {
+      const { token, user, isNewUser } = await this.gestaoLogin.handleGoogleCallback(data.code, data.referredBy);
+      this.gestaoSessao.iniciarSessao(token, user);
+      this.updateState({ user, isAuthenticated: true, error: null });
+      return { user, isNewUser };
+    } catch (error) {
+      log.logError('Falha no login com Google', error);
+      this.updateState({ error: (error as Error).message });
+      throw error;
+    }
   }
 
   async resolverRedirecionamentoLogin(sessionId: string) {
-      // @ts-ignore // TODO: Revisar implementação após refatoração
-      return this.gestaoSessao.resolverRedirecionamentoLogin(sessionId);
+    return this.gestaoSessao.resolverRedirecionamentoLogin(sessionId);
   }
   
   async logout() {
-    this.gestaoSessao.encerrarSessao();
+    await this.gestaoSessao.encerrarSessao();
+    this.updateState({ user: null, isAuthenticated: false });
   }
 
   async criarConta(dados: CriacaoContaDto): Promise<void> {
-    // @ts-ignore // TODO: Revisar DTO após refatoração
     const { user, token } = await this.criacaoUsuario.criarConta(dados);
-    // @ts-ignore
     this.gestaoSessao.iniciarSessao(token, user);
-  }
-
-  async getPublicProfileByUsername(username: string): Promise<PerfilUsuario | null> {
-    // @ts-ignore
-    return this.gestaoConta.getPublicProfileByUsername(username);
-  }
-
-  async verifyCode(email: string, code: string, isReset: boolean = false): Promise<void> {
-    // @ts-ignore // TODO: Implementar usando novos processos
-    return this.gestaoConta.verifyCode(email, code, isReset);
-  }
-
-  async sendVerificationCode(email: string, context: 'verification' | 'reset' = 'verification'): Promise<void> {
-    // @ts-ignore // TODO: Mapear para solicitarRedefinicaoSenha ou similar
-    return this.gestaoConta.sendVerificationCode(email, context);
-  }
-
-  async resetPassword(email: string, newPassword: string): Promise<void> {
-    // @ts-ignore // TODO: Implementar usando novos processos
-    return this.gestaoConta.resetPassword(email, newPassword);
+    this.updateState({ user, isAuthenticated: true });
   }
 
   async completeProfile(data: any): Promise<void> {
-    // @ts-ignore
     const user = await this.gestaoConta.completeProfile(data, this.getCurrentUser());
-    // @ts-ignore
     this.gestaoSessao.atualizarUsuarioSessao(user);
+    this.updateState({ user });
   }
 
   async updateProfile(data: any): Promise<void> {
-    // @ts-ignore
-    const user = await this.gestaoConta.completeProfile(data, this.getCurrentUser());
-    // @ts-ignore
+    const user = await this.gestaoConta.updateProfile(data, this.getCurrentUser());
     this.gestaoSessao.atualizarUsuarioSessao(user);
+    this.updateState({ user });
   }
 
   async excluirConta(): Promise<void> {
     await this.gestaoConta.excluirConta();
     this.gestaoSessao.encerrarSessao();
-  }
-
-  async obterSessao(): Promise<Usuario | null> {
-    // Correção: Substituído `validateSession` por `getCurrentUser`, que existe no processo de gestão de sessão.
-    return this.gestaoSessao.getCurrentUser();
+    this.updateState({ user: null, isAuthenticated: false });
   }
 
   getCurrentUser() {
-    return this.gestaoSessao.getCurrentUser();
+    return this.state.user;
   }
 
   getToken(): string | null {
-    // @ts-ignore
     return this.gestaoSessao.getToken();
+  }
+  
+  // MÉTODOS restam inalterados mas podem precisar de revisão futura
+  async getPublicProfileByUsername(username: string): Promise<PerfilUsuario | null> {
+    return this.gestaoConta.getPublicProfileByUsername(username);
+  }
+
+  async verifyCode(email: string, code: string, isReset: boolean = false): Promise<void> {
+    return this.gestaoConta.verifyCode(email, code, isReset);
+  }
+
+  async sendVerificationCode(email: string, context: 'verification' | 'reset' = 'verification'): Promise<void> {
+    return this.gestaoConta.sendVerificationCode(email, context);
+  }
+
+  async resetPassword(email: string, newPassword: string): Promise<void> {
+    return this.gestaoConta.resetPassword(email, newPassword);
   }
 }
 

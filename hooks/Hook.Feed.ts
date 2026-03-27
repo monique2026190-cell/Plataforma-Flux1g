@@ -2,8 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-const authService = servicoAutenticacao;
-import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
+import { feedApplicationService } from '../ServiçosFrontend/ServicosDeAplicacao/Feed.ServicoDeAplicacao';
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 
 const POSTS_PER_PAGE = 10;
@@ -25,11 +24,19 @@ export const HookFeed = (initialCategory: string = 'all') => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
-  const [authState, setAuthState] = useState(authService.getState());
-  const currentUserId = authState.user?.id;
+  const currentUser = servicoAutenticacao.getCurrentUser();
+  const currentUserId = currentUser?.id;
 
   useEffect(() => {
-    const unsubscribe = authService.subscribe(setAuthState);
+    const handleStateChange = (state: any) => {
+      setAllPosts(state.posts);
+      setLoading(state.loading);
+      setError(state.error);
+    };
+
+    const unsubscribe = feedApplicationService.subscribe(handleStateChange);
+    feedApplicationService.carregarPosts();
+
     return () => unsubscribe();
   }, []);
 
@@ -42,37 +49,11 @@ export const HookFeed = (initialCategory: string = 'all') => {
     }
   };
 
-  // Busca inicial de todos os posts
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    const fetchAllPosts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const fetchedPosts = await feedPublicationService.getPosts();
-        setAllPosts(fetchedPosts);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-          if (err.message.includes('Token inválido')) {
-            authService.logout();
-            navigate('/login');
-          }
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllPosts();
-  }, [currentUserId, navigate]);
-
   // Lógica de filtragem e paginação no cliente
   useEffect(() => {
     const filtered = category === 'all' 
       ? allPosts 
-      : allPosts.filter(p => p.tipo === category); // Supondo que a categoria corresponde ao 'tipo' do post
+      : allPosts.filter(p => p.tipo === category);
 
     const newDisplayedPosts = filtered.slice(0, page * POSTS_PER_PAGE);
     setDisplayedPosts(newDisplayedPosts);
@@ -111,7 +92,7 @@ export const HookFeed = (initialCategory: string = 'all') => {
   const handleCtaClick = () => console.log('CTA clicado');
 
   return {
-    posts: displayedPosts, // Expor os posts filtrados e paginados
+    posts: displayedPosts,
     loading,
     error,
     hasMore: displayedPosts.length < (category === 'all' ? allPosts.length : allPosts.filter(p => p.tipo === category).length),
