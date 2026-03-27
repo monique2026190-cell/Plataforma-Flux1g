@@ -10,13 +10,15 @@ import { processoCriacaoUsuario } from './Processo.Criacao.Usuario';
 
 const log = createServiceLogger('Sistema.Autenticacao.Supremo');
 
-interface AuthState {
+export interface AuthState {
   user: Usuario | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
   isNewUser?: boolean;
 }
+
+const IS_NEW_USER_SESSION_KEY = 'flux_is_new_user';
 
 class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   private gestaoLogin;
@@ -46,7 +48,16 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   private async init() {
     try {
       const user = await this.gestaoSessao.getCurrentUser();
-      this.updateState({ user, isAuthenticated: !!user, loading: false, isNewUser: false });
+      
+      // SOLUÇÃO: Verificar se a flag de novo usuário foi persistida
+      const isNewUserStored = sessionStorage.getItem(IS_NEW_USER_SESSION_KEY);
+      let isNewUser = false;
+      if (isNewUserStored === 'true') {
+        isNewUser = true;
+        sessionStorage.removeItem(IS_NEW_USER_SESSION_KEY); // Limpa a flag para não ser usada de novo
+      }
+
+      this.updateState({ user, isAuthenticated: !!user, loading: false, isNewUser });
     } catch (error) {
       log.logError('Falha na inicialização da sessão', error);
       this.updateState({ user: null, isAuthenticated: false, loading: false, error: 'Falha ao verificar a sessão.' });
@@ -91,6 +102,12 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
     try {
       const { token, user, isNewUser } = await this.gestaoLogin.handleGoogleCallback(data.code, data.referredBy);
       this.gestaoSessao.iniciarSessao(token, user);
+      
+      // SOLUÇÃO: Persiste a flag `isNewUser` antes do redirecionamento
+      if (isNewUser) {
+        sessionStorage.setItem(IS_NEW_USER_SESSION_KEY, 'true');
+      }
+      
       this.updateState({ user, isAuthenticated: true, error: null, isNewUser });
       return { user, isNewUser };
     } catch (error) {
@@ -118,7 +135,8 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   async completeProfile(data: any): Promise<void> {
     const user = await this.gestaoConta.completeProfile(data, this.getCurrentUser());
     this.gestaoSessao.atualizarUsuarioSessao(user);
-    this.updateState({ user });
+    // SOLUÇÃO: Garante que o estado `isNewUser` seja atualizado após completar o perfil
+    this.updateState({ user, isNewUser: false });
   }
 
   async updateProfile(data: any): Promise<void> {
