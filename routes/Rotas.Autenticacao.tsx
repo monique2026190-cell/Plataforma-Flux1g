@@ -1,5 +1,5 @@
-
 import React, { lazy } from 'react';
+import { PublicRoute } from './Rotas.Protegidas'; // Importa o PublicRoute
 
 const Login = lazy(() => import('../pages/Login').then(module => ({ default: module.Login })));
 const Register = lazy(() => import('../pages/Register').then(module => ({ default: module.Register })));
@@ -9,10 +9,29 @@ const ResetPassword = lazy(() => import('../pages/ResetPassword').then(module =>
 const Banned = lazy(() => import('../pages/Banned').then(module => ({ default: module.Banned })));
 
 export const authRoutes = [
-  { path: '/', element: <Login /> },
-  { path: '/register', element: <Register /> },
-  { path: '/verify-email', element: <VerifyEmail /> },
-  { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password', element: <ResetPassword /> },
-  { path: '/banned', element: <Banned /> }
+  { 
+    path: '/', 
+    element: <PublicRoute><Login /></PublicRoute> 
+  },
+  { 
+    path: '/register', 
+    element: <PublicRoute><Register /></PublicRoute> 
+  },
+  { 
+    path: '/verify-email', 
+    element: <PublicRoute><VerifyEmail /></PublicRoute> 
+  },
+  { 
+    path: '/forgot-password', 
+    element: <PublicRoute><ForgotPassword /></PublicRoute> 
+  },
+  { 
+    path: '/reset-password', 
+    element: <PublicRoute><ResetPassword /></PublicRoute> 
+  },
+  {
+    // A página de banido pode ser acessada mesmo logado, então não usamos PublicRoute
+    path: '/banned', 
+    element: <Banned />
+  }
 ];
