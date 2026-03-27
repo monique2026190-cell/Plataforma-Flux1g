@@ -1,5 +1,5 @@
 
-import { servicoAutenticacao, AuthState } from '../../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { servicoAutenticacao, AuthState } from '../../ServiçoDeAutenticação/Auth.Application';
 import { getInstancia as getGoogleLoginInstancia } from '../../ServiçoDeAutenticação/Login.Google';
 import { ILoginEmailParams } from '../../Contratos/Contrato.Autenticacao';
 

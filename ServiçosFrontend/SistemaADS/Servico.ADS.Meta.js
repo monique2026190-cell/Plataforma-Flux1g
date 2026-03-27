@@ -1,5 +1,5 @@
 
-import { servicoAutenticacao } from '../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { servicoAutenticacao } from '../ServiçoDeAutenticação/Auth.Application';
 
 const authService = servicoAutenticacao;
 

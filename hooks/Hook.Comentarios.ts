@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Comentario, DadosCriacaoComentario, ErrosComentario } from '../tipos';
-import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Auth.Application';
 const authService = servicoAutenticacao;
 // Presumindo a existência de um serviço para comentários, seguindo o padrão do projeto
 import ServiçoComentarios from '../ServiçosFrontend/ServiçoDeComentários/index.js';

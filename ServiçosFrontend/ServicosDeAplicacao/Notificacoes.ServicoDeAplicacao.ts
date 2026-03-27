@@ -1,6 +1,6 @@
 
 import { Notificacao } from '../../types/Saida/Types.Estrutura.Notificacao';
-import { servicoAutenticacao } from '../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { servicoAutenticacao } from '../ServiçoDeAutenticação/Auth.Application';
 import servicoNotificacao from '../ServicoNotificacao/Servico.Notificacao';
 import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
 

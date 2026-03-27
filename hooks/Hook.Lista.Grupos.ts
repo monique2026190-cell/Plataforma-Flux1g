@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
+import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Auth.Application';
 import { listaGruposApplicationService } from '../ServiçosFrontend/ServicosDeAplicacao/ListaGrupos.ServicoDeAplicacao';
 import { Group } from '../tipos/types.Grupo';
 
