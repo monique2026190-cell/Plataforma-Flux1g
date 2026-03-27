@@ -1,22 +1,22 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { servicoDeAplicacaoDeAutenticacao } from '../ServiçosFrontend/ServicosDeAplicacao/Autenticacao.ServicoDeAplicacao';
-import { LoginRequest } from '../ServiçosFrontend/Contratos/Contrato.Autenticacao';
+import { servicoDeAplicacaoDeAutenticacao, AuthApplicationState } from '../ServiçosFrontend/ServicosDeAplicacao/Autenticacao.ServicoDeAplicacao';
+import { ILoginEmailParams } from '../ServiçosFrontend/Contratos/Contrato.Autenticacao';
 
 export const useAutenticacao = () => {
-  const [authState, setAuthState] = useState(servicoDeAplicacaoDeAutenticacao.getState());
+  const [authState, setAuthState] = useState<AuthApplicationState>(servicoDeAplicacaoDeAutenticacao.getState());
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthStateChange = (newState) => {
+    const handleAuthStateChange = (newState: AuthApplicationState) => {
       setAuthState(newState);
-      if (newState.isAuthenticated) {
-        if (newState.isNewUser) {
-          navigate('/completar-perfil');
-        } else {
-          navigate('/feed');
-        }
+      
+      // A lógica de navegação agora é controlada pela camada de aplicação
+      if (newState.postLoginAction === 'navigateToCompleteProfile') {
+        navigate('/completar-perfil');
+      } else if (newState.postLoginAction === 'navigateToFeed') {
+        navigate('/feed');
       }
     };
 
@@ -24,11 +24,11 @@ export const useAutenticacao = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  const loginComEmail = useCallback(async (credentials: LoginRequest) => {
+  const loginComEmail = useCallback(async (credentials: ILoginEmailParams) => {
     try {
       await servicoDeAplicacaoDeAutenticacao.loginComEmail(credentials);
     } catch (error) {
-      console.error("Falha no login com email:", error);
+      console.error("Falha no login com email:", error); // Opcional: pode mostrar um toast ou similar
     }
   }, []);
 
@@ -38,7 +38,7 @@ export const useAutenticacao = () => {
 
   const logout = useCallback(async () => {
     await servicoDeAplicacaoDeAutenticacao.logout();
-    navigate('/login');
+    navigate('/login'); // A navegação de logout pode permanecer aqui ou ser movida também
   }, [navigate]);
 
   return {
