@@ -2,7 +2,7 @@
 // backend/database/schemas/Squema.Estrutura.Usuario.js
 
 export const UsuarioModel = {
-    table: 'users',
+    table: 'user_profiles',
     columns: {
         id: 'UUID PRIMARY KEY DEFAULT gen_random_uuid()',
         name: 'TEXT NOT NULL',

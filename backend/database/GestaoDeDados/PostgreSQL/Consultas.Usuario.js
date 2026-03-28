@@ -12,7 +12,7 @@ const criar = async (dadosUsuario) => {
     } = dadosUsuario;
 
     const query = `
-        INSERT INTO users (
+        INSERT INTO user_profiles (
             id, name, email, password_hash, google_id, 
             nickname, bio, website, photo_url, is_private, profile_completed
         )
@@ -41,7 +41,7 @@ const criar = async (dadosUsuario) => {
 };
 
 const encontrarPorId = async (id, cliente = pool) => {
-    const query = `SELECT * FROM users WHERE id = $1`;
+    const query = `SELECT * FROM user_profiles WHERE id = $1`;
     logger.info(`Buscando usuário com o id: ${id}`);
     
     try {
@@ -54,7 +54,7 @@ const encontrarPorId = async (id, cliente = pool) => {
 }
 
 const encontrarPorEmail = async (email) => {
-    const query = `SELECT * FROM users WHERE email = $1`;
+    const query = `SELECT * FROM user_profiles WHERE email = $1`;
     logger.info(`Buscando usuário com o email: ${email}`);
     
     try {
@@ -67,7 +67,7 @@ const encontrarPorEmail = async (email) => {
 };
 
 const encontrarPorGoogleId = async (googleId) => {
-    const query = `SELECT * FROM users WHERE google_id = $1`;
+    const query = `SELECT * FROM user_profiles WHERE google_id = $1`;
     logger.info(`Buscando usuário com o Google ID: ${googleId}`);
 
     try {
@@ -87,9 +87,9 @@ const atualizar = async (idUsuario, dados) => {
         logger.info(`Iniciando transação para atualizar o usuário ${idUsuario}.`);
 
         if (Object.keys(dados).length > 0) {
-            const { query, values } = buildUpdateQuery('users', dados, 'id', idUsuario);
+            const { query, values } = buildUpdateQuery('user_profiles', dados, 'id', idUsuario);
             await cliente.query(query, values);
-            logger.info(`Tabela 'users' atualizada para o usuário ${idUsuario}.`);
+            logger.info(`Tabela 'user_profiles' atualizada para o usuário ${idUsuario}.`);
         }
 
         await cliente.query('COMMIT');
@@ -110,7 +110,7 @@ const deletar = async (id) => {
     const cliente = await pool.connect();
     try {
         await cliente.query('BEGIN');
-        await cliente.query('DELETE FROM users WHERE id = $1', [id]);
+        await cliente.query('DELETE FROM user_profiles WHERE id = $1', [id]);
         await cliente.query('COMMIT');
         return true;
     } catch (error) {
