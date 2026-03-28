@@ -19,7 +19,8 @@ class InfraProviderAutenticacao {
   
   async completarPerfil(perfilData: IPerfilParaCompletar): Promise<any> {
     try {
-      const response = await backend.post(ENDPOINTS_AUTH.PROFILE, perfilData);
+      // CORREÇÃO: Alterado de backend.post para backend.put para corresponder à API
+      const response = await backend.put(ENDPOINTS_AUTH.PROFILE, perfilData);
       return response;
     } catch (error) {
       logger.error("Erro ao completar o perfil", error);

@@ -5,15 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { servicoDeAplicacaoDeAutenticacao } from '../ServiçosFrontend/ServicosDeAplicacao/Application.Layer.Autenticacao';
 import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider';
+import { CompleteProfileViewModel, CompleteProfileForm } from '../viewmodels/CompleteProfileViewModel';
 
 const authService = servicoDeAplicacaoDeAutenticacao;
-
-// Definição do tipo para os dados do formulário
-interface FormData {
-    nickname: string;
-    name: string;
-    bio: string;
-}
 
 export const useCompleteProfile = () => {
     const navigate = useNavigate();
@@ -24,24 +18,20 @@ export const useCompleteProfile = () => {
     const [cortarAberto, setCortarAberto] = useState(false);
     const [imagemOriginal, setImagemOriginal] = useState<string>('');
 
-    // --- MELHORIA: Pré-preenchimento dos campos do formulário ---
     const {
         register,
         handleSubmit,
         setError,
         formState: { errors, isSubmitting },
-    } = useForm<FormData>({ 
+    } = useForm<CompleteProfileForm>({ 
         mode: 'onChange',
-        // Definimos os valores padrão aqui, usando os dados do usuário do Google.
         defaultValues: {
-            // Usamos o 'nome' vindo do Google como sugestão para o apelido.
             nickname: usuario?.nome || '',
-            name: '', // Nome de usuário geralmente é escolhido pelo usuário
+            name: '',
             bio: '', 
         }
     });
 
-    // Efeito para garantir que, se o usuário não estiver autenticado, ele seja redirecionado.
     useEffect(() => {
         if (!processando && !autenticado) {
             navigate('/login');
@@ -70,11 +60,10 @@ export const useCompleteProfile = () => {
           });
     };
 
-    const aoSubmeter = async (data: FormData) => {
+    const aoSubmeter = async (form: CompleteProfileForm) => {
         try {
-            // O método completarPerfil já sabe qual usuário está logado.
-            await authService.completarPerfil(data);
-            // Redireciona para o feed após o sucesso.
+            const request = CompleteProfileViewModel.toRequest(form);
+            await authService.completarPerfil(request);
             navigate('/feed');
         } catch (err: any) {
             console.error("Falha ao completar o perfil:", err);

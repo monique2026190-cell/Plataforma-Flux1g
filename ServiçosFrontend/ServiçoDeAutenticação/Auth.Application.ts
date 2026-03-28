@@ -92,9 +92,38 @@ class ServicoAutenticacao {
     }
   }
 
-  public async completarPerfil(dadosPerfil: Partial<IUsuario>): Promise<any> {
-    // ... implementation
+  public async completarPerfil(dadosPerfil: Partial<IUsuario>): Promise<void> {
+    const operation = 'completarPerfil';
+    logger.logOperationStart(operation);
+
+    if (!this.estado.autenticado || !this.estado.usuario) {
+      logger.logOperationError(operation, new Error("Usuário não autenticado para completar o perfil."));
+      throw new Error("Usuário não autenticado.");
+    }
+
+    try {
+      // Adiciona o ID do usuário aos dados do perfil para garantir que estamos atualizando o usuário correto
+      const dadosCompletos = { ...dadosPerfil, id: this.estado.usuario.id };
+
+      const resultado = await DadosProvider.completarPerfil(dadosCompletos);
+
+      if (resultado.sucesso && resultado.usuarioAtualizado) {
+        // Atualiza o estado local com o usuário retornado pelo backend
+        this.estado = {
+          ...this.estado,
+          usuario: resultado.usuarioAtualizado,
+        };
+        this.notificarListeners();
+        logger.logOperationSuccess(operation, { userId: this.estado.usuario.id });
+      } else {
+        throw new Error(resultado.mensagem || 'Falha ao completar o perfil no provedor de dados.');
+      }
+    } catch (error) {
+      logger.logOperationError(operation, error as Error);
+      throw error;
+    }
   }
+
 
   public async deletarMinhaConta(): Promise<any> {
     // ... implementation
