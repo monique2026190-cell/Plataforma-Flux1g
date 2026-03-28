@@ -1,6 +1,5 @@
 
 import React, { lazy } from 'react';
-import { PublicRoute } from './Rotas.Protegidas'; // Importa o PublicRoute
 
 const Login = lazy(() => import('../pages/Login').then(module => ({ default: module.Login })));
 const Register = lazy(() => import('../pages/Register').then(module => ({ default: module.Register })));
@@ -13,27 +12,27 @@ const GoogleAuthCallback = lazy(() => import('../pages/GoogleAuthCallback').then
 export const authRoutes = [
   { 
     path: '/login', 
-    element: <PublicRoute><Login /></PublicRoute> 
+    element: <Login />
   },
   {
     path: '/',
-    element: <PublicRoute><Login /></PublicRoute>
+    element: <Login />
   },
   { 
     path: '/register', 
-    element: <PublicRoute><Register /></PublicRoute> 
+    element: <Register />
   },
   { 
     path: '/verify-email', 
-    element: <PublicRoute><VerifyEmail /></PublicRoute> 
+    element: <VerifyEmail />
   },
   { 
     path: '/forgot-password', 
-    element: <PublicRoute><ForgotPassword /></PublicRoute> 
+    element: <ForgotPassword />
   },
   { 
     path: '/reset-password', 
-    element: <PublicRoute><ResetPassword /></PublicRoute> 
+    element: <ResetPassword />
   },
   {
     path: '/banned', 

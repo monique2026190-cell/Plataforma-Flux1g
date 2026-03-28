@@ -1,6 +1,5 @@
 
 import React, { lazy } from 'react';
-import { ProtectedRoute } from './Rotas.Protegidas';
 
 const Chat = lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat })));
 const GlobalSearch = lazy(() => import('../pages/GlobalSearch').then(m => ({ default: m.GlobalSearch })));
@@ -13,13 +12,13 @@ const TopGroupsPublic = lazy(() => import('../pages/TopGroupsPublic').then(m => 
 const TopGroupsVip = lazy(() => import('../pages/TopGroupsVip').then(m => ({ default: m.TopGroupsVip })));
 
 export const miscRoutes = [
-  { path: '/chat/:id', element: <ProtectedRoute><Chat /></ProtectedRoute> },
-  { path: '/global-search', element: <ProtectedRoute><GlobalSearch /></ProtectedRoute> },
-  { path: '/leaderboard', element: <ProtectedRoute><Leaderboard /></ProtectedRoute> },
-  { path: '/location-selector', element: <ProtectedRoute><LocationSelector /></ProtectedRoute> },
+  { path: '/chat/:id', element: <Chat /> },
+  { path: '/global-search', element: <GlobalSearch /> },
+  { path: '/leaderboard', element: <Leaderboard /> },
+  { path: '/location-selector', element: <LocationSelector /> },
   { path: '/maintenance', element: <Maintenance /> },
-  { path: '/top-groups', element: <ProtectedRoute><TopGroups /></ProtectedRoute> },
-  { path: '/top-groups/private', element: <ProtectedRoute><TopGroupsPrivate /></ProtectedRoute> },
-  { path: '/top-groups/public', element: <ProtectedRoute><TopGroupsPublic /></ProtectedRoute> },
-  { path: '/top-groups/vip', element: <ProtectedRoute><TopGroupsVip /></ProtectedRoute> }
+  { path: '/top-groups', element: <TopGroups /> },
+  { path: '/top-groups/private', element: <TopGroupsPrivate /> },
+  { path: '/top-groups/public', element: <TopGroupsPublic /> },
+  { path: '/top-groups/vip', element: <TopGroupsVip /> }
 ];

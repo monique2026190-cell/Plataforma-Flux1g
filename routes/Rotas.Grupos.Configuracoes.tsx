@@ -1,6 +1,5 @@
 
 import React, { lazy } from 'react';
-import { ProtectedRoute } from './Rotas.Protegidas';
 
 const PG_Configuracoes_Grupo = lazy(() => import('../pages/PG.Configuracoes.Grupo').then(m => ({ default: m.PG_Configuracoes_Grupo })));
 const PGGrupoConfiguracoesInformacoes = lazy(() => import('../pages/groups/settings/PG.Grupo.Configuracoes.Informacoes').then(m => ({ default: m.PGGrupoConfiguracoesInformacoes })));
@@ -23,22 +22,22 @@ const PGEditarPaginasVendas = lazy(() => import('../pages/groups/settings/PG.Edi
 
 
 export const groupSettingsRoutes = [
-    { path: '/group-settings/:id', element: <ProtectedRoute><PG_Configuracoes_Grupo /></ProtectedRoute> },
-    { path: '/group-settings/:id/info', element: <ProtectedRoute><PGGrupoConfiguracoesInformacoes /></ProtectedRoute> },
-    { path: '/group-settings/:id/access', element: <ProtectedRoute><PGGrupoConfiguracoesAcessoEConvites /></ProtectedRoute> },
-    { path: '/group-settings/:id/moderation', element: <ProtectedRoute><PGGrupoConfiguracoesModeracao /></ProtectedRoute> },
-    { path: '/group-settings/:id/admin-actions', element: <ProtectedRoute><PGGrupoConfiguracoesAcoesAdministrativas /></ProtectedRoute> },
-    { path: '/group-settings/:id/message-audit', element: <ProtectedRoute><PGGrupoConfiguracoesAuditoriaDeMensagens /></ProtectedRoute> },
-    { path: '/group-settings/:id/report-audit', element: <ProtectedRoute><PGGrupoConfiguracoesAuditoriaDeDenuncias /></ProtectedRoute> },
-    { path: '/group-settings/:id/entry-exit-audit', element: <ProtectedRoute><PGGrupoConfiguracoesAuditoriaDeEntradaESaida /></ProtectedRoute> },
-    { path: '/group-settings/:id/settings-audit', element: <ProtectedRoute><PGGrupoConfiguracoesAuditoriaDeAjustes /></ProtectedRoute> },
-    { path: '/group-settings/:id/roles', element: <ProtectedRoute><PGGrupoConfiguracoesCargos /></ProtectedRoute> },
-    { path: '/group-settings/:id/guidelines', element: <ProtectedRoute><PGGrupoConfiguracoesDiretrizes /></ProtectedRoute> },
-    { path: '/group-settings/:id/role-distribution', element: <ProtectedRoute><PGGrupoConfiguracoesDistribuiçaoDeCargos /></ProtectedRoute> },
-    { path: '/group-settings/:id/stats', element: <ProtectedRoute><PGGrupoConfiguracoesEstatisticas /></ProtectedRoute> },
-    { path: '/group-settings/:id/schedule', element: <ProtectedRoute><PGGrupoConfiguracoesMensagensAgendadas /></ProtectedRoute> },
-    { path: '/group-settings/:id/sales-platform', element: <ProtectedRoute><PGGrupoConfiguracoesPlataformaVendas /></ProtectedRoute> },
-    { path: '/group-settings/:id/ads-platforms', element: <ProtectedRoute><PGGrupoConfiguracoesPlataformasADS /></ProtectedRoute> },
-    { path: '/group-settings/:id/edit-sales-page', element: <ProtectedRoute><PGEditarPaginasVendas /></ProtectedRoute> },
-    { path: '/group-settings/:id/general-notifications', element: <ProtectedRoute><PGGrupoConfiguracoesNotificacoesGerais /></ProtectedRoute> },
+    { path: '/group-settings/:id', element: <PG_Configuracoes_Grupo /> },
+    { path: '/group-settings/:id/info', element: <PGGrupoConfiguracoesInformacoes /> },
+    { path: '/group-settings/:id/access', element: <PGGrupoConfiguracoesAcessoEConvites /> },
+    { path: '/group-settings/:id/moderation', element: <PGGrupoConfiguracoesModeracao /> },
+    { path: '/group-settings/:id/admin-actions', element: <PGGrupoConfiguracoesAcoesAdministrativas /> },
+    { path: '/group-settings/:id/message-audit', element: <PGGrupoConfiguracoesAuditoriaDeMensagens /> },
+    { path: '/group-settings/:id/report-audit', element: <PGGrupoConfiguracoesAuditoriaDeDenuncias /> },
+    { path: '/group-settings/:id/entry-exit-audit', element: <PGGrupoConfiguracoesAuditoriaDeEntradaESaida /> },
+    { path: '/group-settings/:id/settings-audit', element: <PGGrupoConfiguracoesAuditoriaDeAjustes /> },
+    { path: '/group-settings/:id/roles', element: <PGGrupoConfiguracoesCargos /> },
+    { path: '/group-settings/:id/guidelines', element: <PGGrupoConfiguracoesDiretrizes /> },
+    { path: '/group-settings/:id/role-distribution', element: <PGGrupoConfiguracoesDistribuiçaoDeCargos /> },
+    { path: '/group-settings/:id/stats', element: <PGGrupoConfiguracoesEstatisticas /> },
+    { path: '/group-settings/:id/schedule', element: <PGGrupoConfiguracoesMensagensAgendadas /> },
+    { path: '/group-settings/:id/sales-platform', element: <PGGrupoConfiguracoesPlataformaVendas /> },
+    { path: '/group-settings/:id/ads-platforms', element: <PGGrupoConfiguracoesPlataformasADS /> },
+    { path: '/group-settings/:id/edit-sales-page', element: <PGEditarPaginasVendas /> },
+    { path: '/group-settings/:id/general-notifications', element: <PGGrupoConfiguracoesNotificacoesGerais /> },
 ];

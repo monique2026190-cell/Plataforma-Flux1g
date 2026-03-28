@@ -1,6 +1,5 @@
 
 import React, { lazy } from 'react';
-import { ProtectedRoute } from './Rotas.Protegidas';
 
 const Marketplace = lazy(() => import('../pages/Marketplace').then(m => ({ default: m.Marketplace })));
 // Corrected the import to the new page
@@ -13,13 +12,13 @@ const AdCampaignTypeSelector = lazy(() => import('../pages/AdCampaignTypeSelecto
 const AdContentSelector = lazy(() => import('../pages/AdContentSelector').then(m => ({ default: m.AdContentSelector })));
 
 export const marketplaceRoutes = [
-  { path: '/marketplace', element: <ProtectedRoute><Marketplace /></ProtectedRoute> },
+  { path: '/marketplace', element: <Marketplace /> },
   // Updated the component for the product details route
-  { path: '/marketplace/product/:id', element: <ProtectedRoute><PGDetalhesProdutos /></ProtectedRoute> },
-  { path: '/create-marketplace-item', element: <ProtectedRoute><CreateMarketplaceItem /></ProtectedRoute> },
-  { path: '/my-store', element: <ProtectedRoute><MyStore /></ProtectedRoute> },
-  { path: '/ad-placement-selector', element: <ProtectedRoute><AdPlacementSelector /></ProtectedRoute> },
-  { path: '/campaign-performance/:id', element: <ProtectedRoute><CampaignPerformance /></ProtectedRoute> },
-  { path: '/ad-type-selector', element: <ProtectedRoute><AdCampaignTypeSelector /></ProtectedRoute> },
-  { path: '/ad-content-selector', element: <ProtectedRoute><AdContentSelector /></ProtectedRoute> }
+  { path: '/marketplace/product/:id', element: <PGDetalhesProdutos /> },
+  { path: '/create-marketplace-item', element: <CreateMarketplaceItem /> },
+  { path: '/my-store', element: <MyStore /> },
+  { path: '/ad-placement-selector', element: <AdPlacementSelector /> },
+  { path: '/campaign-performance/:id', element: <CampaignPerformance /> },
+  { path: '/ad-type-selector', element: <AdCampaignTypeSelector /> },
+  { path: '/ad-content-selector', element: <AdContentSelector /> }
 ];

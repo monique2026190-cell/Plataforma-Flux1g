@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Auth.Application';
+import { processoLogin } from '../ServiçosFrontend/ServiçoDeAutenticação/Processo.Login';
 import { feedApplicationService } from '../ServiçosFrontend/ServicosDeAplicacao/Application.Layer.Feed';
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
 
@@ -24,7 +24,8 @@ export const HookFeed = (initialCategory: string = 'all') => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
-  const currentUser = servicoAutenticacao.getCurrentUser();
+  // Obtém o usuário do novo gerenciador de estado
+  const currentUser = processoLogin.obterEstadoAtual().usuario;
   const currentUserId = currentUser?.id;
 
   useEffect(() => {
