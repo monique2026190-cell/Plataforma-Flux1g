@@ -1,13 +1,10 @@
 
-import backend from '../Cliente.Backend.js';
+import { infraProvider } from './Infra.Provider.Usuario';
 import { ENDPOINTS_AUTH } from '../EndPoints/EndPoints.Auth';
 import LoggerParaInfra from '../SistemaObservabilidade/Log.Infra';
-import { IPerfilParaCompletar } from '../ServiçoDeAutenticação/Processo.Completar.Perfil';
-import { infraProvider as infraProviderUsuario } from './Infra.Provider.Usuario';
 
 const logger = new LoggerParaInfra('DadosProvider.Autenticacao');
 
-// A interface ILoginSocialData é interna e não causa dependência externa.
 interface ILoginSocialData {
   nome: string;
   email: string;
@@ -17,70 +14,52 @@ interface ILoginSocialData {
 }
 
 class C_DadosProvider {
-  // --- DEFINIÇÕES DA ESTRUTURA DE DADOS ---
-  camposPerfilObrigatorio = () => [
-    { campo: 'id', tipo: 'string', obrigatorio: true },
-    { campo: 'nome', tipo: 'string', obrigatorio: true },
-    { campo: 'nickname', tipo: 'string', obrigatorio: true },
-    { campo: 'email', tipo: 'string', obrigatorio: true },
-    { campo: 'dataNascimento', tipo: 'date', obrigatorio: true },
-  ];
-
-  camposLoginSocial = () => [
-    { campo: 'nome', tipo: 'string', obrigatorio: true },
-    { campo: 'email', tipo: 'string', obrigatorio: true },
-    { campo: 'googleId', tipo: 'string', obrigatorio: true },
-    { campo: 'avatarUrl', tipo: 'string', obrigatorio: false },
-  ];
-
-  // --- MÉTODOS DE AUTENTICAÇÃO ---
 
   async login(email: string, senha: string): Promise<any> {
     try {
-      const response = await backend.post(ENDPOINTS_AUTH.LOGIN, { email, senha });
-      return response.data; // Retorna diretamente os dados do backend (usuario, token, etc)
+      const response = await infraProvider.post(ENDPOINTS_AUTH.LOGIN, { email, senha });
+      return response.data; // Acessa .data se o infraProvider retornar o objeto de resposta completo
     } catch (error: any) {
       logger.error("Erro no login", error);
+      // O infraProvider já loga o erro, mas podemos relançar ou tratar aqui
       throw error;
     }
   }
 
-  async completarPerfil(perfilData: IPerfilParaCompletar): Promise<any> {
-    for (const campo of this.camposPerfilObrigatorio()) {
-      if (campo.campo === 'id') continue;
-      if (!(campo.campo in perfilData) || !perfilData[campo.campo as keyof any]) {
-        return { sucesso: false, mensagem: `O campo '${campo.campo}' é obrigatório.` };
-      }
-    }
+  async completarPerfil(perfilData: any): Promise<any> {
     try {
-      const response = await backend.put(ENDPOINTS_AUTH.PROFILE, perfilData);
+      const response = await infraProvider.put(ENDPOINTS_AUTH.PROFILE, perfilData);
       return { sucesso: true, mensagem: "Perfil completado com sucesso!", usuarioAtualizado: response.data };
     } catch (error: any) {
-      logger.error("Erro ao completar o perfil", error);
       return { sucesso: false, mensagem: error.response?.data?.message || "Falha na comunicação com o servidor." };
     }
   }
 
   async lidarComLoginSocial(dadosLogin: ILoginSocialData): Promise<any> {
-    for (const campo of this.camposLoginSocial()) {
-      if (campo.obrigatorio && (!dadosLogin.hasOwnProperty(campo.campo) || !dadosLogin[campo.campo as keyof ILoginSocialData])) {
-        throw new Error(`Dado obrigatório '${campo.campo}' não recebido do provedor social.`);
-      }
-    }
     try {
-      const response = await backend.post(ENDPOINTS_AUTH.LOGIN_GOOGLE, dadosLogin);
-      return response.data; // Retorna os dados do backend (usuário, token, etc.)
+      const response = await infraProvider.post(ENDPOINTS_AUTH.LOGIN_GOOGLE, dadosLogin);
+      return response.data;
     } catch (error) {
       logger.error("Erro ao lidar com login social", error);
       throw error;
     }
   }
 
-  // --- MÉTODOS DE USUÁRIO ---
+  async criarUsuario(dadosUsuario: any): Promise<any> {
+    try {
+      // Usando o post genérico do infraProvider. 
+      // Se houver validação específica, o ideal seria usar um método como infraProvider.postUsuario
+      const response = await infraProvider.post(ENDPOINTS_AUTH.REGISTER, dadosUsuario);
+      return response.data; // Supondo que a resposta de sucesso esteja em .data
+    } catch (error: any) {
+      return { sucesso: false, mensagem: error.response?.data?.message || "Falha ao criar usuário." };
+    }
+  }
 
   async buscarUsuarioPorId(id: string): Promise<any> {
     try {
-      const response = await infraProviderUsuario.get(`/api/v1/users/${id}`);
+      // Este método já estava usando o provider correto
+      const response = await infraProvider.get(ENDPOINTS_AUTH.USER_BY_ID(id));
       return { sucesso: true, dados: response.data };
     } catch (error: any) {
       return { sucesso: false, mensagem: error.response?.data?.message || "Falha ao buscar usuário." };
@@ -89,7 +68,9 @@ class C_DadosProvider {
 
   async buscarUsuarioPorEmail(email: string): Promise<any> {
     try {
-      const response = await infraProviderUsuario.get(`/api/v1/users?email=${email}`);
+       // Este endpoint não existe no ENDPOINTS_AUTH, o ideal seria adicioná-lo lá.
+       // Por agora, vou manter a URL, mas usando o infraProvider.
+      const response = await infraProvider.get(`/api/v1/users?email=${email}`);
       const usuario = response.data && response.data.length > 0 ? response.data[0] : null;
       return { sucesso: true, dados: usuario };
     } catch (error: any) {
@@ -97,15 +78,6 @@ class C_DadosProvider {
           return { sucesso: true, dados: null };
       }
       return { sucesso: false, mensagem: error.response?.data?.message || "Falha ao buscar usuário por e-mail." };
-    }
-  }
-
-  async criarUsuario(dadosUsuario: any): Promise<any> {
-    try {
-      const response = await infraProviderUsuario.post('/api/v1/users', dadosUsuario);
-      return response;
-    } catch (error: any) {
-      return { sucesso: false, mensagem: error.response?.data?.message || "Falha ao criar usuário." };
     }
   }
 }

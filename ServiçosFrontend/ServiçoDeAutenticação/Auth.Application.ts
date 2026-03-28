@@ -102,13 +102,11 @@ class ServicoAutenticacao {
     }
 
     try {
-      // Adiciona o ID do usuário aos dados do perfil para garantir que estamos atualizando o usuário correto
       const dadosCompletos = { ...dadosPerfil, id: this.estado.usuario.id };
 
       const resultado = await DadosProvider.completarPerfil(dadosCompletos);
 
       if (resultado.sucesso && resultado.usuarioAtualizado) {
-        // Atualiza o estado local com o usuário retornado pelo backend
         this.estado = {
           ...this.estado,
           usuario: resultado.usuarioAtualizado,
@@ -124,7 +122,6 @@ class ServicoAutenticacao {
     }
   }
 
-
   public async deletarMinhaConta(): Promise<any> {
     // ... implementation
   }
@@ -133,22 +130,17 @@ class ServicoAutenticacao {
     loginGoogle.iniciarLogin();
   }
 
-  // REATORADO: Agora este método delega a lógica para o backend
   public async finalizarLoginComGoogle(idToken: string): Promise<void> {
     const operation = 'finalizarLoginComGoogle';
     logger.logOperationStart(operation);
     try {
-      // 1. Obter os dados do perfil do Google, como antes.
       const dadosUsuarioSocial: IUsuarioSocial = await loginGoogle.processarCallback(idToken);
       
-      // 2. Enviar dados para o backend para ele lidar com o login/registro.
-      // O backend irá verificar se o usuário existe, criá-lo se necessário, e retornar o usuário e um token.
       const resultado = await DadosProvider.lidarComLoginSocial({
         ...dadosUsuarioSocial,
-        tokenProvider: idToken, // Enviando o token original também
+        tokenProvider: idToken,
       });
 
-      // 3. Atualizar o estado da aplicação com a resposta do backend.
       if (resultado && resultado.usuario && resultado.token) {
         this.estado = {
           autenticado: true,
