@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
-import { useAutenticacao } from './Hook.Autenticacao';
+import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider'; // Corrigido
 
 interface Group {
     id: string;
@@ -20,7 +20,7 @@ interface Group {
 }
 
 export const HookConfiguracaoGrupoPrincipal = (groupId: string | undefined) => {
-    const { usuario } = useAutenticacao();
+    const { usuario } = useAuth(); // Corrigido
     const [group, setGroup] = useState<Group | null>(null);
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
@@ -35,6 +35,7 @@ export const HookConfiguracaoGrupoPrincipal = (groupId: string | undefined) => {
         try {
             const groupData = await SistemaGrupoSupremo.getGroupDetails(groupId);
             setGroup(groupData);
+            // A lógica para verificar a propriedade do grupo permanece a mesma
             if (usuario && groupData.ownerId === usuario.id) {
                 setIsOwner(true);
             } else {

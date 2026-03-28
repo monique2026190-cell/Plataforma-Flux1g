@@ -1,9 +1,9 @@
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import {
-    servicoAutenticacao, // Corrigido: Nome do serviço
-    AuthState, // Corrigido: Tipo do estado
-} from '../../ServiçoDeAutenticação/Auth.Application'; // Corrigido: Caminho para o serviço
+    servicoAutenticacao,
+    AuthState,
+} from '../../ServiçoDeAutenticação/Auth.Application';
 import { Usuario } from '../../../types/Usuario';
 
 // --- Tipagem do Contexto ---
@@ -14,6 +14,7 @@ interface AuthContextProps {
   erro: string | null;
   login: (params: { email: string, senha: string }) => Promise<void>;
   logout: () => Promise<void>;
+  iniciarLoginComGoogle: () => void; // Adicionado
 }
 
 // --- Contexto ---
@@ -41,15 +42,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => unsubscribe();
   }, []);
 
-  // O valor do contexto é montado a partir do estado e das ações do serviço
   const value: AuthContextProps = {
     usuario: authState.usuario,
     autenticado: authState.autenticado,
     processando: authState.processando,
     erro: authState.erro,
-    // As funções são diretamente ligadas ao serviço de autenticação
     login: servicoAutenticacao.login.bind(servicoAutenticacao),
     logout: servicoAutenticacao.logout.bind(servicoAutenticacao),
+    iniciarLoginComGoogle: servicoAutenticacao.iniciarLoginComGoogle.bind(servicoAutenticacao), // Adicionado
   };
 
   return (

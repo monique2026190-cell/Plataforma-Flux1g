@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useAutenticacao } from '../hooks/Hook.Autenticacao';
+import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider'; // Importa o hook correto
 import { useHookCriacaoPerfilFlux } from '../hooks/Hook.Criacao.Perfil.Flux';
 import { CardCriacaoContaEmailSenha } from '../Componentes/ComponentesDeAuth/Componentes/Card.Criacao.Conta.Email.Senha';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { usuario: user, carregandoSessao: authLoading } = useAutenticacao();
+  // Substitui o hook antigo pelo novo e centralizado
+  const { usuario: user, processando: authLoading, autenticado } = useAuth(); 
   const {
     dados,
     updateField,
@@ -17,18 +18,20 @@ export const Register: React.FC = () => {
     handleSubmit,
   } = useHookCriacaoPerfilFlux();
 
+  // Mantém a tela de carregamento enquanto o estado de autenticação é verificado
   if (authLoading) {
     return (
         <div className="h-screen w-full bg-[#0c0f14] flex flex-col items-center justify-center gap-4">
             <i className="fa-solid fa-circle-notch fa-spin text-[#00c2ff] text-2xl"></i>
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-[3px]">
-                Verificando Credenciais...
+                Verificando Sessão...
             </span>
         </div>
     );
   }
 
-  if (user) {
+  // Se o usuário já estiver autenticado, redireciona para a página apropriada
+  if (autenticado && user) {
     return <Navigate to={user.profile_completed ? '/feed' : '/complete-profile'} replace />;
   }
 
@@ -50,7 +53,7 @@ export const Register: React.FC = () => {
             termsAccepted={dados.termosAceitos}
             setTermsAccepted={(value) => updateField('termosAceitos', value)}
             errors={errors} 
-            loading={loading} 
+            loading={loading} // Loading do formulário de criação
             isValid={isValid} 
             referredBy={dados.indicadoPor}
             onSubmit={handleSubmit}

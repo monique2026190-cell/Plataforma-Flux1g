@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { useAutenticacao } from '../hooks/Hook.Autenticacao';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider'; // Corrigido
 import { HookPerfilProprio } from '../hooks/Hook.Perfil.Proprio';
 
 import { CabecalhoPerfil } from '../Componentes/ComponentesPerfilProprio/CabecalhoPerfil';
@@ -97,11 +98,19 @@ const ProfilePageContent = () => {
 }
 
 export const PG_Perfil_Proprio = () => {
-    const { usuario: loggedInUser } = useAutenticacao();
+    // Lógica de autenticação corrigida para usar o hook central
+    const { autenticado, processando } = useAuth();
 
-    if (!loggedInUser) {
-        return <ModalTelaCarregamento /> // Ou um prompt de login
+    // Exibe a tela de carregamento enquanto o estado de autenticação é verificado
+    if (processando) {
+        return <ModalTelaCarregamento />;
     }
 
+    // Se o usuário não estiver autenticado, redireciona para a página de login
+    if (!autenticado) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // Se autenticado, renderiza o conteúdo da página de perfil
     return <ProfilePageContent />;
 }; 

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAutenticacao } from '../hooks/Hook.Autenticacao';
+import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider'; // Corrigido
 import { HookPerfilTerceiro } from '../hooks/Hook.Perfil.Terceiro';
 
 import { CabecalhoPerfil } from '../Componentes/ComponentesPerfilProprio/CabecalhoPerfil';
@@ -19,7 +19,8 @@ import { GradeDeReels } from '../Componentes/ComponentesPerfilProprio/Grade.Reel
 
 const ProfilePageContent = ({ userId }) => {
     const { profile, isLoading, error, handleFollow } = HookPerfilTerceiro(userId);
-    const { usuario: loggedInUser } = useAutenticacao();
+    // A lógica de autenticação é agora tratada pelo hook centralizado
+    const { usuario: loggedInUser } = useAuth(); 
 
     const [activeTab, setActiveTab] = useState('posts');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,6 +41,7 @@ const ProfilePageContent = ({ userId }) => {
     if (error) return <div className="flex items-center justify-center h-screen bg-black text-white"><p>Erro: {error}</p></div>;
     if (!profile) return <div className="flex items-center justify-center h-screen bg-black text-white"><p>Perfil não encontrado.</p></div>;
 
+    // A verificação se o perfil é o do próprio usuário continua a mesma
     const isOwnProfile = loggedInUser && userId === loggedInUser.id;
 
     return (
