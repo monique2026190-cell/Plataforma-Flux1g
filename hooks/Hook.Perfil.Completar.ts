@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { servicoDeAplicacaoDeAutenticacao } from '../ServiçosFrontend/ServicosDeAplicacao/Application.Layer.Autenticacao';
-import { useAuth } from '../ServiçosFrontend/hooks/Hook.Autenticacao';
+import { useAuth } from './Hook.Autenticacao';
 import { CompleteProfileViewModel, CompleteProfileForm } from '../viewmodels/CompleteProfileViewModel';
 
 const authService = servicoDeAplicacaoDeAutenticacao;

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../ServiçosFrontend/hooks/Hook.Autenticacao'; // Caminho corrigido
+import { useAuth } from '../hooks/Hook.Autenticacao'; // Caminho corrigido
 import { HookPerfilProprio } from '../hooks/Hook.Perfil.Proprio';
 
 import { CabecalhoPerfil } from '../Componentes/ComponentesPerfilProprio/CabecalhoPerfil';

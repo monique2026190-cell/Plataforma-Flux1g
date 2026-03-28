@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useAuth } from '../ServiçosFrontend/hooks/Hook.Autenticacao'; // Caminho corrigido
+import { useAuth } from '../hooks/Hook.Autenticacao'; // Caminho corrigido
 import { useHookCriacaoPerfilFlux } from '../hooks/Hook.Criacao.Perfil.Flux';
 import { CardCriacaoContaEmailSenha } from '../Componentes/ComponentesDeAuth/Componentes/Card.Criacao.Conta.Email.Senha';
 

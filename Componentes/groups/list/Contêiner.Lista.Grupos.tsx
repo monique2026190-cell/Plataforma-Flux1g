@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Group } from '../../../types';
 import { CardMenuConteinerListaGrupo } from './Card.Menu.Conteiner.Lista.Grupo';
 import { useConfiguracaoGrupo } from '../../../hooks/Hook.Configuracao.Grupo';
-import { useAuth } from '../../../ServiçosFrontend/hooks/Hook.Autenticacao';
+import { useAuth } from '../../../hooks/Hook.Autenticacao';
 
 interface GroupListItemProps {
     group: Group & { navigateTo?: string; isSalesPlatformEnabled?: boolean };
