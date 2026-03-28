@@ -1,14 +1,14 @@
 
 import VariaveisFrontend from '../Config/Variaveis.Frontend.js';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
-import { DadosProvider } from '../Infra/DadosProvider';
 
-// Interface específica para os dados que este serviço manipula
-export interface IUsuarioGoogle {
+// Interface para os dados de usuário obtidos do provedor social.
+// Esta é a única informação que este módulo expõe.
+export interface IUsuarioSocial {
   googleId: string;
   nome: string;
   email: string;
-  avatarUrl?: string; 
+  avatarUrl?: string;
 }
 
 const logger = createServiceLogger('LoginGoogle');
@@ -16,10 +16,10 @@ const logger = createServiceLogger('LoginGoogle');
 class LoginGoogle {
 
   constructor() {
-    logger.logInfo("Módulo inicializado.");
+    logger.logInfo("Módulo de login com Google inicializado.");
   }
 
-  // A lógica de iniciar o login permanece a mesma
+  // A lógica de iniciar o fluxo de login não muda.
   public iniciarLogin(): void {
     const operation = 'iniciarLogin';
     logger.logOperationStart(operation);
@@ -46,32 +46,29 @@ class LoginGoogle {
     window.location.href = authUrl.toString();
   }
 
-  public async processarCallback(idToken: string): Promise<any> {
+  /**
+   * Processa o callback do Google, validando o token e retornando os dados brutos do usuário.
+   * Em uma aplicação real, aqui haveria uma chamada para decodificar e validar o idToken.
+   * @param idToken O token JWT retornado pelo Google.
+   * @returns Uma promessa que resolve com os dados do perfil do usuário do Google.
+   */
+  public async processarCallback(idToken: string): Promise<IUsuarioSocial> {
     const operation = 'processarCallback';
-    logger.logOperationStart(operation);
+    logger.logOperationStart(operation, { tokenLength: idToken.length });
 
-    // SIMULAÇÃO: Obtenção dos dados do usuário a partir do token
-    const dadosSimuladosDoGoogle: IUsuarioGoogle = {
+    // SIMULAÇÃO: Em um app real, você decodificaria o idToken para obter os dados.
+    // A lógica de chamar o DadosProvider foi removida daqui.
+    const dadosSimuladosDoGoogle: IUsuarioSocial = {
       nome: "Usuário Simulado Google",
       email: "simulado.google@example.com",
       googleId: `google_${new Date().getTime()}`,
       avatarUrl: "https://lh3.googleusercontent.com/a/default-user=s96-c",
     };
 
-    logger.logInfo("Dados do Google obtidos, delegando para o DadosProvider.");
+    logger.logOperationSuccess(operation, { email: dadosSimuladosDoGoogle.email });
 
-    // Delega toda a lógica (validação + chamada de infra) para o DadosProvider
-    try {
-      const resultado = await DadosProvider.lidarComLoginSocial({
-        ...dadosSimuladosDoGoogle,
-        tokenProvider: idToken,
-      });
-      logger.logOperationSuccess(operation, resultado);
-      return resultado;
-    } catch (error: any) {
-      logger.logOperationError(operation, error);
-      throw error; // Re-lança para a UI tratar
-    }
+    // Retorna apenas os dados brutos do usuário. A camada de aplicação decidirá o que fazer com eles.
+    return dadosSimuladosDoGoogle;
   }
 }
 
