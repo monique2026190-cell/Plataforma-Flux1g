@@ -3,7 +3,6 @@ import VariaveisFrontend from '../Config/Variaveis.Frontend.js';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 
 // Interface para os dados de usuário obtidos do provedor social.
-// Esta é a única informação que este módulo expõe.
 export interface IUsuarioSocial {
   googleId: string;
   nome: string;
@@ -13,13 +12,30 @@ export interface IUsuarioSocial {
 
 const logger = createServiceLogger('LoginGoogle');
 
+// Função auxiliar para decodificar um token JWT.
+// NOTA: Isso NÃO valida a assinatura do token. A validação DEVE ocorrer no backend.
+function decodeJwt(token: string) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    logger.logError("Falha ao decodificar o JWT", e);
+    return null;
+  }
+}
+
+
 class LoginGoogle {
 
   constructor() {
     logger.logInfo("Módulo de login com Google inicializado.");
   }
 
-  // A lógica de iniciar o fluxo de login não muda.
   public iniciarLogin(): void {
     const operation = 'iniciarLogin';
     logger.logOperationStart(operation);
@@ -47,28 +63,34 @@ class LoginGoogle {
   }
 
   /**
-   * Processa o callback do Google, validando o token e retornando os dados brutos do usuário.
-   * Em uma aplicação real, aqui haveria uma chamada para decodificar e validar o idToken.
+   * Processa o idToken do Google, decodificando-o para extrair os dados do usuário.
    * @param idToken O token JWT retornado pelo Google.
    * @returns Uma promessa que resolve com os dados do perfil do usuário do Google.
    */
   public async processarCallback(idToken: string): Promise<IUsuarioSocial> {
     const operation = 'processarCallback';
-    logger.logOperationStart(operation, { tokenLength: idToken.length });
+    logger.logOperationStart(operation);
 
-    // SIMULAÇÃO: Em um app real, você decodificaria o idToken para obter os dados.
-    // A lógica de chamar o DadosProvider foi removida daqui.
-    const dadosSimuladosDoGoogle: IUsuarioSocial = {
-      nome: "Usuário Simulado Google",
-      email: "simulado.google@example.com",
-      googleId: `google_${new Date().getTime()}`,
-      avatarUrl: "https://lh3.googleusercontent.com/a/default-user=s96-c",
-    };
+    try {
+      const payload = decodeJwt(idToken);
+      if (!payload) {
+        throw new Error("Token JWT inválido ou malformado.");
+      }
 
-    logger.logOperationSuccess(operation, { email: dadosSimuladosDoGoogle.email });
+      const dadosUsuarioGoogle: IUsuarioSocial = {
+        nome: payload.name,
+        email: payload.email,
+        googleId: payload.sub, // 'sub' é o campo padrão do Google para o ID do usuário
+        avatarUrl: payload.picture,
+      };
 
-    // Retorna apenas os dados brutos do usuário. A camada de aplicação decidirá o que fazer com eles.
-    return dadosSimuladosDoGoogle;
+      logger.logOperationSuccess(operation, { email: dadosUsuarioGoogle.email });
+      return dadosUsuarioGoogle;
+
+    } catch (error) {
+      logger.logOperationError(operation, error as Error);
+      throw error; // Propaga o erro para a camada de aplicação
+    }
   }
 }
 
