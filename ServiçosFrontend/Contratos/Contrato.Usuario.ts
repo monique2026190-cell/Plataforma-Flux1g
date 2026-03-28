@@ -11,4 +11,5 @@ export interface IUsuario {
   avatarUrl?: string;
   website?: string;
   perfilCompleto: boolean;
+  googleId?: string; // Adicionado para integração com o login do Google
 }

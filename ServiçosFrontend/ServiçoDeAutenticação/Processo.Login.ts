@@ -11,6 +11,7 @@ export interface IUsuario {
   website?: string;
   bio?: string;
   perfilCompleto: boolean;
+  googleId?: string;
 }
 
 export interface IEstadoAutenticacao {

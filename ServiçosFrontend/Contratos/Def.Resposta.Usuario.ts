@@ -13,6 +13,7 @@ export const UsuarioResponseSchema = z.object({
     avatarUrl: z.string().optional(),
     website: z.string().optional(),
     perfilCompleto: z.boolean(),
+    googleId: z.string().optional(), // Adicionado para integração com o login do Google
   })
 });
 
