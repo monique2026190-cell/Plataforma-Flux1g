@@ -1,43 +1,36 @@
 
 import VariaveisFrontend from '../Config/Variaveis.Frontend.js';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
+import { DadosProvider } from '../Infra/DadosProvider';
 
-// Interface para o retorno padronizado dos dados do usuário de um provedor social.
-export interface IUsuarioSocial {
-  id: string;
+// Interface específica para os dados que este serviço manipula
+export interface IUsuarioGoogle {
+  googleId: string;
   nome: string;
   email: string;
-  tokenProvider: string; // Token específico do provedor (Google, Apple, etc.)
+  avatarUrl?: string; 
 }
 
 const logger = createServiceLogger('LoginGoogle');
 
-/**
- * Login.Google.ts
- * Módulo isolado e dedicado para tratar o fluxo de autenticação com o Google.
- */
 class LoginGoogle {
 
   constructor() {
     logger.logInfo("Módulo inicializado.");
   }
 
-  /**
-   * Inicia o fluxo de autenticação, construindo a URL correta e redirecionando o usuário para o Google.
-   */
+  // A lógica de iniciar o login permanece a mesma
   public iniciarLogin(): void {
     const operation = 'iniciarLogin';
     logger.logOperationStart(operation);
     const googleClientId = VariaveisFrontend.googleClientId;
 
     if (!googleClientId || googleClientId === 'CHAVE_NAO_DEFINIDA') {
-      const error = new Error("A 'googleClientId' não está configurada. Verifique o arquivo .env e a variável VITE_GOOGLE_CLIENT_ID.");
+      const error = new Error("A 'googleClientId' não está configurada.");
       logger.logOperationError(operation, error);
       alert("A autenticação com Google não está configurada corretamente.");
       return;
     }
-
-    logger.logInfo("Redirecionando para a tela de login do Google...");
 
     const redirectUri = `${window.location.origin}/auth/google/callback`;
     const scope = 'openid profile email';
@@ -53,27 +46,32 @@ class LoginGoogle {
     window.location.href = authUrl.toString();
   }
 
-  /**
-   * Processa o token de ID retornado pelo Google após o consentimento do usuário.
-   * @param idToken - O token de ID vindo do fragmento da URL de callback.
-   * @returns Uma promessa que resolve com os dados padronizados do usuário.
-   */
-  public async processarCallback(idToken: string): Promise<IUsuarioSocial> {
+  public async processarCallback(idToken: string): Promise<any> {
     const operation = 'processarCallback';
-    logger.logOperationStart(operation, { idToken: idToken.substring(0, 10) + '...' }); // Log truncated token
-    
-    // ATENÇÃO: Esta é uma implementação simulada.
-    // Em um ambiente de produção, você deve validar o idToken no backend
-    // e então usar as informações decodificadas do token.
-    const usuarioSimulado: IUsuarioSocial = {
-      id: `google_${new Date().getTime()}`,
-      nome: "Usuário Simulado do Google",
-      email: "usuario.google.simulado@example.com",
-      tokenProvider: idToken, // Em um caso real, você poderia não querer expor o token inteiro aqui.
+    logger.logOperationStart(operation);
+
+    // SIMULAÇÃO: Obtenção dos dados do usuário a partir do token
+    const dadosSimuladosDoGoogle: IUsuarioGoogle = {
+      nome: "Usuário Simulado Google",
+      email: "simulado.google@example.com",
+      googleId: `google_${new Date().getTime()}`,
+      avatarUrl: "https://lh3.googleusercontent.com/a/default-user=s96-c",
     };
 
-    logger.logOperationSuccess(operation, { usuario: usuarioSimulado });
-    return Promise.resolve(usuarioSimulado);
+    logger.logInfo("Dados do Google obtidos, delegando para o DadosProvider.");
+
+    // Delega toda a lógica (validação + chamada de infra) para o DadosProvider
+    try {
+      const resultado = await DadosProvider.lidarComLoginSocial({
+        ...dadosSimuladosDoGoogle,
+        tokenProvider: idToken,
+      });
+      logger.logOperationSuccess(operation, resultado);
+      return resultado;
+    } catch (error: any) {
+      logger.logOperationError(operation, error);
+      throw error; // Re-lança para a UI tratar
+    }
   }
 }
 

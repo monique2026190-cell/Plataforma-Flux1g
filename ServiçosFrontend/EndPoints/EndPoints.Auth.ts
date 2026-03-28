@@ -1,7 +1,8 @@
 
 export const ENDPOINTS_AUTH = {
     LOGIN: "/auth/login",
-    GOOGLE: "/auth/google",
+    LOGIN_GOOGLE: "/auth/google/login", // Endpoint para o backend processar o login via Google (POST)
+    GOOGLE: "/auth/google",             // Endpoint para iniciar o fluxo OAuth (GET)
     GOOGLE_CALLBACK: "/auth/google/callback",
     PROFILE: "/auth/profile",
     REGISTER: "/auth/register",
