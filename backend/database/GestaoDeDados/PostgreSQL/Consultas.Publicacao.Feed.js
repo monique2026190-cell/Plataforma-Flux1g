@@ -62,7 +62,7 @@ export const obterTodos = async ({ limit = 10, cursor, allowAdultContent = 'fals
             up.country
         FROM posts p
         JOIN users u ON p.author_id = u.id
-        LEFT JOIN user_profiles up ON p.author_id = up.user_id
+        LEFT JOIN user_profiles up ON p.author_id = up.id
         WHERE ${whereClauses.join(' AND ')}
         ORDER BY p.created_at DESC
         LIMIT $${limitParamIndex};
@@ -84,7 +84,7 @@ export const obterPorId = async (postId) => {
         SELECT p.*, u.nickname as username, u.photo_url as avatar_url, up.name, up.nickname
         FROM posts p
         JOIN users u ON p.author_id = u.id
-        LEFT JOIN user_profiles up ON p.author_id = up.user_id
+        LEFT JOIN user_profiles up ON p.author_id = up.id
         WHERE p.id = $1;
     `;
     const { rows } = await pool.query(query, [postId]);
