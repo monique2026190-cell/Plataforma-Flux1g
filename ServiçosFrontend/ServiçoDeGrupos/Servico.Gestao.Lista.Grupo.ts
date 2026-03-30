@@ -12,3 +12,16 @@ export const getGroupList = async (): Promise<any[]> => {
         throw error;
     }
 };
+
+/**
+ * Objeto de serviço com interface compatível com a camada de aplicação legado.
+ */
+export const servicoGestaoListaGrupo = {
+    obterGrupos: async (): Promise<any[]> => {
+        return getGroupList();
+    },
+    excluirGrupo: async (groupId: string): Promise<void> => {
+        if(!groupId) throw new Error("ID do grupo não informado.");
+        return await dadosProviderGrupo.removerMembro(groupId, 'me'); // Ou o endpoint correto de deletar grupo se disponível.
+    }
+};

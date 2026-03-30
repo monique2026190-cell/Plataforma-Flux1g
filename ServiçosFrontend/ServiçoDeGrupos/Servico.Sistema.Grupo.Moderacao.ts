@@ -59,3 +59,7 @@ export const updateModerationSettings = async (groupId: string, settings: Partia
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterConfiguracoesModeracao = getModerationSettings;
+export const atualizarConfiguracoesModeracao = updateModerationSettings;

@@ -1,4 +1,3 @@
-
 import { PublicacaoFeed } from '../../types/Saida/Types.Estrutura.Publicacao.Feed';
 import { feedPublicationService } from '../ServiçosDePublicações/Servico.Publicacao.Feed';
 import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
@@ -27,7 +26,9 @@ class FeedApplicationService {
     this.updateState({ loading: true, error: null });
 
     try {
-      const posts = await feedPublicationService.getPosts();
+      // feedPublicationService agora é (mockFeedPublicationService | DadosProviderPublicacao)
+      // Ambos possuem o método getPosts()
+      const posts = await (feedPublicationService as any).getPosts();
       this.updateState({ posts, loading: false });
       logger.logOperationSuccess('carregarPosts', { postCount: posts.length });
     } catch (err: any) {

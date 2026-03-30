@@ -1,4 +1,3 @@
-
 import { Notificacao } from '../../types/Saida/Types.Estrutura.Notificacao';
 import { servicoAutenticacao } from '../ServiçoDeAutenticação/Auth.Application';
 import servicoNotificacao from '../ServicoNotificacao/Servico.Notificacao';
@@ -24,7 +23,7 @@ class NotificacoesApplicationService {
   constructor() {
     // Ouve mudanças na autenticação para recarregar as notificações ou limpar o estado.
     servicoAutenticacao.subscribe(async (authState) => {
-      if (authState.isAuthenticated) {
+      if (authState.autenticado) {
         await this.carregarNotificacoes();
       } else {
         this.updateState({ notificacoes: [], loading: false, error: null });
@@ -34,18 +33,12 @@ class NotificacoesApplicationService {
 
   public async carregarNotificacoes() {
     logger.logOperationStart('carregarNotificacoes');
-    const token = servicoAutenticacao.getCurrentUser()?.token;
-    if (!token) {
-        const error = new Error("Usuário não autenticado.");
-        logger.logOperationError('carregarNotificacoes', error, { reason: 'token_ausente' })
-        this.updateState({ loading: false, error: error.message });
-        return
-    }
-
+    
     this.updateState({ loading: true, error: null });
 
     try {
-      const notificacoes = await servicoNotificacao.getNotifications(token);
+      // O token agora é gerenciado internamente pelo HttpClient
+      const notificacoes = await servicoNotificacao.getNotifications();
       this.updateState({ notificacoes, loading: false });
       logger.logOperationSuccess('carregarNotificacoes', { notificationCount: notificacoes.length });
     } catch (err: any) {

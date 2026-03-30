@@ -22,9 +22,12 @@ export const dismissReport = async (groupId: string, reportId: string): Promise<
         return Promise.reject('IDs não fornecidos.');
     }
     try {
-        // Aproveitando o provider de auditoria para rejeitar a denúncia
         return await (dadosProviderGrupo as any).rejeitarDenuncia(groupId, reportId);
     } catch (error) {
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterDenuncias = getReports;
+export const rejeitarDenuncia = dismissReport;

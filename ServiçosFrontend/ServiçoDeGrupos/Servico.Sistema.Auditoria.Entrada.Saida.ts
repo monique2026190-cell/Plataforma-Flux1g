@@ -15,3 +15,6 @@ export const getEntryExitLogs = async (groupId: string): Promise<any[]> => {
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterLogs = getEntryExitLogs;

@@ -68,3 +68,9 @@ export const kickMember = async (groupId: string, memberId: string): Promise<obj
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterMembros = getGroupMembers;
+export const advertirUsuario = warnUser;
+export const banirUsuario = banUser;
+export const removerMembro = kickMember;

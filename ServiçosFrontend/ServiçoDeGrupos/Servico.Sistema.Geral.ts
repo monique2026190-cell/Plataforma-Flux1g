@@ -43,3 +43,8 @@ export const getGroupStats = async (groupId: string): Promise<any> => {
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterDetalhes = getGroupDetails;
+export const atualizarConfiguracoes = updateGroupSettings;
+export const obterEstatisticas = getGroupStats;

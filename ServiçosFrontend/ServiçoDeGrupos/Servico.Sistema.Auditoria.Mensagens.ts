@@ -10,7 +10,6 @@ export const getMessageAuditLogs = async (groupId: string, filter?: object): Pro
         return Promise.reject('ID do grupo não fornecido.');
     }
     try {
-        // Passando filtro via parâmetros se necessário
         return await dadosProviderGrupo.obterAuditoria(groupId, 'mensagens');
     } catch (error) {
         throw error;
@@ -25,9 +24,12 @@ export const deleteGroupMessage = async (groupId: string, messageId: string): Pr
         return Promise.reject('IDs não fornecidos.');
     }
     try {
-        // Usar método de remover do provider
         return await (dadosProviderGrupo as any).apagarMensagem(groupId, messageId);
     } catch (error) {
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterLogs = getMessageAuditLogs;
+export const apagarMensagem = deleteGroupMessage;

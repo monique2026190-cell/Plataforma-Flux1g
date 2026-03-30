@@ -29,3 +29,9 @@ export const assignRole = async (groupId: string, memberId: string, roleId: stri
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const obterCargos = getRoles;
+export const listarCargos = getRoles;
+export const atribuirCargo = assignRole;
+export const definirCargo = assignRole;

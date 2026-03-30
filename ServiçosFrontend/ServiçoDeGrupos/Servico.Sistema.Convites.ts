@@ -29,3 +29,8 @@ export const getInvites = async (groupId: string): Promise<any[]> => {
         throw error;
     }
 };
+
+// Aliases para compatibilidade legado
+export const gerarConvite = createInvite;
+export const obterConvites = getInvites;
+export const listarConvites = getInvites;
