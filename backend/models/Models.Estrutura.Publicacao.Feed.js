@@ -52,8 +52,7 @@ class PublicacaoFeed {
             username: dados.username,
             avatarUrl: dados.avatar_url,
             nome: dados.name,
-            apelido: dados.nickname,
-            pais: dados.country
+            apelido: dados.nickname
         };
 
         return new PublicacaoFeed({
