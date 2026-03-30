@@ -16,7 +16,7 @@ const isProduction = env.MODE === 'production';
 const VariaveisFrontend = {
     // Define a URL da API para sempre usar o proxy, tanto em produção quanto em desenvolvimento.
     // Isso é crucial para evitar problemas de CORS em produção.
-    apiBaseUrl: '/api',
+    API_BASE_URL: '/api',
 
     // Chave pública do Stripe
     stripePublicKey: env.VITE_STRIPE_PUBLIC_KEY || 'CHAVE_NAO_DEFINIDA',

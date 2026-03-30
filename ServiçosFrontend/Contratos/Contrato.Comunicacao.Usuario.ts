@@ -16,9 +16,9 @@ export const UsuarioDtoSchema = z.object({
     apelido: z.string().min(3, "Apelido deve ter no mínimo 3 caracteres.").optional(),
     bio: z.string().max(150, "Bio deve ter no máximo 150 caracteres.").optional(),
     avatarUrl: z.string().url().optional().or(z.literal('')),
-    site: z.string().url().optional().or(z.literal('')),
     privado: z.boolean().default(false),
     perfilCompleto: z.boolean().default(false),
+    senha: z.string().min(6).optional(), // Adicionado para Auth/Registro
 });
 
 export type IUsuarioDto = z.infer<typeof UsuarioDtoSchema>;
@@ -59,5 +59,7 @@ export const mapearFrontendParaBackend = (frontendData: Partial<IUsuarioDto>): a
         photo_url: frontendData.avatarUrl,
         is_private: frontendData.privado,
         profile_completed: frontendData.perfilCompleto,
+        senha: frontendData.senha,
+        password: frontendData.senha, // Mapeia para ambos para garantir recepção
     };
 };

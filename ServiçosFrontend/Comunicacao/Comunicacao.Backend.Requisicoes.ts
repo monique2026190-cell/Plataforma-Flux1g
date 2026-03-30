@@ -1,6 +1,5 @@
-// ServiçosFrontend/Comunicacao/Comunicacao.Backend.Requisicoes.ts
-
 import { createLogger } from './Comunicacao.Backend.Observabilidade';
+import VariaveisFrontend from '../Config/Variaveis.Frontend';
 
 // Diagnóstico de carregamento de módulo (visível no console do navegador e logs do Render)
 console.log('[SISTEMA] Módulo Comunicacao.Backend.Requisicoes carregando...');
@@ -11,9 +10,20 @@ const logger = createLogger('Infra.HttpClient');
 const chavesSensiveis = ['password', 'token', 'authorization', 'cookie', 'senha', 'refreshToken', 'secret'];
 
 /**
+ * Serialização segura de objetos para evitar erros no JSON.stringify.
+ */
+const safeJsonStringify = (obj: any): string => {
+    try {
+        return JSON.stringify(obj, (key, value) =>
+            value instanceof Error ? { message: value.message, stack: value.stack } : value
+        );
+    } catch (e) {
+        return '[Erro na serialização]';
+    }
+};
+
+/**
  * Mascaramento leve de objetos para log.
- * @param obj - O dado a ser mascarado.
- * @returns - O dado mascarado (cópia superficial ou parcial).
  */
 const mascararLog = (obj: any): any => {
     try {
@@ -27,7 +37,6 @@ const mascararLog = (obj: any): any => {
                 clone[key] = '[MASCARADO]';
             } else {
                 const val = obj[key];
-                // Evita recursão profunda para evitar estouros de pilha no log
                 clone[key] = (typeof val === 'object' && val !== null) ? '[Object]' : val;
             }
         }
@@ -50,40 +59,44 @@ class HttpClient {
     }
 
     public async customFetch(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> {
-        // Geração de Trace ID compatível com browsers antigos e Capacitor
-        const traceId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
-            ? crypto.randomUUID() 
-            : Math.random().toString(36).substring(2, 15);
+        const startTime = performance.now();
         
-        const headers = new Headers();
-        headers.set('Content-Type', 'application/json');
-        headers.set('x-trace-id', traceId);
+        // --- CONSTRUÇÃO DA URL (Estratégia Observabilidade) ---
+        // Garante que o endpoint use a URL base da API se não for uma URL completa
+        let url = endpoint;
+        if (!endpoint.startsWith('http') && !endpoint.startsWith(VariaveisFrontend.API_BASE_URL)) {
+            url = `${VariaveisFrontend.API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+        }
 
+        // --- CONSTRUÇÃO DOS HEADERS (Estratégia Simples) ---
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+
+        // Adiciona headers extras das opções
         if (options.headers) {
             const extraHeaders = new Headers(options.headers);
-            extraHeaders.forEach((valor, chave) => headers.set(chave, valor));
+            extraHeaders.forEach((valor, chave) => {
+                headers[chave] = valor;
+            });
         }
 
         const token = localStorage.getItem('userToken');
-        if (token) headers.set('Authorization', `Bearer ${token}`);
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        // Se for FormData, deixamos o navegador definir o Content-Type
+        if (options.body instanceof FormData) {
+            delete headers['Content-Type'];
+        }
 
         const config: RequestInit = { ...options, headers };
-        const startTime = performance.now();
-        const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-
-        // Se for FormData, removemos o Content-Type manual para o navegador definir o boundary correto
-        if (config.body instanceof FormData) {
-            headers.delete('Content-Type');
-        }
 
         // --- Log Simples de Requisição ---
         try {
             logger.info(`Request: ${config.method || 'GET'} ${url}`, {
-                traceId,
                 url,
                 method: config.method || 'GET',
-                // Mascaramos apenas os headers para segurança básica
-                headers: mascararLog(Object.fromEntries(headers.entries()))
+                headers: mascararLog(headers)
             });
         } catch (e) {}
 
@@ -167,12 +180,12 @@ class HttpClient {
     }
 
     public post<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        const body = (data instanceof FormData || typeof data === 'string') ? data : JSON.stringify(data);
+        const body = (data instanceof FormData || typeof data === 'string') ? data : safeJsonStringify(data);
         return this.customFetch(url, { ...config, method: 'POST', body });
     }
 
     public put<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        const body = (data instanceof FormData || typeof data === 'string') ? data : JSON.stringify(data);
+        const body = (data instanceof FormData || typeof data === 'string') ? data : safeJsonStringify(data);
         return this.customFetch(url, { ...config, method: 'PUT', body });
     }
 
