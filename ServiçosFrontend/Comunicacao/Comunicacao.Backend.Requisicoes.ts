@@ -1,3 +1,5 @@
+// ServiçosFrontend/Comunicacao/Comunicacao.Backend.Requisicoes.ts
+
 import LoggerParaInfra from '../SistemaObservabilidade/Log.Infra';
 
 const logger = new LoggerParaInfra('HttpClient');
@@ -31,10 +33,25 @@ class HttpClient {
     }
 
     public async customFetch(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> {
-        const traceId = crypto.randomUUID ? crypto.randomUUID() : 'no-uuid-support';
-        const headers = new Headers(options.headers || { 'Content-Type': 'application/json' });
+        // Gera um ID de rastreio para correlação entre logs de frontend e backend
+        const traceId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        
+        // --- GESTÃO DE HEADERS ---
+        const headers = new Headers();
+        // Define o tipo de conteúdo padrão como JSON
+        headers.set('Content-Type', 'application/json');
+        // Adiciona o trace-id
         headers.set('x-trace-id', traceId);
 
+        // Mescla headers passados nas opções (podem ser um objeto simples ou um objeto Headers)
+        if (options.headers) {
+            const extraHeaders = new Headers(options.headers);
+            extraHeaders.forEach((valor, chave) => {
+                headers.set(chave, valor);
+            });
+        }
+
+        // Adiciona o token de autorização, se existir
         const token = localStorage.getItem('userToken');
         if (token) {
             headers.set('Authorization', `Bearer ${token}`);
@@ -44,22 +61,25 @@ class HttpClient {
         const startTime = performance.now();
         const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
+        // --- LOG DE REQUISIÇÃO (Frontend) ---
         try {
             const requestLog = {
                 method: config.method || 'GET',
                 url: url,
                 headers: Object.fromEntries(headers.entries()),
-                body: config.body ? JSON.parse(config.body as string) : undefined
+                // Exibe o corpo sem tentar fazer parse (evita crash se já for um objeto ou se for FormData)
+                body: config.body || null
             };
             logger.info(`Request: ${requestLog.method} ${requestLog.url}`, mascararDados(requestLog));
         } catch (e) {
-            // Silently ignore log errors to avoid breaking the request
+            // Silenciosamente ignora falhas de log para não interromper a requisição principal
         }
 
         try {
             const response = await fetch(url, config);
-            const duration = performance.now() - startTime;
+            const duration = (performance.now() - startTime).toFixed(2);
 
+            // --- TRATAMENTO DE RENOVAÇÃO DE TOKEN (401 Unauthorized) ---
             if (response.status === 401 && !isRetry) {
                 if (this.isRefreshing) {
                     return new Promise((resolve, reject) => {
@@ -69,6 +89,7 @@ class HttpClient {
                         return this.customFetch(endpoint, { ...options, headers }, true);
                     });
                 }
+
                 this.isRefreshing = true;
                 try {
                     const refreshToken = localStorage.getItem('refreshToken');
@@ -81,9 +102,11 @@ class HttpClient {
                     });
 
                     if (!refreshResponse.ok) throw new Error('Falha ao renovar o token.');
+                    
                     const { token: newToken } = await refreshResponse.json();
                     localStorage.setItem('userToken', newToken);
                     this.processQueue(null, newToken);
+                    
                     headers.set('Authorization', `Bearer ${newToken}`);
                     return await this.customFetch(endpoint, { ...options, headers }, true);
                 } catch (error) {
@@ -98,20 +121,31 @@ class HttpClient {
                 }
             }
 
+            // --- PROCESSAMENTO DA RESPOSTA ---
             const data = await response.json().catch(() => null);
             
             if (!response.ok) {
-                logger.error(`Response Error: ${response.status} ${url}`, { duration, status: response.status, data: mascararDados(data) });
-                const error = new Error(data?.message || `Requisição falhou com status ${response.status}`);
+                logger.error(`Response Error: ${response.status} ${url}`, { 
+                    duration: `${duration}ms`, 
+                    status: response.status, 
+                    data: mascararDados(data) 
+                });
+                const error = new Error(data?.mensagem || data?.message || `Requisição falhou com status ${response.status}`);
                 (error as any).response = { data, status: response.status };
                 throw error;
             }
 
-            logger.info(`Response Success: ${response.status} ${url}`, { duration, status: response.status, data: mascararDados(data) });
+            logger.info(`Response Success: ${response.status} ${url}`, { 
+                duration: `${duration}ms`, 
+                status: response.status, 
+                data: mascararDados(data) 
+            });
             return data;
+
         } catch (error: any) {
+            // Captura erros de rede (DNS falhou, timeout, CORS bloqueado, etc)
             if (!(error instanceof Error && (error as any).response)) {
-                logger.error(`Network Error: ${url}`, { error: error.message });
+                logger.error(`Network or Parsing Error: ${url}`, { error: error.message || error });
             }
             throw error;
         }
@@ -122,12 +156,13 @@ class HttpClient {
     }
 
     public post<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        const body = data ? JSON.stringify(data) : null;
+        // Se já for uma string ou FormData, usa diretamente. Caso contrário, stringifica.
+        const body = (typeof data === 'string' || data instanceof FormData) ? data : JSON.stringify(data);
         return this.customFetch(url, { ...config, method: 'POST', body });
     }
 
     public put<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        const body = data ? JSON.stringify(data) : null;
+        const body = (typeof data === 'string' || data instanceof FormData) ? data : JSON.stringify(data);
         return this.customFetch(url, { ...config, method: 'PUT', body });
     }
 
@@ -137,4 +172,3 @@ class HttpClient {
 }
 
 export const httpClient = new HttpClient();
-
