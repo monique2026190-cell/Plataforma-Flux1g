@@ -1,8 +1,4 @@
-
-// Arquivo: ServiçosFrontend/ServiçoDeGrupos/Servico.Sistema.Grupo.Moderacao.ts
-
-import API_Sistema_Grupo_Moderacao from '../APIs/APIsServicoGrupos/API.Sistema.Grupo.Moderacao';
-// import ServicoLog from '../ServicoLogs/ServicoDeLog';
+import { dadosProviderGrupo } from '../Infra/Dados.Provider.Grupo';
 
 const contextoBase = "Servico.Sistema.Grupo.Moderacao";
 
@@ -36,46 +32,30 @@ export interface GroupModerationSettings {
 
 /**
  * Busca as configurações de moderação de um grupo.
- * @param {string} groupId - O ID do grupo.
- * @returns {Promise<GroupModerationSettings>}
  */
 export const getModerationSettings = async (groupId: string): Promise<GroupModerationSettings> => {
-    const contexto = `${contextoBase}.getModerationSettings`;
     if (!groupId) {
-        const erro = "O ID do grupo é obrigatório.";
-        // ServicoLog.aviso(contexto, erro);
-        return Promise.reject(erro);
+        return Promise.reject("O ID do grupo é obrigatório.");
     }
 
     try {
-        const { data } = await API_Sistema_Grupo_Moderacao.obterConfiguracoes(groupId);
-        return data;
+        return await dadosProviderGrupo.obterConfiguracoesModeracao(groupId);
     } catch (error) {
-        // ServicoLog.erro(contexto, `Erro ao buscar configurações de moderação para o grupo ${groupId}:`, { error });
         throw error;
     }
 };
 
 /**
  * Atualiza as configurações de moderação de um grupo.
- * @param {string} groupId - O ID do grupo.
- * @param {Partial<GroupModerationSettings>} settings - As configurações a serem atualizadas.
- * @returns {Promise<GroupModerationSettings>}
  */
 export const updateModerationSettings = async (groupId: string, settings: Partial<GroupModerationSettings>): Promise<GroupModerationSettings> => {
-    const contexto = `${contextoBase}.updateModerationSettings`;
     if (!groupId) {
-        const erro = "O ID do grupo é obrigatório.";
-        // ServicoLog.aviso(contexto, erro);
-        return Promise.reject(erro);
+        return Promise.reject("O ID do grupo é obrigatório.");
     }
 
     try {
-        const { data } = await API_Sistema_Grupo_Moderacao.atualizarConfiguracoes(groupId, settings);
-        // ServicoLog.info(contexto, `Configurações de moderação atualizadas para o grupo ${groupId}.`);
-        return data;
+        return await dadosProviderGrupo.atualizarConfiguracoesModeracao(groupId, settings);
     } catch (error) {
-        // ServicoLog.erro(contexto, `Erro ao atualizar configurações de moderação para o grupo ${groupId}:`, { error, settings });
         throw error;
     }
 };

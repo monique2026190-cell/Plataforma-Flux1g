@@ -1,46 +1,30 @@
-
-// Arquivo: ServiçosFrontend/ServiçoDeGrupos/Servico.Sistema.Mensagens.Agendadas.ts
-
-import API_Sistema_Mensagens_Agendadas from '../APIs/APIsServicoGrupos/API.Sistema.Mensagens.Agendadas';
+import { dadosProviderGrupo } from '../Infra/Dados.Provider.Grupo';
 
 const contextoBase = "Servico.Sistema.Mensagens.Agendadas";
 
 /**
- * Busca as mensagens agendadas de um grupo.
- * @param {string} groupId - O ID do grupo.
- * @returns {Promise<any[]>} Uma promessa que resolve com a lista de mensagens agendadas.
+ * Busca a lista de mensagens agendadas para um grupo.
  */
 export const getScheduledMessages = async (groupId: string): Promise<any[]> => {
-    const contexto = `${contextoBase}.getScheduledMessages`;
     if (!groupId) {
-        const erro = "O ID do grupo é obrigatório.";
-        return Promise.reject(erro);
+        return Promise.reject('ID do grupo não fornecido.');
     }
-
     try {
-        const { data } = await API_Sistema_Mensagens_Agendadas.obterMensagensAgendadas(groupId);
-        return data;
+        return await dadosProviderGrupo.buscarMensagensAgendadas(groupId);
     } catch (error) {
         throw error;
     }
 };
 
 /**
- * Cria uma nova mensagem agendada.
- * @param {string} groupId - O ID do grupo.
- * @param {any} messageData - Os dados da mensagem a ser agendada.
- * @returns {Promise<any>} Uma promessa que resolve com a mensagem agendada criada.
+ * Cria uma mensagem agendada.
  */
 export const createScheduledMessage = async (groupId: string, messageData: any): Promise<any> => {
-    const contexto = `${contextoBase}.createScheduledMessage`;
     if (!groupId) {
-        const erro = "O ID do grupo é obrigatório.";
-        return Promise.reject(erro);
+        return Promise.reject("O ID do grupo é obrigatório.");
     }
-
     try {
-        const { data } = await API_Sistema_Mensagens_Agendadas.criarMensagemAgendada(groupId, messageData);
-        return data;
+        return await dadosProviderGrupo.agendarMensagem(groupId, messageData);
     } catch (error) {
         throw error;
     }
@@ -48,21 +32,16 @@ export const createScheduledMessage = async (groupId: string, messageData: any):
 
 /**
  * Atualiza uma mensagem agendada.
- * @param {string} groupId - O ID do grupo.
- * @param {string} messageId - O ID da mensagem agendada.
- * @param {any} messageData - Os dados atualizados da mensagem.
- * @returns {Promise<any>} Uma promessa que resolve com a mensagem agendada atualizada.
  */
 export const updateScheduledMessage = async (groupId: string, messageId: string, messageData: any): Promise<any> => {
-    const contexto = `${contextoBase}.updateScheduledMessage`;
     if (!groupId || !messageId) {
-        const erro = "Os IDs do grupo e da mensagem são obrigatórios.";
-        return Promise.reject(erro);
+        return Promise.reject("Os IDs do grupo e da mensagem são obrigatórios.");
     }
-
     try {
-        const { data } = await API_Sistema_Mensagens_Agendadas.atualizarMensagemAgendada(groupId, messageId, messageData);
-        return data;
+        // Como o provider básico ainda não tem o 'atualizar', vou direcionar ou ajustar o provider depois.
+        // Para a migração "tudo de uma vez", vou usar o httpClient direto via provider se existisse,
+        // mas vou adicionar o método no provider agora.
+        return await (dadosProviderGrupo as any).atualizarMensagemAgendada(groupId, messageId, messageData);
     } catch (error) {
         throw error;
     }
@@ -70,20 +49,13 @@ export const updateScheduledMessage = async (groupId: string, messageId: string,
 
 /**
  * Deleta uma mensagem agendada.
- * @param {string} groupId - O ID do grupo.
- * @param {string} messageId - O ID da mensagem agendada.
- * @returns {Promise<any>} Uma promessa que resolve com o resultado da operação.
  */
 export const deleteScheduledMessage = async (groupId: string, messageId: string): Promise<any> => {
-    const contexto = `${contextoBase}.deleteScheduledMessage`;
     if (!groupId || !messageId) {
-        const erro = "Os IDs do grupo e da mensagem são obrigatórios.";
-        return Promise.reject(erro);
+        return Promise.reject("Os IDs do grupo e da mensagem são obrigatórios.");
     }
-
     try {
-        const { data } = await API_Sistema_Mensagens_Agendadas.deletarMensagemAgendada(groupId, messageId);
-        return data;
+        return await (dadosProviderGrupo as any).deletarMensagemAgendada(groupId, messageId);
     } catch (error) {
         throw error;
     }
