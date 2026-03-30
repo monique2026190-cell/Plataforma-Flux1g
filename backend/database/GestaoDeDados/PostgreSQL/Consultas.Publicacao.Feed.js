@@ -58,8 +58,7 @@ export const obterTodos = async ({ limit = 10, cursor, allowAdultContent = 'fals
             u.nickname as username, 
             u.photo_url as avatar_url, 
             up.name, 
-            up.nickname, 
-            up.country
+            up.nickname
         FROM posts p
         JOIN users u ON p.author_id = u.id
         LEFT JOIN user_profiles up ON p.author_id = up.id

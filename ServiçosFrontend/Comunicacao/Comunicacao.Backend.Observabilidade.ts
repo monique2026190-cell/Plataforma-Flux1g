@@ -12,6 +12,13 @@ const NIVEIS_DE_LOG: Record<LogLevel, number> = {
   FATAL: 4,
 };
 
+export interface ILogger {
+  info(message: string, ...data: any[]): void;
+  warn(message: string, ...data: any[]): void;
+  error(message: string, ...data: any[]): void;
+  debug?(message: string, ...data: any[]): void;
+}
+
 interface LogEntry {
   timestamp: string;
   level: LogLevel;

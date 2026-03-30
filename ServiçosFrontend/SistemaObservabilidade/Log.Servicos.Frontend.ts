@@ -1,7 +1,7 @@
 
 // ServiçosFrontend/SistemaObservabilidade/Log.Servicos.Frontend.ts
 
-import { createLogger } from './Sistema.Mensageiro.Cliente.Backend';
+import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * Cria uma instância de logger para um arquivo de Serviço específico.

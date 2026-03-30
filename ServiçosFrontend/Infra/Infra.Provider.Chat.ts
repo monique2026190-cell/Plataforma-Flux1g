@@ -1,4 +1,5 @@
-import { httpClient } from './Infra.HttpClient';
+import { httpClient } from '../Comunicacao/Comunicacao.Backend.Requisicoes';
+import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 class InfraProviderChat {
     public async listarConversas(): Promise<any[]> {

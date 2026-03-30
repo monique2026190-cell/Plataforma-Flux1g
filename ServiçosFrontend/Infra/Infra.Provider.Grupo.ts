@@ -1,4 +1,4 @@
-import { httpClient } from './Infra.HttpClient';
+import { httpClient } from '../Comunicacao/Comunicacao.Backend.Requisicoes';
 
 class InfraProviderGrupo {
     // --- Membros ---

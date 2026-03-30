@@ -1,5 +1,5 @@
 
-import { createLogger, ILogger } from './Sistema.Mensageiro.Cliente.Backend';
+import { createLogger, ILogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * @class LoggerParaInfra

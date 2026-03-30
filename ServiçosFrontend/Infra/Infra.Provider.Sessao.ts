@@ -1,4 +1,4 @@
-import { httpClient } from './Infra.HttpClient';
+import { httpClient } from '../Comunicacao/Comunicacao.Backend.Requisicoes';
 
 class InfraProviderSessao {
     public async login(loginData: any): Promise<any> {

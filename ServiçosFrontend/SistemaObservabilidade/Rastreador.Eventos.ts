@@ -1,5 +1,5 @@
 
-import LogProvider from './Sistema.Mensageiro.Cliente.Backend';
+import LogProvider from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 interface EventContext {
     component?: string;

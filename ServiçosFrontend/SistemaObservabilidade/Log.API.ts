@@ -1,7 +1,7 @@
 
 // ServiçosFrontend/SistemaObservabilidade/Log.API.ts
 
-import { createLogger } from './Sistema.Mensageiro.Cliente.Backend';
+import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * Cria uma instância de logger para um arquivo de API específico.
