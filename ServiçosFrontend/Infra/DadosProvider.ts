@@ -1,5 +1,5 @@
-
-import { infraProvider } from './Infra.Provider.Usuario';
+import { infraProviderUsuario } from './Infra.Provider.Usuario';
+import { infraProviderSessao } from './Infra.Provider.Sessao';
 import LoggerParaInfra from '../SistemaObservabilidade/Log.Infra';
 import { z } from 'zod';
 
@@ -33,7 +33,7 @@ const logger = new LoggerParaInfra('DadosProvider.Autenticacao');
  * Camada de serviço que atua como intermediário entre a UI e a Camada de Infraestrutura.
  * Responsabilidades:
  * 1. Validar os dados de entrada (payloads) usando Zod.
- * 2. Chamar o método correspondente no `infraProvider` com os dados validados.
+ * 2. Chamar o método correspondente no `infraProviderSessao` ou `infraProviderUsuario` com os dados validados.
  * 3. Lidar com erros de validação e propagar erros da API.
  */
 class C_DadosProvider {
@@ -56,32 +56,32 @@ class C_DadosProvider {
 
   async login(email: string, senha: string): Promise<any> {
     return this.handleRequest(LoginSchema, { email, senha }, (dadosValidos) => 
-      infraProvider.login(dadosValidos)
+      infraProviderSessao.login(dadosValidos)
     );
   }
 
   async completarPerfil(perfilData: unknown): Promise<any> {
     return this.handleRequest(PerfilUpdateRequestSchema, perfilData, (dadosValidos) => 
-      infraProvider.completarPerfil(dadosValidos)
+      infraProviderUsuario.completarPerfil(dadosValidos)
     );
   }
 
   async lidarComLoginSocial(dadosLogin: unknown): Promise<any> {
     return this.handleRequest(LoginSocialSchema, dadosLogin, (dadosValidos) => 
-      infraProvider.lidarComLoginSocial(dadosValidos)
+      infraProviderSessao.lidarComLoginSocial(dadosValidos)
     );
   }
 
   async criarUsuario(dadosUsuario: unknown): Promise<any> {
     return this.handleRequest(UsuarioRequestSchema, dadosUsuario, (dadosValidos) => 
-      infraProvider.criarUsuario(dadosValidos)
+      infraProviderSessao.criarUsuario(dadosValidos)
     );
   }
 
   async buscarUsuarioPorId(id: string): Promise<any> {
     // IDs geralmente não precisam de validação complexa, chamamos a infra diretamente.
     try {
-      return await infraProvider.buscarUsuarioPorId(id);
+      return await infraProviderUsuario.buscarUsuarioPorId(id);
     } catch (error) {
         logger.error(`Erro ao buscar usuário por ID: ${id}`, error);
         throw error;
@@ -91,7 +91,7 @@ class C_DadosProvider {
   async buscarUsuarioPorEmail(email: string): Promise<any> {
      // A validação de email pode ser feita aqui se necessário, mas por simplicidade, delegamos.
     try {
-        return await infraProvider.buscarUsuarioPorEmail(email);
+        return await infraProviderUsuario.buscarUsuarioPorEmail(email);
     } catch (error) {
         logger.error(`Erro ao buscar usuário por Email: ${email}`, error);
         throw error;
