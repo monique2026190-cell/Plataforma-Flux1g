@@ -1,6 +1,4 @@
-
-import API_Criacao_Grupo_Publico from '../APIs/APIsServicoGrupos/API.Criacao.Grupo.Publico';
-// import { fileService } from '../ServiçoDeArquivos/fileService';
+import { dadosProviderGrupo } from '../Infra/Dados.Provider.Grupo';
 
 // Interfaces
 interface GroupData {
@@ -20,7 +18,6 @@ class ServiçoCriaçãoGrupoPublico {
         try {
             let coverImageUrl = '';
             if (groupData.coverImageBlob) {
-                // coverImageUrl = await fileService.upload(groupData.coverImageBlob, `group-covers/${Date.now()}.png`);
                 console.warn("fileService.upload removido. A imagem de capa não será enviada.");
             }
 
@@ -30,12 +27,10 @@ class ServiçoCriaçãoGrupoPublico {
                 coverImage: coverImageUrl,
             };
 
-            const { data } = await API_Criacao_Grupo_Publico.criar(payload);
-
-            return data;
+            return await dadosProviderGrupo.criarGrupo({ ...payload, type: 'public' });
 
         } catch (error: any) {
-            const errorMessage = error.response?.data?.message || 'Falha ao criar o grupo público.';
+            const errorMessage = error.message || 'Falha ao criar o grupo público.';
             throw new Error(errorMessage);
         }
     }

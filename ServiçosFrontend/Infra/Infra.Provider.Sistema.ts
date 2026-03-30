@@ -1,27 +1,31 @@
 import { httpClient } from './Infra.HttpClient';
 
 class InfraProviderSistema {
+    // --- Modo Hub ---
+    public async buscarStatusHub(grupoId: string): Promise<any> {
+        return httpClient.get(`/api/sistema/hub/status/${grupoId}`);
+    }
+
+    public async definirStatusModoHub(grupoId: string, payload: any): Promise<any> {
+        return httpClient.post(`/api/sistema/hub/status/${grupoId}`, payload);
+    }
+
     // --- Notificações ---
     public async buscarNotificacoes(): Promise<any[]> {
         return httpClient.get('/api/sistema/notificacoes');
     }
 
-    public async marcarNotificacaoComoLida(notificacaoId: string): Promise<void> {
-        return httpClient.post(`/api/sistema/notificacoes/${notificacaoId}/lida`);
+    public async marcarComoLida(notificacaoId: string): Promise<boolean> {
+        return httpClient.post(`/api/sistema/notificacoes/${notificacaoId}/ler`);
     }
 
-    public async marcarTodasComoLidas(): Promise<void> {
+    public async marcarTodasComoLidas(): Promise<boolean> {
         return httpClient.post('/api/sistema/notificacoes/ler-todas');
     }
 
-    // --- Servico de Notificacao (Push) ---
+    // --- Push Notifications ---
     public async registrarTokenPush(token: string): Promise<any> {
-        return httpClient.post('/api/sistema/notificacoes/push/token', { token });
-    }
-
-    // --- Modo Hub ---
-    public async buscarStatusHub(): Promise<any> {
-        return httpClient.get('/api/sistema/hub/status');
+        return httpClient.post('/api/sistema/push/registro', { token });
     }
 }
 

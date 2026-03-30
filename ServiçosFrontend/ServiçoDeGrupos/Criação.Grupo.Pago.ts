@@ -1,6 +1,4 @@
-
-import API_Criacao_Grupo_Pago from '../APIs/APIsServicoGrupos/API.Criacao.Grupo.Pago';
-// import { fileService } from '../ServiçoDeArquivos/fileService';
+import { dadosProviderGrupo } from '../Infra/Dados.Provider.Grupo';
 
 // Interfaces
 interface MediaGalleryItem {
@@ -74,7 +72,6 @@ class ServiçoCriaçãoGrupoPago {
             const finalMediaGallery: MediaGalleryItem[] = [];
 
             if (selectedCoverFile) {
-                // finalCoverUrl = await fileService.upload(selectedCoverFile, `group-covers/${Date.now()}_${selectedCoverFile.name}`);
                 console.warn("fileService.upload removido. A imagem de capa não será enviada.");
                 filesUploadedCount++;
                 onProgress((filesUploadedCount / filesToUpload.length) * 100, filesUploadedCount, filesToUpload.length);
@@ -83,9 +80,7 @@ class ServiçoCriaçãoGrupoPago {
             const vipItemsWithFiles = vipMediaItems.filter(item => item.file);
             for (const item of vipItemsWithFiles) {
                 if(item.file) {
-                    // const uploadedUrl = await fileService.upload(item.file, `vip-door-media/${Date.now()}_${item.file.name}`);
                     console.warn("fileService.upload removido. O arquivo de mídia VIP não será enviado.");
-                    // finalMediaGallery.push({ url: uploadedUrl, type: item.type });
                     filesUploadedCount++;
                     onProgress((filesUploadedCount / filesToUpload.length) * 100, filesUploadedCount, filesToUpload.length);
                 }
@@ -103,12 +98,10 @@ class ServiçoCriaçãoGrupoPago {
                 pixelId, pixelToken, finalMediaGallery,
             };
 
-            const { data } = await API_Criacao_Grupo_Pago.criar(apiPayload);
-
-            return data;
+            return await dadosProviderGrupo.criarGrupo(apiPayload);
 
         } catch (error: any) {
-            const errorMessage = error.response?.data?.message || 'Falha ao criar o grupo VIP.';
+            const errorMessage = error.message || 'Falha ao criar o grupo VIP.';
             onProgress(100, filesToUpload.length, filesToUpload.length, true);
             throw new Error(errorMessage);
         }

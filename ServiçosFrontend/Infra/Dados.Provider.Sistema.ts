@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { DadosBase } from './Dados.Base';
 import { infraProviderSistema } from './Infra.Provider.Sistema';
 
@@ -7,27 +6,31 @@ class DadosProviderSistema extends DadosBase {
         super('DadosProvider.Sistema');
     }
 
+    // --- Modo Hub ---
+    async buscarStatusHub(grupoId: string) {
+        return infraProviderSistema.buscarStatusHub(grupoId);
+    }
+
+    async definirStatusModoHub(grupoId: string, payload: any) {
+        return infraProviderSistema.definirStatusModoHub(grupoId, payload);
+    }
+
     // --- Notificações ---
     async buscarNotificacoes() {
         return infraProviderSistema.buscarNotificacoes();
     }
 
-    async marcarNotificacaoComoLida(id: string) {
-        return infraProviderSistema.marcarNotificacaoComoLida(id);
+    async marcarComoLida(notificacaoId: string) {
+        return infraProviderSistema.marcarComoLida(notificacaoId);
     }
 
     async marcarTodasComoLidas() {
         return infraProviderSistema.marcarTodasComoLidas();
     }
 
-    // --- Servico de Notificacao (Push) ---
+    // --- Push Notifications ---
     async registrarTokenPush(token: string) {
         return infraProviderSistema.registrarTokenPush(token);
-    }
-
-    // --- Modo Hub ---
-    async buscarStatusHub() {
-        return infraProviderSistema.buscarStatusHub();
     }
 }
 

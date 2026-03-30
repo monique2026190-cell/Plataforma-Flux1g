@@ -1,8 +1,4 @@
-
-// Arquivo: ServiçosFrontend/ServiçoDeGrupos/Servico.Sistema.Grupo.Diretrizes.ts
-
-import API_Sistema_Grupo_Diretrizes from '../APIs/APIsServicoGrupos/API.Sistema.Grupo.Diretrizes';
-// import ServicoLog from '../ServicoLogs/ServicoDeLog';
+import { dadosProviderGrupo } from '../Infra/Dados.Provider.Grupo';
 
 const contextoBase = "Servico.Sistema.Grupo.Diretrizes";
 
@@ -19,28 +15,20 @@ interface GroupGuidelinesData {
 
 /**
  * Atualiza as diretrizes e controles de moderação de um grupo.
- * @param {string} groupId - O ID do grupo.
- * @param {GroupGuidelinesData} data - As configurações a serem salvas.
- * @returns {Promise<GroupGuidelinesData>}
  */
 export const updateGroupGuidelines = async (groupId: string, data: GroupGuidelinesData): Promise<GroupGuidelinesData> => {
-    const contexto = `${contextoBase}.updateGroupGuidelines`;
     if (!groupId) {
-        const erro = "O ID do grupo é obrigatório.";
-        // ServicoLog.aviso(contexto, erro);
-        return Promise.reject(erro);
+        return Promise.reject("O ID do grupo é obrigatório.");
     }
 
     try {
         const { guidelines, slowMode, slowModeEntry } = data;
         const promises: Promise<any>[] = [];
 
-        // Atualiza as diretrizes de texto, se fornecidas
         if (guidelines !== undefined) {
-            promises.push(API_Sistema_Grupo_Diretrizes.atualizarDiretrizes(groupId, { guidelines }));
+            promises.push(dadosProviderGrupo.atualizarDiretrizes(groupId, { guidelines }));
         }
 
-        // Prepara as configurações de moderação (slow mode)
         const settings: { slowMode?: SlowModeSettings; slowModeEntry?: SlowModeSettings } = {};
         if (slowMode !== undefined) {
             settings.slowMode = slowMode;
@@ -49,40 +37,27 @@ export const updateGroupGuidelines = async (groupId: string, data: GroupGuidelin
             settings.slowModeEntry = slowModeEntry;
         }
 
-        // Atualiza as configurações de moderação, se houver alguma
         if (Object.keys(settings).length > 0) {
-            promises.push(API_Sistema_Grupo_Diretrizes.atualizarConfiguracoes(groupId, settings));
+            promises.push(dadosProviderGrupo.atualizarConfiguracoesModeracao(groupId, settings));
         }
 
-        // Executa todas as atualizações em paralelo
         await Promise.all(promises);
-
-        // ServicoLog.info(contexto, `Diretrizes e configurações atualizadas para o grupo ${groupId}.`);
-        return data; // Retorna os dados como confirmação
-
+        return data;
     } catch (error) {
-        // ServicoLog.erro(contexto, `Erro ao atualizar diretrizes para o grupo ${groupId}:`, { error, data });
-        throw error; // Propaga o erro
+        throw error;
     }
 };
 
 /**
  * Obtém as diretrizes de um grupo.
- * @param {string} groupId - O ID do grupo.
- * @returns {Promise<any>}
  */
 export const getGroupGuidelines = async (groupId: string): Promise<any> => {
-    const contexto = `${contextoBase}.getGroupGuidelines`;
     if (!groupId) {
-        const erro = "O ID do grupo é obrigatório.";
-        // ServicoLog.aviso(contexto, erro);
-        return Promise.reject(erro);
+        return Promise.reject("O ID do grupo é obrigatório.");
     }
     try {
-        const { data } = await API_Sistema_Grupo_Diretrizes.obterDiretrizes(groupId);
-        return data;
+        return await dadosProviderGrupo.obterDiretrizes(groupId);
     } catch (error) {
-        // ServicoLog.erro(contexto, `Erro ao obter diretrizes do grupo ${groupId}:`, { error });
         throw error;
     }
 };
