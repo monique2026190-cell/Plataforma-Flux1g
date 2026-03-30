@@ -29,8 +29,13 @@ class HttpClient {
 
         const config: RequestInit = { ...options, headers };
 
-        logger.logInfo(`Iniciando requisição: ${config.method || 'GET'} ${endpoint}`);
-        const response = await fetch(endpoint, config);
+        try {
+            logger.info(`Iniciando requisição: ${config.method || 'GET'} ${endpoint}`);
+        } catch (e) {
+            console.warn('Falha ao registrar log de infra:', e);
+        }
+        const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const response = await fetch(url, config);
 
         if (response.status === 401 && !isRetry) {
             if (this.isRefreshing) {
