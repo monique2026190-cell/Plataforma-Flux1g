@@ -1,5 +1,4 @@
 import { Notificacao } from '../../types/Saida/Types.Estrutura.Notificacao';
-import { servicoAutenticacao } from '../Estados/Manager.Estado.Autenticacao';
 import servicoNotificacao from '../ServicoNotificacao/Servico.Notificacao';
 import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
 
@@ -21,14 +20,7 @@ class NotificacoesApplicationService {
   private listeners: ((state: NotificacoesState) => void)[] = [];
 
   constructor() {
-    // Ouve mudanças na autenticação para recarregar as notificações ou limpar o estado.
-    servicoAutenticacao.subscribe(async (authState) => {
-      if (authState.autenticado) {
-        await this.carregarNotificacoes();
-      } else {
-        this.updateState({ notificacoes: [], loading: false, error: null });
-      }
-    });
+    // As notificações são carregadas sob demanda via método carregarNotificacoes()
   }
 
   public async carregarNotificacoes() {

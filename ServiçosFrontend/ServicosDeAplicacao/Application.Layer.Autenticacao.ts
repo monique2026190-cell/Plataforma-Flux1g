@@ -11,17 +11,25 @@ export interface LoginEmailParams {
   senha: string;
 }
 
+// Tipo local para Usuario (替代 authStateManager)
+interface UsuarioLocal {
+  id: string;
+  nome?: string;
+  email?: string;
+  apelido?: string;
+  urlFoto?: string;
+  perfilCompleto?: boolean;
+}
+
 class AutenticacaoApplicationService {
   async loginComEmail(params: LoginEmailParams): Promise<void> {
     logger.logOperationStart('loginComEmail', { email: params.email });
-    authStateManager.setProcessando(true);
-    authStateManager.setErro(null);
 
     try {
       const resposta = await dadosProviderSessao.login(params.email, params.senha);
 
       if (resposta.sucesso) {
-        const usuario: Usuario = {
+        const usuario: UsuarioLocal = {
           id: resposta.dados.user.id,
           nome: resposta.dados.user.name || resposta.dados.user.nome,
           email: resposta.dados.user.email,
@@ -29,16 +37,12 @@ class AutenticacaoApplicationService {
           urlFoto: resposta.dados.user.photo_url || resposta.dados.user.urlFoto,
           perfilCompleto: resposta.dados.user.profile_completed || resposta.dados.user.perfilCompleto,
         };
-
-        authStateManager.loginSucesso(usuario, resposta.dados.token);
         logger.logOperationSuccess('loginComEmail', { userId: usuario.id });
       } else {
         throw new Error(resposta.mensagem || 'Erro ao fazer login');
       }
     } catch (error: any) {
       const mensagemErro = error.message || 'Erro ao fazer login. Tente novamente.';
-      authStateManager.setErro(mensagemErro);
-      authStateManager.setProcessando(false);
       logger.logOperationError('loginComEmail', error);
       throw error;
     }

@@ -1,8 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ServicoGestaoCredencialPayPal as paypalService } from '../../ServiçosFrontend/ServiçoDeProvedoresDePagamentos/ServiçoGestãoCredencialPayPal.js';
-import { getInstanciaSuprema } from '../ServiçosFrontend/Estados/Manager.Estado.Autenticacao';
-const authService = getInstanciaSuprema();
 // import { metaPixelService } from '../../ServiçosFrontend/ServiçoDeMetaPixel/MetaPixelService.js';
 import { Group } from '../../types';
 
@@ -51,7 +49,7 @@ export const useFluxoDePagamentoPayPal = ({ group, onSuccess, onError, onTransac
             return approvalUrl;
         }
 
-        const email = authService.getCurrentUserEmail() || localStorage.getItem('guest_email_capture');
+        const email = localStorage.getItem('guest_email_capture');
         if (!email) {
             onError("Um e-mail é necessário para prosseguir com o pagamento.");
             return null;

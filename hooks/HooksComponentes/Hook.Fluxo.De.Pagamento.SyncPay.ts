@@ -1,8 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ServicoGestaoCredencialSyncPay as syncPayService } from '../../ServiçosFrontend/ServiçoDeProvedoresDePagamentos/ServiçoGestãoCredencialSyncPay.js';
-import { getInstanciaSuprema } from '../ServiçosFrontend/Estados/Manager.Estado.Autenticacao';
-const authService = getInstanciaSuprema();
 import { Group, User } from '../../types';
 
 export type SyncPayView = 'selection' | 'pix' | 'boleto';
@@ -22,13 +20,8 @@ export const useFluxoDePagamentoSyncPay = ({ group, onSuccess, onError, onTransa
     const [isLoading, setIsLoading] = useState(false);
     const pollingInterval = useRef<any>(null);
 
-    const [authState, setAuthState] = useState(authService.getState());
-    const { user } = authState;
-
-    useEffect(() => {
-        const unsubscribe = authService.subscribe(setAuthState);
-        return () => unsubscribe();
-    }, []);
+    // Usuário obtido do localStorage/guest capture
+    const userEmail = localStorage.getItem('guest_email_capture');
 
     useEffect(() => {
         return () => { if (pollingInterval.current) clearInterval(pollingInterval.current); };
@@ -53,13 +46,13 @@ export const useFluxoDePagamentoSyncPay = ({ group, onSuccess, onError, onTransa
         setIsLoading(true);
         
         const guestEmail = localStorage.getItem('guest_email_capture');
-        if (!user && !guestEmail) { 
+        if (!guestEmail) { 
             onError("E-mail não identificado. Por favor, recarregue a página."); 
             setIsLoading(false);
             return; 
         }
         
-        const email = user?.email || guestEmail!;
+        const email = guestEmail;
 
         try {
             // Lógica de conversão de moeda removida pois currencyService.js não existe.

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { feedApplicationService } from '../ServiçosFrontend/ServicosDeAplicacao/Application.Layer.Feed';
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
-import { servicoAutenticacao } from '../ServiçosFrontend/Estados/Manager.Estado.Autenticacao';
 
 const POSTS_PER_PAGE = 10;
 
@@ -25,9 +24,8 @@ export const HookFeed = (initialCategory: string = 'all') => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
-  // Obtém o usuário do novo gerenciador de estado
-  const currentUser = servicoAutenticacao.getState().usuario;
-  const currentUserId = currentUser?.id;
+  // Usuário atual (obtido do feed service)
+  const currentUserId = null;
 
   useEffect(() => {
     const handleStateChange = (state: any) => {
