@@ -2,6 +2,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { ProvedorInterface } from './Provedores/Provedor.Interface';
 import { ProvedorNavegacao } from './Provedores/Provedor.Navegacao';
+import { AuthProvider } from '../hooks/Hook.Autenticacao';
 import AppRoutes from '../routes/AppRoutes';
 
 const Maintenance = lazy(() => import('../pages/Maintenance'));
@@ -55,11 +56,13 @@ const SistemaNucleoApp: React.FC = () => {
   }
 
   return (
-    <ProvedorInterface>
-      <ProvedorNavegacao>
-        <AppRoutes />
-      </ProvedorNavegacao>
-    </ProvedorInterface>
+    <AuthProvider>
+      <ProvedorInterface>
+        <ProvedorNavegacao>
+          <AppRoutes />
+        </ProvedorNavegacao>
+      </ProvedorInterface>
+    </AuthProvider>
   );
 };
 
