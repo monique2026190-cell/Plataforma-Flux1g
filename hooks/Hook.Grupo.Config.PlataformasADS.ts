@@ -1,6 +1,4 @@
-'''
 import { useState, useEffect, useCallback } from 'react';
-import { servicoDeMetaAd } from '../ServiçosFrontend/SistemaADS/Servico.ADS.Meta.js';
 
 /**
  * Hook para gerenciar as configurações de Meta Ads (Facebook Ads) de um grupo.
@@ -31,11 +29,8 @@ export const useMetaAdsConfig = (groupId) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await servicoDeMetaAd.obterCredenciaisMeta(groupId);
-      if (data) {
-        setPixelId(data.pixelId || '');
-        setAccessToken(data.accessToken || '');
-      }
+      // TODO: serviço de Meta ADS removido
+      // const data = await servicoDeMetaAd.obterCredenciaisMeta(groupId);
     } catch (err) {
       console.error("Erro ao carregar credenciais Meta Ads:", err);
       setError(err);
@@ -60,7 +55,8 @@ export const useMetaAdsConfig = (groupId) => {
     setIsLoading(true);
     setError(null);
     try {
-      await servicoDeMetaAd.salvarCredenciaisMeta(groupId, pixelId, accessToken);
+      // TODO: serviço de Meta ADS removido
+      // await servicoDeMetaAd.salvarCredenciaisMeta(groupId, pixelId, accessToken);
     } catch (err) {
       console.error("Erro ao salvar credenciais Meta Ads:", err);
       setError(err);
@@ -81,4 +77,3 @@ export const useMetaAdsConfig = (groupId) => {
     carregarConfiguracoes,
   };
 };
-'''

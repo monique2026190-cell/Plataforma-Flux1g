@@ -1,7 +1,5 @@
 
 import { useState, useEffect } from 'react';
-// O serviço que criamos para se comunicar com o backend.
-import { ServicoDeGeolocalizacao } from '../ServiçosFrontend/SistemaADS/Servico.Geolocalizacao';
 
 // A interface define a estrutura dos dados que o hook retornará.
 interface GeoData {
@@ -23,7 +21,9 @@ export const HookGeoLocalizacaoVendas = () => {
       try {
         setIsLoading(true);
         // 1. Chama o serviço para obter o idioma.
-        const language = await ServicoDeGeolocalizacao.obterIdiomaPorLocalizacao();
+        // TODO: ServicoDeGeolocalizacao removido junto com SistemaADS
+        // const language = await ServicoDeGeolocalizacao.obterIdiomaPorLocalizacao();
+        const language = navigator.language || 'pt-BR';
         
         // 2. Armazena o idioma no estado.
         setGeoData({ language });

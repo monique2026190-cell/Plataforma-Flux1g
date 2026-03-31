@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { servicoDeMetaAd } from '../../../../ServiçosFrontend/SistemaADS/Servico.ADS.Meta.js';
 
 export const CardParametrosMetaADS: React.FC = () => {
     const { id: groupId } = useParams<{ id: string }>();
@@ -14,11 +13,8 @@ export const CardParametrosMetaADS: React.FC = () => {
         const fetchCredenciais = async () => {
             if (groupId) {
                 try {
-                    const data = await servicoDeMetaAd.obterCredenciaisMeta(groupId);
-                    if (data) {
-                        setPixelId(data.pixelId || '');
-                        setAccessToken(data.accessToken || '');
-                    }
+                    // TODO: serviço de Meta ADS removido
+                    // const data = await servicoDeMetaAd.obterCredenciaisMeta(groupId);
                 } catch (error) {
                     console.error("Erro ao buscar credenciais:", error);
                 }
@@ -37,7 +33,8 @@ export const CardParametrosMetaADS: React.FC = () => {
             return;
         }
         try {
-            await servicoDeMetaAd.salvarCredenciaisMeta(groupId, pixelId, accessToken);
+            // TODO: serviço de Meta ADS removido
+            // await servicoDeMetaAd.salvarCredenciaisMeta(groupId, pixelId, accessToken);
             alert('Configurações do Pixel salvas com sucesso!');
         } catch (error) {
             console.error("Erro ao salvar credenciais:", error);
