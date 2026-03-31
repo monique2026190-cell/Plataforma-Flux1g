@@ -3,15 +3,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { servicoDeAplicacaoDeAutenticacao } from '../ServiçosFrontend/ServicosDeAplicacao/Application.Layer.Autenticacao';
-import { useAuth } from './Hook.Autenticacao';
+import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 import { CompleteProfileViewModel, CompleteProfileForm } from '../viewmodels/CompleteProfileViewModel';
-
-const authService = servicoDeAplicacaoDeAutenticacao;
+import { dadosProviderSessao } from '../ServiçosFrontend/Infra/Dados.Provider.Sessao';
 
 export const useCompleteProfile = () => {
     const navigate = useNavigate();
-    const { usuario, autenticado, processando } = useAuth();
+    const { usuario, autenticado, processando, logout } = useAuth();
 
     const [previaImagem, setPreviaImagem] = useState<string | null>(null);
     const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
@@ -23,12 +21,12 @@ export const useCompleteProfile = () => {
         handleSubmit,
         setError,
         formState: { errors, isSubmitting },
-    } = useForm<CompleteProfileForm>({ 
+    } = useForm<CompleteProfileForm>({
         mode: 'onChange',
         defaultValues: {
             nickname: usuario?.nome || '',
             name: '',
-            bio: '', 
+            bio: '',
         }
     });
 
@@ -63,12 +61,17 @@ export const useCompleteProfile = () => {
     const aoSubmeter = async (form: CompleteProfileForm) => {
         try {
             const request = CompleteProfileViewModel.toRequest(form);
-            await authService.completarPerfil(request);
-            navigate('/feed');
+            // Assumindo que o ID do usuário está disponível no objeto `usuario` do `useAuth`
+            if (usuario?.id) {
+                await dadosProviderSessao.completarPerfil(usuario.id, request.apelido, request.nome, request.bio, arquivoSelecionado);
+                navigate('/feed');
+            } else {
+                throw new Error("ID do usuário não encontrado.");
+            }
         } catch (err: any) {
             console.error("Falha ao completar o perfil:", err);
             const errorMessage = err.message || 'Ocorreu um erro desconhecido.';
-            
+
             if (errorMessage.includes('APELIDO_TAKEN')) {
                 setError('nickname', { type: 'manual', message: 'Este apelido já está em uso.' });
             } else {
@@ -78,7 +81,7 @@ export const useCompleteProfile = () => {
     };
 
     const aoSair = () => {
-        authService.logout();
+        logout();
         navigate('/login');
     };
 

@@ -2,15 +2,12 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import SistemaNucleoApp from './Sistema.Nucleo.App';
-import { loadEnvironment } from '../ServiçosFrontend/ValidaçãoDeAmbiente/config.ts';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function iniciarApp() {
   try {
-    loadEnvironment();
     montaReact();
   } catch (erro) {
     console.error("Erro crítico durante a inicialização", erro);

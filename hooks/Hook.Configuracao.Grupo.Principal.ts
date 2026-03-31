@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
-import { useAuth } from './Hook.Autenticacao';
+import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 
 interface Group {
     id: string;
