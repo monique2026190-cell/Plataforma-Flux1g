@@ -18,6 +18,14 @@ class InfraProviderSessao {
         return httpClient.post(API_ENDPOINTS.AUTH.COMPLETE_PROFILE, dados);
     }
 
+    public async verificarSessao(token: string): Promise<any> {
+        return httpClient.get(API_ENDPOINTS.AUTH.VERIFY_SESSION, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+
 }
 
 export const infraProviderSessao = new InfraProviderSessao();

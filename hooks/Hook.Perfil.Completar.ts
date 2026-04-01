@@ -1,13 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 import { CompleteProfileViewModel, CompleteProfileForm } from '../viewmodels/CompleteProfileViewModel';
-import { dadosProviderSessao } from '../ServiçosFrontend/Infra/Dados.Provider.Sessao';
 
-export const useCompleteProfile = () => {
+// Define a interface para as props do hook
+export interface UseCompleteProfileProps {
+  completarPerfil: (idUsuario: string, apelido: string, nome: string, bio: string, avatar: File | null) => Promise<any>;
+}
+
+export const useCompleteProfile = ({ completarPerfil }: UseCompleteProfileProps) => {
     const navigate = useNavigate();
     const { usuario, autenticado, processando, logout } = useAuth();
 
@@ -65,9 +67,8 @@ export const useCompleteProfile = () => {
     const aoSubmeter = async (form: CompleteProfileForm) => {
         try {
             const request = CompleteProfileViewModel.toRequest(form);
-            // Assumindo que o ID do usuário está disponível no objeto `usuario` do `useAuth`
             if (usuario?.id) {
-                await dadosProviderSessao.completarPerfil(usuario.id, request.apelido, request.nome, request.bio, arquivoSelecionado);
+                await completarPerfil(usuario.id, request.nickname, request.name, request.bio, arquivoSelecionado);
                 navigate('/feed');
             } else {
                 throw new Error("ID do usuário não encontrado.");

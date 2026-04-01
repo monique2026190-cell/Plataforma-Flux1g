@@ -61,11 +61,36 @@ class ServicoAutenticacao {
   async verificarSessao(): Promise<Usuario | null> {
     const token = localStorage.getItem('auth_token');
     if (token) {
-      // TODO: Validar o token com o backend e buscar os dados do usuário.
-      // Por enquanto, esta função não faz a validação para evitar o loop de login.
-      console.warn("A sessão está sendo verificada apenas localmente, sem validação do backend.");
+        try {
+            const resposta = await dadosProviderSessao.verificarSessao();
+            if (resposta.sucesso && resposta.dados?.user) {
+                const usuario = mapearBackendParaFrontend(resposta.dados.user);
+                // Renova o token se um novo for enviado
+                if (resposta.dados.token) {
+                    localStorage.setItem('auth_token', resposta.dados.token);
+                }
+                return usuario;
+            }
+            this.logout();
+            return null;
+        } catch (error) {
+            console.error("Erro ao verificar sessão, fazendo logout:", error);
+            this.logout();
+            return null;
+        }
     }
-    return null; // Retornando null para evitar o loop de login.
+    return null;
+  }
+
+  async completarPerfil(idUsuario: string, apelido: string, nome: string, bio: string, avatar: File | null): Promise<Usuario> {
+    const resposta = await dadosProviderSessao.completarPerfil(idUsuario, apelido, nome, bio, avatar);
+
+    if (resposta.sucesso && resposta.dados?.user) {
+        const usuarioAtualizado = mapearBackendParaFrontend(resposta.dados.user);
+        return usuarioAtualizado;
+    } else {
+        throw new Error(resposta.mensagem || 'Falha ao completar o perfil.');
+    }
   }
 }
 

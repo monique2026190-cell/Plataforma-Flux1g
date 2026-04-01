@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     GOOGLE_LOGIN: `${BASE_URL}/auth/google/login`,
     GET_CURRENT_USER: `${BASE_URL}/auth/me`,
     COMPLETE_PROFILE: `${BASE_URL}/auth/complete-profile`,
+    VERIFY_SESSION: `${BASE_URL}/auth/verify`,
   },
 
   USERS: {

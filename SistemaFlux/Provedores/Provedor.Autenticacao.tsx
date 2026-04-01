@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useCallback, useEffect, useContext } from 'react';
 import { servicoAutenticacao } from '../../ServiçosFrontend/Servico.Autenticacao';
 
@@ -20,6 +19,7 @@ export interface AuthContextType {
   processarLoginGoogle: (tokenResponse: any) => Promise<void>;
   logout: () => void;
   limparErro: () => void;
+  completarPerfil: (dados: { apelido: string; nome: string; bio: string; avatar: File | null }) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,6 +81,26 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     }
   }, []);
 
+  const completarPerfil = useCallback(async (dados: { apelido: string; nome: string; bio: string; avatar: File | null }) => {
+    if (!usuario) throw new Error("Usuário não autenticado.");
+    setProcessando(true);
+    try {
+      const usuarioAtualizado = await servicoAutenticacao.completarPerfil(
+        usuario.id,
+        dados.apelido,
+        dados.nome,
+        dados.bio,
+        dados.avatar
+      );
+      setUsuario(usuarioAtualizado);
+    } catch (error: any) {
+      setErro(error.message || 'Erro ao completar o perfil');
+      throw error;
+    } finally {
+      setProcessando(false);
+    }
+  }, [usuario]);
+
   useEffect(() => {
     const verificarSessao = async () => {
       setProcessando(true);
@@ -104,6 +124,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     processarLoginGoogle,
     logout,
     limparErro,
+    completarPerfil,
   };
 
   return (
