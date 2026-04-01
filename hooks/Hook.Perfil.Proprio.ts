@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 // Importa o hook de autenticação
 import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 
-import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
-import { marketplacePublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Marketplace';
+import { servicoAutenticacao } from '../ServiçosFrontend/Servico.Autenticacao';
 
 // Mantendo os imports de tipo como estavam, assumindo que a resolução de caminho lida com eles.
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
@@ -41,24 +40,8 @@ export const HookPerfilProprio = () => {
         setError(null);
 
         try {
-            const userId = usuario.id;
-            
-            // Busca posts e produtos em paralelo
-            const [allPosts, allProducts] = await Promise.all([
-                feedPublicationService.getPosts(),
-                marketplacePublicationService.getProducts()
-            ]);
-
-            // Filtra as publicações para o usuário atual
-            const userPosts = allPosts.filter(post => post.autorId === userId);
-            const userProducts = allProducts.filter(product => product.usuarioId === userId);
-
-            // Combina os dados do usuário do contexto de autenticação com suas publicações
-            const perfilCompleto: PerfilCompleto = {
-                ...(usuario as Usuario), // Cast para o tipo Usuario importado
-                posts: userPosts,
-                products: userProducts,
-            };
+            // Busca o perfil completo do usuário, que já deve incluir as publicações
+            const perfilCompleto = await servicoAutenticacao.verificarSessao();
 
             setProfile(perfilCompleto);
         } catch (err) {
