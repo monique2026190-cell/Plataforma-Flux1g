@@ -9,7 +9,11 @@ import logger from './logger.js'; // Importando nosso logger customizado
 
 // Stream para o Morgan usar o Winston
 const stream = {
-    write: (message) => logger.http(message.trim(), { modulo: 'HTTP' }),
+    write: (message) => {
+        // Teste para ver se o Morgan está enviando dados, conforme sua sugestão.
+        console.log("MORGAN:", message.trim());
+        logger.http(message.trim(), { modulo: 'HTTP' });
+    },
 };
 
 // Habilitar tokens para o corpo da requisição no Morgan
