@@ -31,10 +31,14 @@ export const useCompleteProfile = () => {
     });
 
     useEffect(() => {
-        if (!processando && !autenticado) {
-            navigate('/login');
+        if (!processando) {
+            if (!autenticado) {
+                navigate('/login');
+            } else if (usuario?.perfilCompleto) {
+                navigate('/feed');
+            }
         }
-    }, [navigate, autenticado, processando]);
+    }, [navigate, autenticado, processando, usuario]);
 
     const aoMudarImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
