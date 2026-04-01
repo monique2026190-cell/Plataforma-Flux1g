@@ -15,34 +15,35 @@ class DadosProviderPublicacao extends DadosBase {
     }
 
     // --- Feed ---
-    async buscarPosts() { // Renomeado de getPosts para buscarPosts
+    async buscarPosts() {
         return infraProviderPublicacao.buscarPosts();
     }
 
-    async buscarPostPorId(id: string) { // Renomeado de getPostById para buscarPostPorId
+    async buscarPostPorId(id: string) {
         return infraProviderPublicacao.buscarPostPorId(id);
     }
 
-    async criarPost(postData: FormData) { // Renomeado de createPost para criarPost
+    async criarPost(postData: FormData) {
         try {
             const result = await infraProviderPublicacao.criarPost(postData);
             return result;
         } catch (error) {
-            this.logError('criarPost', error);
+            // Correção: Usa this.logger.error em vez do inexistente this.logError
+            this.logger.error('Erro em criarPost', error);
             throw error;
         }
     }
 
-    async atualizarPost(id: string, postData: any) { // Renomeado de updatePost para atualizarPost
+    async atualizarPost(id: string, postData: any) {
         return infraProviderPublicacao.atualizarPost(id, postData);
     }
 
-    async deletarPost(id: string) { // Renomeado de deletePost para deletarPost
+    async deletarPost(id: string) {
         return infraProviderPublicacao.deletarPost(id);
     }
 
     // --- Marketplace ---
-    async buscarItensMarketplace() { // Renomeado de getMarketplaceItems para buscarItensMarketplace
+    async buscarItensMarketplace() {
         return infraProviderPublicacao.buscarItensMarketplace();
     }
 }
