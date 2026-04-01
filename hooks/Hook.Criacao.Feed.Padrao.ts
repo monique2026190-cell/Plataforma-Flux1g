@@ -2,13 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
+import { servicoAutenticacao } from '../ServiçosFrontend/Servico.Autenticacao';
 
-import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';
-
-// Interface simplificada para o estado do formulário
 interface PostFormData {
     texto: string;
-    arquivosMidia: File[];
+    arquivosMidia: { url: string; file: File }[];
     isConteudoAdulto: boolean;
     localizacao: string;
     isAnuncio: boolean;
@@ -35,18 +33,18 @@ export const HookCriarPost = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<{ geral?: string } | null>(null);
     
-    // CORREÇÃO: Substituindo a chamada inexistente por um estado reativo que ouve o authService.
-    const [currentUser, setCurrentUser] = useState(authService.getState().user);
+    // Estado para armazenar o usuário atual
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
-        // Se inscreve para atualizações no estado de autenticação.
-        const unsubscribe = authService.subscribe(state => {
-            setCurrentUser(state.user);
-        });
-        // Limpa a inscrição ao desmontar o componente.
-        return () => unsubscribe();
-    }, []);
+        const verificarUsuario = async () => {
+            // Tentativa de obter o usuário da sessão
+            const user = await servicoAutenticacao.verificarSessao();
+            setCurrentUser(user);
+        };
 
+        verificarUsuario();
+    }, []);
 
     const updateField = useCallback((key: keyof PostFormData, value: any) => {
         setDadosPost(prev => ({ ...prev, [key]: value }));
@@ -70,17 +68,15 @@ export const HookCriarPost = () => {
         try {
             const formData = new FormData();
             formData.append('conteudo', dadosPost.texto);
-            formData.append('tipo', 'post'); // Tipo de publicação padrão
+            formData.append('tipo', 'post');
             formData.append('isConteudoAdulto', String(dadosPost.isConteudoAdulto));
 
-            dadosPost.arquivosMidia.forEach(file => {
-                formData.append('midia', file);
+            dadosPost.arquivosMidia.forEach(media => {
+                formData.append('midia', media.file);
             });
             
-            // Adicionar lógica para anúncios se necessário
             if (dadosPost.isAnuncio) {
                 formData.append('linkCta', dadosPost.linkAnuncio);
-                // Outros campos de anúncio
             }
 
             await feedPublicationService.createPost(formData);
@@ -97,13 +93,45 @@ export const HookCriarPost = () => {
 
     const handleMediaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
-            const newFiles = Array.from(event.target.files);
+            const newFiles = Array.from(event.target.files).map(file => ({ 
+                url: URL.createObjectURL(file), 
+                file 
+            }));
             updateField('arquivosMidia', [...dadosPost.arquivosMidia, ...newFiles]);
         }
     };
 
     const handleRemoveMedia = (index: number) => {
         updateField('arquivosMidia', dadosPost.arquivosMidia.filter((_, i) => i !== index));
+    };
+
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [targetCountry, setTargetCountry] = useState('');
+    const [targetState, setTargetState] = useState('');
+    const [targetCity, setTargetCity] = useState('');
+    const [countries] = useState(['Brasil', 'Portugal', 'EUA']);
+    const [states, setStates] = useState<string[]>([]);
+    const [cities, setCities] = useState<string[]>([]);
+
+    const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setTargetCountry(e.target.value);
+        setTargetState('');
+        setTargetCity('');
+        if (e.target.value === 'Brasil') setStates(['São Paulo', 'Rio de Janeiro']);
+        else setStates([]);
+    };
+
+    const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setTargetState(e.target.value);
+        setTargetCity('');
+        if(e.target.value === 'São Paulo') setCities(['São Paulo', 'Campinas']);
+        else setCities([]);
+    };
+
+    const saveLocation = () => {
+        const locationParts = [targetCity, targetState, targetCountry].filter(Boolean);
+        updateField('localizacao', locationParts.join(', ') || 'Global');
+        setIsLocationModalOpen(false);
     };
 
     return {
@@ -116,22 +144,20 @@ export const HookCriarPost = () => {
         handleRemoveMedia,
         handleBack,
         handlePublishClick,
-        // CORREÇÃO: Propriedades de usuário agora vêm do estado reativo e são mais robustas.
-        avatarUrl: currentUser?.photo_url || currentUser?.avatar_url,
-        username: currentUser?.nickname || currentUser?.username || currentUser?.name,
+        avatarUrl: currentUser?.photo_url,
+        username: currentUser?.nickname || currentUser?.name,
         navigate,
-        // Mock de propriedades restantes para manter a compatibilidade da UI
-        isLocationModalOpen: false,
-        setIsLocationModalOpen: () => {},
-        saveLocation: () => {},
-        handleCountryChange: () => {},
-        handleStateChange: () => {},
-        targetCountry: '', 
-        targetState: '',
-        targetCity: '',
-        setTargetCity: () => {},
-        countries: [],
-        states: [],
-        cities: [],
+        isLocationModalOpen,
+        setIsLocationModalOpen,
+        saveLocation,
+        handleCountryChange,
+        handleStateChange,
+        targetCountry,
+        targetState,
+        targetCity,
+        setTargetCity,
+        countries,
+        states,
+        cities,
     };
 };
