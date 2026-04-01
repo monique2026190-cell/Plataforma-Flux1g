@@ -65,9 +65,14 @@ export const useCompleteProfile = () => {
 
     const aoSubmeter = async (form: CompleteProfileForm) => {
         try {
-            const request = CompleteProfileViewModel.toRequest(form);
+            const { nickname, name, bio } = form;
             if (usuario?.id) {
-                await completarPerfil(usuario.id, request.nickname, request.name, request.bio, arquivoSelecionado);
+                await completarPerfil({ 
+                    apelido: nickname, 
+                    nome: name, 
+                    bio, 
+                    avatar: arquivoSelecionado 
+                });
                 navigate('/feed');
             } else {
                 throw new Error("ID do usuário não encontrado.");
