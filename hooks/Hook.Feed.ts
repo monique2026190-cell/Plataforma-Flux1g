@@ -29,7 +29,7 @@ export const HookFeed = (initialCategory: string = 'all') => {
 
   useEffect(() => {
     const handleStateChange = (state: any) => {
-      setAllPosts(state.posts);
+      setAllPosts(Array.isArray(state.posts) ? state.posts : []);
       setLoading(state.loading);
       setError(state.error);
     };
