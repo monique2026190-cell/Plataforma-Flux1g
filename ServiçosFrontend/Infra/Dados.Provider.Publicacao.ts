@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import { DadosBase } from './Dados.Base';
 import { infraProviderPublicacao } from './Infra.Provider.Publicacao';
@@ -23,8 +24,16 @@ class DadosProviderPublicacao extends DadosBase {
     }
 
     async createPost(postData: FormData) {
-        // Validação seria para o objeto antes de virar FormData, mas simplificaremos para o repasse.
-        return infraProviderPublicacao.createPost(postData);
+        try {
+            // A chamada para a infraestrutura agora está dentro de um bloco try-catch.
+            const result = await infraProviderPublicacao.createPost(postData);
+            return result;
+        } catch (error) {
+            // Loga o erro usando o método da classe base.
+            this.logError('createPost', error);
+            // Relança o erro para que a camada de serviço e a UI possam reagir.
+            throw error;
+        }
     }
 
     async updatePost(id: string, postData: any) {

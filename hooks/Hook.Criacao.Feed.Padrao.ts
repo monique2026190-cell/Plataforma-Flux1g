@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { feedPublicationService } from '../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';
-import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao'; // Caminho corrigido para o hook
+import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 
 interface PostFormData {
     texto: string;
@@ -14,10 +14,11 @@ interface PostFormData {
     linkAnuncio: string;
 }
 
-export const HookCriarPost = () => {
+// Renomeado para seguir a convenção de hooks e o padrão em português.
+export const useCriarPost = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { usuario } = useAuth(); // Utiliza o hook useAuth para obter o usuário
+    const { usuario } = useAuth();
     const locationState = location.state as { isAd?: boolean } | null;
 
     const [dadosPost, setDadosPost] = useState<PostFormData>({
@@ -34,7 +35,8 @@ export const HookCriarPost = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<{ geral?: string } | null>(null);
 
-    const updateField = useCallback((key: keyof PostFormData, value: any) => {
+    // Renomeado para português.
+    const atualizarCampo = useCallback((key: keyof PostFormData, value: any) => {
         setDadosPost(prev => ({ ...prev, [key]: value }));
     }, []);
 
@@ -44,11 +46,13 @@ export const HookCriarPost = () => {
         setIsPublishDisabled(!(textLength > 0 || hasMedia) || isProcessing);
     }, [dadosPost, isProcessing]);
 
-    const handleBack = () => navigate(-1);
+    // Renomeado para português.
+    const lidarComVoltar = () => navigate(-1);
 
-    const handlePublishClick = async (e: React.MouseEvent) => {
+    // Renomeado para português.
+    const lidarComCliquePublicar = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (isPublishDisabled || !usuario) return; // Verifica a existência do usuário
+        if (isPublishDisabled || !usuario) return;
 
         setIsProcessing(true);
         setError(null);
@@ -67,7 +71,8 @@ export const HookCriarPost = () => {
                 formData.append('linkCta', dadosPost.linkAnuncio);
             }
 
-            await feedPublicationService.createPost(formData);
+            // Chamada ao método de serviço com nome corrigido.
+            await feedPublicationService.criarPost(formData);
 
             navigate('/feed');
 
@@ -79,21 +84,22 @@ export const HookCriarPost = () => {
         }
     };
 
-    const handleMediaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Renomeado para português.
+    const lidarComMudancaDeMidia = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             const newFiles = Array.from(event.target.files).map(file => ({ 
                 url: URL.createObjectURL(file), 
                 file 
             }));
-            updateField('arquivosMidia', [...dadosPost.arquivosMidia, ...newFiles]);
+            atualizarCampo('arquivosMidia', [...dadosPost.arquivosMidia, ...newFiles]);
         }
     };
 
-    const handleRemoveMedia = (index: number) => {
-        updateField('arquivosMidia', dadosPost.arquivosMidia.filter((_, i) => i !== index));
+    // Renomeado para português.
+    const lidarComRemocaoDeMidia = (index: number) => {
+        atualizarCampo('arquivosMidia', dadosPost.arquivosMidia.filter((_, i) => i !== index));
     };
 
-    // Lógica de localização mockada
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [targetCountry, setTargetCountry] = useState('');
     const [targetState, setTargetState] = useState('');
@@ -102,42 +108,43 @@ export const HookCriarPost = () => {
     const [states, setStates] = useState<string[]>([]);
     const [cities, setCities] = useState<string[]>([]);
 
-    const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lidarComMudancaDePais = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setTargetCountry(e.target.value);
         setTargetState(''); setTargetCity('');
         if (e.target.value === 'Brasil') setStates(['São Paulo', 'Rio de Janeiro']); else setStates([]);
     };
 
-    const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lidarComMudancaDeEstado = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setTargetState(e.target.value);
         setTargetCity('');
         if(e.target.value === 'São Paulo') setCities(['São Paulo', 'Campinas']); else setCities([]);
     };
 
-    const saveLocation = () => {
+    const salvarLocalizacao = () => {
         const locationParts = [targetCity, targetState, targetCountry].filter(Boolean);
-        updateField('localizacao', locationParts.join(', ') || 'Global');
+        atualizarCampo('localizacao', locationParts.join(', ') || 'Global');
         setIsLocationModalOpen(false);
     };
 
+    // Retorna os métodos com os novos nomes em português.
     return {
         dadosPost,
-        updateField,
+        atualizarCampo,
         isPublishDisabled,
         isProcessing,
         error,
-        handleMediaChange,
-        handleRemoveMedia,
-        handleBack,
-        handlePublishClick,
-        avatarUrl: usuario?.avatarUrl, // Corrigido para usar a propriedade do objeto usuario
-        username: usuario?.apelido || usuario?.nome, // Corrigido para usar as propriedades corretas
+        lidarComMudancaDeMidia,
+        lidarComRemocaoDeMidia,
+        lidarComVoltar,
+        lidarComCliquePublicar,
+        avatarUrl: usuario?.avatarUrl,
+        username: usuario?.apelido || usuario?.nome,
         navigate,
         isLocationModalOpen,
         setIsLocationModalOpen,
-        saveLocation,
-        handleCountryChange,
-        handleStateChange,
+        salvarLocalizacao,
+        lidarComMudancaDePais,
+        lidarComMudancaDeEstado,
         targetCountry,
         targetState,
         targetCity,
