@@ -1,6 +1,7 @@
 
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 
 // Importa os arrays de rotas dos módulos
 import { authRoutes } from './Rotas.Autenticacao';
@@ -13,12 +14,34 @@ import { profileRoutes } from './Rotas.Perfil';
 import { settingsRoutes } from './Rotas.Configuracoes';
 import { financialRoutes } from './Rotas.Financeiro';
 import { notificationRoutes } from './Rotas.Notificacoes';
-import { messageRoutes } from './Rotas.Mensagens'; // Importa as rotas de mensagens
+import { messageRoutes } from './Rotas.Mensagens';
 import { miscRoutes } from './Rotas.Diversos';
 
-// Combina todos os módulos em um único array
-const allRoutes = [
-  ...authRoutes,
+// Componente de Loading
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[#0c0f14] text-white">
+    <i className="fa-solid fa-circle-notch fa-spin text-3xl text-[#00c2ff]"></i>
+  </div>
+);
+
+// Componente de Rota Protegida
+const RotaProtegida = ({ children }) => {
+  const { autenticado, processando } = useAuth();
+
+  if (processando) {
+    return <LoadingSpinner />;
+  }
+
+  if (!autenticado) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+
+// Rotas que exigem autenticação
+const protectedRoutes = [
   ...feedRoutes,
   ...reelRoutes,
   ...groupRoutes,
@@ -28,27 +51,31 @@ const allRoutes = [
   ...settingsRoutes,
   ...financialRoutes,
   ...notificationRoutes,
-  ...messageRoutes, // Adiciona as rotas de mensagens
-  ...miscRoutes,
+  ...messageRoutes,
 ];
-
-// Componente de Loading
-const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#0c0f14] text-white">
-    <i className="fa-solid fa-circle-notch fa-spin text-3xl text-[#00c2ff]"></i>
-  </div>
-);
 
 const AppRoutes = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
-        {/* Mapeia o array de rotas para os componentes <Route> */}
-        {allRoutes.map((route, index) => (
+        {/* Rotas Públicas */}
+        {authRoutes.map((route, index) => (
           <Route key={index} path={route.path} element={route.element} />
         ))}
-        
-        {/* Rota Fallback: Redireciona para o feed se nenhuma outra rota corresponder */}
+        {miscRoutes.map((route, index) => (
+          <Route key={index} path={route.path} element={route.element} />
+        ))}
+
+        {/* Rotas Protegidas */}
+        {protectedRoutes.map((route, index) => (
+          <Route
+            key={index}
+            path={route.path}
+            element={<RotaProtegida>{route.element}</RotaProtegida>}
+          />
+        ))}
+
+        {/* Rota Fallback: Redireciona para o feed (que será protegido) se nenhuma outra rota corresponder */}
         <Route path="*" element={<Navigate to="/feed" replace />} />
       </Routes>
     </Suspense>
