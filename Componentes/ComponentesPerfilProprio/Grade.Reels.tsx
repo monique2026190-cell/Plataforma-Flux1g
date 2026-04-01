@@ -6,17 +6,14 @@ import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.T
 interface Reel {
     id: string;
     thumbnail: string;
-    views: number; // Adicionando a propriedade views
+    views?: number; // Propriedade `views` agora é opcional
 }
 
-// Removendo as props, já que o hook vai ser chamado aqui dentro
 export const GradeDeReels: React.FC = () => {
-    // Usando o hook diretamente no componente
     const { reels, loading, error } = usePerfilProprioGradeReels();
 
     const handleReelClick = (reel: Reel) => {
         console.log("Reel clicado:", reel.id);
-        // Futuramente, pode abrir o reel em um modal ou navegar para uma página de detalhes
     };
 
     if (loading) {
@@ -31,8 +28,9 @@ export const GradeDeReels: React.FC = () => {
         return <div className="p-4 text-center text-gray-400">Você ainda não publicou nenhum reel.</div>;
     }
 
-    // Função para formatar números grandes
-    const formatViews = (num: number): string => {
+    // Função `formatViews` atualizada para tratar valores nulos ou indefinidos
+    const formatViews = (num: number | undefined | null): string => {
+        if (num === null || num === undefined) return '0'; // Retorna '0' se o valor for inválido
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
         return num.toString();
@@ -55,6 +53,7 @@ export const GradeDeReels: React.FC = () => {
                     <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <i className="fas fa-play text-white text-4xl"></i>
                     </div>
+                    {/* A contagem de visualizações só é renderizada se for um número válido */}
                     <div className="absolute bottom-1 left-2 flex items-center space-x-1 text-white text-xs font-bold bg-black bg-opacity-50 px-1.5 py-0.5 rounded">
                         <i className="fas fa-play text-xs"></i>
                         <span>{formatViews(reel.views)}</span>
