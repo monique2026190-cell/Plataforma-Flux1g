@@ -78,8 +78,8 @@ export const useCompleteProfile = () => {
             const { nickname, name, bio, accountType } = form;
             if (usuario?.id) {
                 await completarPerfil({ 
-                    apelido: nickname, 
-                    nome: name, 
+                    apelido: name, // Corrigido: 'name' agora é 'apelido'
+                    nome: nickname, 
                     bio,
                     avatar: arquivoSelecionado,
                     tipoDeConta: accountType
@@ -93,7 +93,7 @@ export const useCompleteProfile = () => {
             const errorMessage = err.message || 'Ocorreu um erro desconhecido.';
 
             if (errorMessage.includes('APELIDO_TAKEN')) {
-                setError('nickname', { type: 'manual', message: 'Este apelido já está em uso.' });
+                setError('name', { type: 'manual', message: 'Este nome de usuário já está em uso.' });
             } else {
                 setError('root.serverError', { type: 'manual', message: 'Não foi possível finalizar o cadastro.' });
             }
