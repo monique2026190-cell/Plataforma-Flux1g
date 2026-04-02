@@ -33,10 +33,8 @@ class ServicoAutenticacao {
     const userInfo = await response.json();
     
     const dadosLogin = {
-      nome: userInfo.name || '',
       email: userInfo.email,
       googleId: userInfo.sub,
-      avatarUrl: userInfo.picture || '',
       tokenProvider: accessToken,
     };
 
