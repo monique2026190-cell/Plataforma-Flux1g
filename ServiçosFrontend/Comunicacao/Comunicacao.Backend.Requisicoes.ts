@@ -87,7 +87,7 @@ class HttpClient {
             });
         }
 
-        const token = localStorage.getItem('userToken');
+        const token = localStorage.getItem('auth_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         // Se for FormData, deixamos o navegador definir o Content-Type
@@ -134,7 +134,7 @@ class HttpClient {
                     if (!refreshResponse.ok) throw new Error('Falha na renovação do token.');
                     
                     const { token: newToken } = await refreshResponse.json();
-                    localStorage.setItem('userToken', newToken);
+                    localStorage.setItem('auth_token', newToken);
                     this.processQueue(null, newToken);
                     
                     headers['Authorization'] = `Bearer ${newToken}`;
@@ -142,7 +142,7 @@ class HttpClient {
                 } catch (error) {
                     logger.error('Sessão expirada. Redirecionando para login.', error);
                     this.processQueue(error, null);
-                    localStorage.removeItem('userToken');
+                    localStorage.removeItem('auth_token');
                     localStorage.removeItem('refreshToken');
                     window.dispatchEvent(new Event('authChange'));
                     return Promise.reject(error);
