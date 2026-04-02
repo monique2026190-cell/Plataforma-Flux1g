@@ -76,21 +76,25 @@ export const useCompleteProfile = () => {
     const aoSubmeter = async (form: CompleteProfileForm) => {
         try {
             const { nickname, name, bio, accountType } = form;
+
+            const formData = new FormData();
+            formData.append('nome', nickname);
+            formData.append('apelido', name);
+            formData.append('bio', bio);
+            formData.append('tipoDeConta', accountType);
+            if (arquivoSelecionado) {
+                formData.append('avatar', arquivoSelecionado);
+            }
+
             if (usuario?.id) {
-                await completarPerfil({
-                    nome: nickname,       // "Seu apelido" é o nome de exibição
-                    apelido: name,    // "Seu nome de usuário" é o apelido único
-                    bio,
-                    avatar: arquivoSelecionado,
-                    tipoDeConta: accountType
-                });
+                await completarPerfil(formData);
                 navigate('/feed');
             } else {
                 throw new Error("ID do usuário não encontrado.");
             }
         } catch (err: any) {
             console.error("Falha ao completar o perfil:", err);
-            const errorMessage = err.message || 'Ocorreu um erro desconhecido.';
+            const errorMessage = err.response?.data?.message || err.message || 'Ocorreu um erro desconhecido.';
 
             if (errorMessage.includes('APELIDO_TAKEN')) {
                 setError('name', { type: 'manual', message: 'Este nome de usuário já está em uso.' });
