@@ -10,7 +10,7 @@ const LoginSchema = z.object({
 });
 
 const LoginSocialSchema = z.object({
-    nome: z.string(),
+    nome: z.string().optional(),
     email: z.string().email(),
     googleId: z.string(),
     avatarUrl: z.string().url().optional(),
