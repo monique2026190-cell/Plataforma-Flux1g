@@ -12,9 +12,9 @@ import { ModalListaDeSeguidores } from '../Componentes/ComponentesPerfilProprio/
 import { AvatarPreviewModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Previa.Avatar';
 import { ModalTelaCarregamento } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
-import { GradeDePostagens } from '../Componentes/ComponentesPerfilProprio/Grade.Postagens';
-import { GradeDeProdutos } from '../Componentes/ComponentesPerfilProprio/Grade.Produtos';
-import { GradeDeFotos } from '../Componentes/ComponentesPerfilProprio/Grade.Fotos';
+// import { GradeDePostagens } from '../Componentes/ComponentesPerfilProprio/Grade.Postagens';
+// import { GradeDeProdutos } from '../Componentes/ComponentesPerfilProprio/Grade.Produtos';
+// import { GradeDeFotos } from '../Componentes/ComponentesPerfilProprio/Grade.Fotos';
 // import { GradeDeReels } from '../Componentes/ComponentesPerfilProprio/Grade.Reels';
 
 const ProfilePageContent = () => {
@@ -70,9 +70,9 @@ const ProfilePageContent = () => {
 
                 <div className="w-full max-w-[500px] mx-auto pb-[100px]">
                     <div className="tab-content mt-4">
-                        {activeTab === 'posts' && <GradeDePostagens posts={profile.posts || []} />}
-                        {activeTab === 'products' && <GradeDeProdutos products={profile.products || []} />}
-                        {activeTab === 'fotos' && <GradeDeFotos photos={profile.photos || []} />}
+                        {/* {activeTab === 'posts' && <GradeDePostagens posts={profile.posts || []} />} */}
+                        {/* {activeTab === 'products' && <GradeDeProdutos products={profile.products || []} />} */}
+                        {/* {activeTab === 'fotos' && <GradeDeFotos photos={profile.photos || []} />} */}
                         {/* {activeTab === 'reels' && <GradeDeReels reels={profile.reels || []} />} */}
                     </div>
                 </div>
