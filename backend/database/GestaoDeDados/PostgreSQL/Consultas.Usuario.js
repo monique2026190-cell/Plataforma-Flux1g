@@ -7,9 +7,10 @@ const logger = createQueryLogger('Consultas.Usuario.js');
 const criar = async (dadosUsuario) => {
     const cliente = await pool.connect();
     const {
-        id, name, email, password_hash, google_id,
+        id, email, password_hash, google_id,
         nickname, bio, website, photo_url, is_private, profile_completed
     } = dadosUsuario;
+    const name = dadosUsuario.name || dadosUsuario.nickname;
 
     const query = `
         INSERT INTO user_profiles (
