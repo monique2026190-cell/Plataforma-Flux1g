@@ -80,8 +80,8 @@ class ServicoAutenticacao {
     return null;
   }
 
-  async completarPerfil(idUsuario: string, apelido: string, nome: string, bio: string, avatar: File | null, tipoDeConta: 'public' | 'private'): Promise<Usuario> {
-    const resposta = await dadosProviderUsuario.completarPerfilInicial(idUsuario, apelido, nome, bio, avatar, tipoDeConta);
+  async completarPerfil(idUsuario: string, dadosPerfil: FormData): Promise<Usuario> {
+    const resposta = await dadosProviderUsuario.completarPerfilInicial(idUsuario, dadosPerfil);
 
     if (resposta.sucesso && resposta.dados?.user) {
         const usuarioAtualizado = mapearBackendParaFrontend(resposta.dados.user);

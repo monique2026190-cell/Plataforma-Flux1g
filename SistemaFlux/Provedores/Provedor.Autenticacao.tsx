@@ -19,7 +19,7 @@ export interface AuthContextType {
   processarLoginGoogle: (tokenResponse: any) => Promise<void>;
   logout: () => void;
   limparErro: () => void;
-  completarPerfil: (dados: { apelido: string; nome: string; bio: string; avatar: File | null; tipoDeConta: 'public' | 'private' }) => Promise<void>;
+  completarPerfil: (dados: FormData) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,19 +81,20 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     }
   }, []);
 
-  const completarPerfil = useCallback(async (dados: { apelido: string; nome: string; bio: string; avatar: File | null; tipoDeConta: 'public' | 'private' }) => {
+  const completarPerfil = useCallback(async (dadosPerfil: FormData) => {
     if (!usuario) throw new Error("Usuário não autenticado.");
     setProcessando(true);
     try {
-      const usuarioAtualizado = await servicoAutenticacao.completarPerfil(
-        usuario.id,
-        dados.apelido,
-        dados.nome,
-        dados.bio,
-        dados.avatar,
-        dados.tipoDeConta
-      );
-      setUsuario(prev => prev ? ({ ...prev, ...usuarioAtualizado, perfilCompleto: true }) : null);
+      const usuarioAtualizado = await servicoAutenticacao.completarPerfil(usuario.id, dadosPerfil);
+      setUsuario(prev => {
+        if (!prev) return null;
+        const novoUsuario = {
+            ...prev,
+            ...usuarioAtualizado,
+            perfilCompleto: true 
+        };
+        return novoUsuario;
+      });
     } catch (error: any) {
       setErro(error.message || 'Erro ao completar o perfil');
       throw error;

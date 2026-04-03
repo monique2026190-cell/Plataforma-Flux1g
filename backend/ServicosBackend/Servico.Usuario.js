@@ -27,6 +27,7 @@ const completarPerfil = async (idUsuario, dadosPerfil, avatar) => {
         nickname: dadosPerfil.apelido,
         name: dadosPerfil.nome,
         bio: dadosPerfil.bio,
+        accountType: dadosPerfil.tipoDeConta, 
         avatar: urlAvatar,
         perfilCompleto: true,
     };

@@ -12,13 +12,13 @@ const httpRes = {
 };
 
 const completarPerfil = async (req, res, next) => {
-    const { idUsuario, apelido, nome, bio } = req.body;
+    const { idUsuario, apelido, nome, bio, tipoDeConta } = req.body;
     const avatar = req.file;
 
     logger.info(`Iniciando processo de completar perfil para o usuário ${idUsuario}.`, { userId: idUsuario });
 
     try {
-        const dadosPerfil = { apelido, nome, bio };
+        const dadosPerfil = { apelido, nome, bio, tipoDeConta };
         // TODO: Adicionar validação para os dados do perfil
         const usuarioAtualizado = await servicoUsuario.completarPerfil(idUsuario, dadosPerfil, avatar);
 

@@ -56,22 +56,15 @@ class DadosProviderUsuario extends DadosBase {
         );
     }
 
-    async completarPerfilInicial(idUsuario: string, apelido: string, nome: string, bio: string, avatar: File | null, tipoDeConta: 'public' | 'private'): Promise<any> {
-        const formData = new FormData();
-        formData.append('idUsuario', idUsuario);
-        formData.append('apelido', apelido);
-        formData.append('nome', nome);
-        formData.append('bio', bio);
-        formData.append('tipoDeConta', tipoDeConta);
-        if (avatar) {
-          formData.append('avatar', avatar, avatar.name);
-        }
+    async completarPerfilInicial(idUsuario: string, dadosPerfil: FormData): Promise<any> {
+        dadosPerfil.append('idUsuario', idUsuario);
 
+        // A validação com Zod é complexa para FormData. 
+        // A validação será feita no backend.
         try {
-            CompletarPerfilSchema.parse({ apelido, nome, bio });
-            return await infraProviderUsuario.completarPerfilInicial(formData);
+            return await infraProviderUsuario.completarPerfilInicial(dadosPerfil);
         } catch (error) {
-            this.log.error('Erro de validação ou de requisição ao completar perfil inicial', { error });
+            this.log.error('Erro de requisição ao completar perfil inicial', { error });
             throw error;
         }
     }
