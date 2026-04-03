@@ -73,7 +73,7 @@ const ProfilePageContent = () => {
                         {activeTab === 'posts' && <GradeDePostagens posts={profile.posts || []} />}
                         {activeTab === 'products' && <GradeDeProdutos products={profile.products || []} />}
                         {activeTab === 'fotos' && <GradeDeFotos photos={profile.photos || []} />}
-                        {activeTab === 'reels' && <GradeDeReels />}
+                        {activeTab === 'reels' && <GradeDeReels reels={profile.reels || []} />}
                     </div>
                 </div>
             </main>

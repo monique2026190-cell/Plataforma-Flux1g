@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { usePerfilProprioGradeReels } from '../../hooks/Hook.Perfil.Proprio.Grade.Reels';
-import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 interface Reel {
     id: string;
@@ -9,20 +7,14 @@ interface Reel {
     views?: number;
 }
 
-export const GradeDeReels: React.FC = () => {
-    const { reels, loading, error } = usePerfilProprioGradeReels();
+interface GradeDeReelsProps {
+    reels?: Reel[];
+}
 
+export const GradeDeReels: React.FC<GradeDeReelsProps> = ({ reels = [] }) => {
     const handleReelClick = (reel: Reel) => {
         console.log("Reel clicado:", reel.id);
     };
-
-    if (loading) {
-        return <ModalTelaCarregamento />;
-    }
-
-    if (error) {
-        return <div className="p-4 text-center text-red-500">Erro ao carregar os reels.</div>;
-    }
 
     const formatViews = (num: any): string => {
         if (typeof num !== 'number' || isNaN(num)) {
