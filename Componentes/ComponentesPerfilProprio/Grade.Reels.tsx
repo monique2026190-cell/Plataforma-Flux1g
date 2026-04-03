@@ -24,7 +24,6 @@ export const GradeDeReels: React.FC = () => {
         return <div className="p-4 text-center text-red-500">Erro ao carregar os reels.</div>;
     }
 
-    // A função `formatViews` foi tornada mais robusta para evitar erros de tipo.
     const formatViews = (num: any): string => {
         if (typeof num !== 'number' || isNaN(num)) {
             return '0';
@@ -34,8 +33,6 @@ export const GradeDeReels: React.FC = () => {
         return String(num);
     };
 
-    // Filtra o array de reels para garantir que apenas objetos válidos sejam renderizados.
-    // Isso previne erros caso a API retorne `null` ou `undefined` dentro do array.
     const validReels = reels ? reels.filter((reel): reel is Reel => reel && typeof reel === 'object') : [];
 
     if (validReels.length === 0) {
@@ -61,7 +58,6 @@ export const GradeDeReels: React.FC = () => {
                     </div>
                     <div className="absolute bottom-1 left-2 flex items-center space-x-1 text-white text-xs font-bold bg-black bg-opacity-50 px-1.5 py-0.5 rounded">
                         <i className="fas fa-play text-xs"></i>
-                        {/* Garante que `reel.views` seja um número antes de formatar. */}
                         <span>{formatViews(reel.views)}</span>
                     </div>
                 </div>
