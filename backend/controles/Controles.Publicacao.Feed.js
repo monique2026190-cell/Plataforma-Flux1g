@@ -10,6 +10,13 @@ const httpRes = {
 };
 
 const criarPost = async (req, res) => {
+    if (!req.user || !req.user.id) {
+        console.error('Tentativa de criar post sem autenticação ou ID de usuário', {
+            event: 'POST_CREATE_AUTH_ERROR',
+            data: req.body
+        });
+        return httpRes.erro(res, "Autenticação necessária.", 401);
+    }
     const userId = req.user.id;
     console.log('Iniciando criação de postagem no feed', { event: 'POST_CREATE_START', userId, body: req.body });
     try {
