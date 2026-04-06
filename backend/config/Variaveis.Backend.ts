@@ -16,7 +16,6 @@ interface IBackendConfig {
     google: {
         clientId: string;
         clientSecret: string;
-        redirectUri: string;
     };
     frontend: {
         url: string;
@@ -65,7 +64,6 @@ const configFinal: IBackendConfig = {
     google: {
         clientId: getEnvVar('GOOGLE_CLIENT_ID'),
         clientSecret: getEnvVar('GOOGLE_CLIENT_SECRET'),
-        redirectUri: getEnvVar('GOOGLE_REDIRECT_URI'),
     },
     frontend: {
         url: getEnvVar('FRONTEND_URL'),

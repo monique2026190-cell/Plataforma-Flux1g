@@ -35,9 +35,6 @@ if (isProduction) {
     if (VariaveisFrontend.stripePublicKey === 'CHAVE_NAO_DEFINIDA') {
         console.error("[Configuração do Frontend] A variável de ambiente obrigatória 'VITE_STRIPE_PUBLIC_KEY' não foi definida para produção.");
     }
-    if (VariaveisFrontend.googleClientId === 'CHAVE_NAO_DEFINIDA') {
-        console.error("[Configuração do Frontend] A variável de ambiente obrigatória 'VITE_GOOGLE_CLIENT_ID' não foi definida para produção.");
-    }
 }
 
 // Congela o objeto para evitar mutações acidentais em outras partes do código.
