@@ -1,8 +1,23 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Comment, ReplyingTo } from '../../../types';
-import { ServiçoPublicacaoComentariosFeed } from '../../../ServiçosFrontend/ServiçosDePublicações/ServiçoPublicaçãoComentáriosFeed.js';
-import { trackFeedCommentLike, trackFeedCommentReply } from '../../../ServiçosFrontend/SistemaDeMétricas/Métricas.Comentários.Feed.js';
+
+const formatRelativeTime = (timestamp: any): string => {
+    const now = new Date();
+    const commentDate = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - commentDate.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds}s`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d`;
+    
+    return commentDate.toLocaleDateString();
+};
+
 
 // --- COMPONENTE INTERNO PARA UM ÚNICO ITEM DE COMENTÁRIO ---
 export const ComentarioItem: React.FC<{ // Made exportable
@@ -42,12 +57,10 @@ export const ComentarioItem: React.FC<{ // Made exportable
 
     const handleLike = () => {
         onLike(comment.id);
-        trackFeedCommentLike(comment.id);
     };
 
     const handleReply = () => {
         onReplyClick(comment.id, comment.username);
-        trackFeedCommentReply(comment.id, { repliedTo: comment.username });
     };
 
     return (
@@ -92,7 +105,7 @@ export const ComentarioItem: React.FC<{ // Made exportable
                         </p>
                     </div>
                     <div className="flex items-center gap-5 mt-2 ml-2">
-                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">{ServiçoPublicacaoComentariosFeed.formatRelativeTime(comment.timestamp)}</span>
+                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">{formatRelativeTime(comment.timestamp)}</span>
                         <button className="text-[10px] font-black text-gray-500 hover:text-[#00c2ff] uppercase tracking-widest cursor-pointer" onClick={handleReply}>Responder</button>
                         <button className={`text-[10px] font-bold flex items-center gap-1.5 ml-auto transition-colors ${comment.likedByMe ? 'text-red-500' : 'text-gray-500 hover:text-white'}`} onClick={handleLike}>
                             <i className={`${comment.likedByMe ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>

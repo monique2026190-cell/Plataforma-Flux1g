@@ -1,7 +1,23 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Comment, ReplyingTo } from '../../../types';
-import { formatRelativeTime, trackMarketplaceCommentLike, trackMarketplaceCommentReply } from '../../../ServiçosFrontend/SistemaDeMétricas/Métricas.Comentários.Marketplace.js';
+
+const formatRelativeTime = (timestamp: any): string => {
+    const now = new Date();
+    const commentDate = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - commentDate.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds}s`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d`;
+    
+    return commentDate.toLocaleDateString();
+};
+
 
 // --- COMPONENTE DO CARD DE COMENTÁRIO (AGORA EXPORTADO) ---
 export const CardComentarioMarketplace: React.FC<{
@@ -41,12 +57,10 @@ export const CardComentarioMarketplace: React.FC<{
     
     const handleLike = () => {
         onLike(comment.id);
-        trackMarketplaceCommentLike(comment.id);
     };
 
     const handleReply = () => {
         onReplyClick(comment.id, comment.username);
-        trackMarketplaceCommentReply(comment.id, { repliedTo: comment.username });
     };
 
     return (

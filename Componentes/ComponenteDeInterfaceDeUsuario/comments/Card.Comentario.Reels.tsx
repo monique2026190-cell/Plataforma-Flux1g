@@ -1,7 +1,23 @@
 
 import React, { useState } from 'react';
 import { Comment } from '../../../types';
-import { formatRelativeTime } from '../../../ServiçosFrontend/SistemaDeMétricas/Métricas.Comentários.Reels.js';
+
+const formatRelativeTime = (timestamp: any): string => {
+    const now = new Date();
+    const commentDate = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - commentDate.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds}s`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d`;
+    
+    return commentDate.toLocaleDateString();
+};
+
 
 // --- COMPONENTE INTERNO PARA UM ÚNICO ITEM DE COMENTÁRIO ---
 // (Esta era a lógica original do Card.Comentario.Reels)
