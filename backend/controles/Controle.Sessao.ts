@@ -19,8 +19,7 @@ const httpRes = {
 
 const oAuth2Client = new OAuth2Client(
   variaveis.google.clientId,
-  variaveis.google.clientSecret,
-  variaveis.google.redirectUri
+  variaveis.google.clientSecret
 );
 
 const registrar = async (req: Request, res: Response, next: NextFunction) => {
