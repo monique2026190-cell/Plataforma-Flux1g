@@ -18,7 +18,7 @@ const httpRes = {
     naoAutorizado: (r: Response, m: string = "Não autorizado") => r.status(401).json({ sucesso: false, mensagem: m }),
 };
 
-const completarPerfil = async (req: Request, res: Response, next: NextFunction) => {
+const completarPerfil = async (req: Request & { file?: any }, res: Response, next: NextFunction) => {
     const { idUsuario, apelido, nome, bio, tipoDeConta }: { idUsuario: string; apelido: string; nome: string; bio: string; tipoDeConta: string; } = req.body;
     const avatar = req.file;
 
