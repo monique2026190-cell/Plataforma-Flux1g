@@ -122,15 +122,15 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
 
         logger.info(`Usuário ${usuario.id} autenticado com Google com sucesso.`, { userId: usuario.id, isNewUser });
         
-        const redirectUrl = new URL(variaveis.frontend.url + '/auth/google/success');
-        redirectUrl.searchParams.append('token', sessionToken);
-        res.redirect(redirectUrl.toString());
+        return httpRes.sucesso(res, { 
+            token: sessionToken, 
+            user: usuario.paraRespostaHttp(),
+            isNewUser
+        });
 
     } catch (error: any) {
         logger.error('Erro na autenticação com Google:', { error });
-        const errorRedirectUrl = new URL(variaveis.frontend.url + '/auth/google/failure');
-        errorRedirectUrl.searchParams.append('error', error.message || 'Erro desconhecido');
-        res.redirect(errorRedirectUrl.toString());
+        next(error);
     }
 };
 

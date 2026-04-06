@@ -17,9 +17,6 @@ interface IBackendConfig {
         clientId: string;
         clientSecret: string;
     };
-    frontend: {
-        url: string;
-    };
 }
 
 // --- Carregamento do .env ---
@@ -57,16 +54,13 @@ function getOptionalEnvVarAsInt(name: string, defaultValue: number): number {
 // Lê, valida e monta o objeto de configuração final com os tipos corretos.
 const configFinal: IBackendConfig = {
     databaseUrl: getEnvVar('DATABASE_URL'),
-    jwtSecret: getEnvVar('JWT_SECRET'),
-    corsOrigin: getEnvVar('CORS_ORIGIN'),
+    jwtSecret: getOptionalEnvVar('JWT_SECRET', 'secret'),
+    corsOrigin: getOptionalEnvVar('CORS_ORIGIN', 'http://localhost:3000'),
     port: getOptionalEnvVarAsInt('PORT', 3001),
     stripeSecretKey: getOptionalEnvVar('STRIPE_SECRET_KEY', ''),
     google: {
         clientId: getEnvVar('GOOGLE_CLIENT_ID'),
         clientSecret: getEnvVar('GOOGLE_CLIENT_SECRET'),
-    },
-    frontend: {
-        url: getEnvVar('FRONTEND_URL'),
     }
 };
 
