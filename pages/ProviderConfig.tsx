@@ -5,7 +5,6 @@ import { HookConfiguracaoProvedor } from '../hooks/Hook.Configuracao.Provedor';
 import { SyncPayCard } from '../Componentes/ComponentesDeProvedores/CardsDeConexao/SyncPayCard';
 import { StripeCard } from '../Componentes/ComponentesDeProvedores/CardsDeConexao/StripeCard';
 import { PayPalCard } from '../Componentes/ComponentesDeProvedores/CardsDeConexao/PayPalCard';
-import '../Componentes/ComponentesDeProvedores/CardsDeConexao/ProviderCard.css';
 
 export const ProviderConfig: React.FC = () => {
     const navigate = useNavigate();
