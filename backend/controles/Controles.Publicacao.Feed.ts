@@ -15,8 +15,9 @@ const httpRes = {
 
 const criarPost = async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user || !req.user.id) {
-        console.error('Tentativa de criar post sem autenticação ou ID de usuário', {
+        console.error('Tentativa de criar post sem autenticação ou ID de usuário.', {
             event: 'POST_CREATE_AUTH_ERROR',
+            reason: 'Usuário não autenticado ou ID do usuário ausente na requisição.',
             data: req.body
         });
         return httpRes.erro(res, "Autenticação necessária.", 401);
@@ -77,13 +78,13 @@ const atualizarPost = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const userId = req.user.id;
-    console.log('Iniciando atualização de postagem do feed', { event: 'POST_UPDATE_START', postId, userId });
+    console.log('Iniciando atualização de postagem no feed', { event: 'POST_UPDATE_START', postId, userId });
     try {
         const updatedPost = await servicoPublicacaoFeed.atualizarPost(postId, req.body, req.user);
         console.log('Postagem do feed atualizada com sucesso', { event: 'POST_UPDATE_SUCCESS', postId, userId });
         httpRes.sucesso(res, updatedPost);
     } catch (error: any) {
-        console.error('Erro ao atualizar postagem do feed', { event: 'POST_UPDATE_ERROR', errorMessage: error.message, postId, userId, data: req.body });
+        console.error('Erro ao atualizar postagem no feed', { event: 'POST_UPDATE_ERROR', errorMessage: error.message, postId, userId, data: req.body });
         httpRes.erro(res, error.message, error.statusCode || 400);
     }
 };

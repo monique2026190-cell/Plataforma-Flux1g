@@ -18,9 +18,9 @@ class InfraProviderPublicacao {
     }
 
     public async criarPost(postData: FormData): Promise<any> {
-        return httpClient.post(API_ENDPOINTS.FEED.BASE, postData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        // CORREÇÃO: Removido o cabeçalho Content-Type. 
+        // O navegador o definirá automaticamente com o boundary correto para FormData.
+        return httpClient.post(API_ENDPOINTS.FEED.BASE, postData);
     }
 
     public async atualizarPost(postId: string, postData: any): Promise<any> {
@@ -41,9 +41,8 @@ class InfraProviderPublicacao {
     }
 
     public async criarItemMarketplace(itemData: FormData): Promise<any> {
-        return httpClient.post(API_ENDPOINTS.MARKETPLACE.BASE, itemData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        // CORREÇÃO: Removido o cabeçalho Content-Type.
+        return httpClient.post(API_ENDPOINTS.MARKETPLACE.BASE, itemData);
     }
     
     // --- Reels ---
@@ -56,9 +55,8 @@ class InfraProviderPublicacao {
     }
 
     public async criarReel(reelData: FormData): Promise<any> {
-        return httpClient.post(API_ENDPOINTS.REELS.BASE, reelData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        // CORREÇÃO: Removido o cabeçalho Content-Type.
+        return httpClient.post(API_ENDPOINTS.REELS.BASE, reelData);
     }
 
     public async deletarReel(reelId: string): Promise<void> {
