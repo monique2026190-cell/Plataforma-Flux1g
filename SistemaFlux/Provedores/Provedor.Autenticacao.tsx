@@ -118,8 +118,8 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
         });
       }
     } catch (error: any) {
+      console.error("Erro ao verificar status do perfil:", error);
       setErro(error.message || 'Erro ao verificar status do perfil');
-      throw error;
     } finally {
       setProcessando(false);
     }
@@ -138,6 +138,12 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     
     verificarSessao();
   }, []);
+
+  useEffect(() => {
+    if (autenticado) {
+      verificarStatusPerfil();
+    }
+  }, [autenticado, verificarStatusPerfil]);
 
   const value: AuthContextType = {
     usuario,
