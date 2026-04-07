@@ -101,6 +101,9 @@ class DadosProviderUsuario extends DadosBase {
             throw error;
         }
     }
+    async verificarStatusPerfil(): Promise<any> {
+      return infraProviderUsuario.verificarStatusPerfil();
+    }
 }
 
 export const dadosProviderUsuario = new DadosProviderUsuario();

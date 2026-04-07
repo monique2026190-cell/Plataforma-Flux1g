@@ -20,6 +20,7 @@ export interface AuthContextType {
   logout: () => void;
   limparErro: () => void;
   completarPerfil: (dados: FormData) => Promise<void>;
+  verificarStatusPerfil: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -103,6 +104,27 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     }
   }, [usuario]);
 
+  const verificarStatusPerfil = useCallback(async () => {
+    if (!autenticado) return;
+    setProcessando(true);
+    try {
+      const resposta = await servicoAutenticacao.verificarStatusPerfil();
+      if (resposta.sucesso && typeof resposta.dados?.perfilCompleto === 'boolean') {
+        setUsuario(prev => {
+          if (prev && prev.perfilCompleto !== resposta.dados.perfilCompleto) {
+            return { ...prev, perfilCompleto: resposta.dados.perfilCompleto };
+          }
+          return prev;
+        });
+      }
+    } catch (error: any) {
+      setErro(error.message || 'Erro ao verificar status do perfil');
+      throw error;
+    } finally {
+      setProcessando(false);
+    }
+  }, [autenticado]);
+
   useEffect(() => {
     const verificarSessao = async () => {
       setProcessando(true);
@@ -127,6 +149,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     logout,
     limparErro,
     completarPerfil,
+    verificarStatusPerfil,
   };
 
   return (

@@ -54,6 +54,7 @@ const registrarNovoUsuario = async (dadosUsuario) => {
         email,
         senha,
         apelido: email.split('@')[0],
+        profile_completed: false, // Adicionado para consistência
     });
 
     await novoUsuario.criptografarSenha();
@@ -105,7 +106,7 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
             email,
             google_id,
             apelido: email.split('@')[0],
-            perfilCompleto: false,
+            profile_completed: false, // Corrigido para consistência
         });
         
         usuarioDb = await repositorioUsuario.createUser(novoUsuario.paraBancoDeDados());
@@ -150,11 +151,22 @@ const encontrarUsuarioPorId = async (id) => {
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
+const verificarStatusPerfil = async (idUsuario) => {
+    logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`);
+    const usuario = await encontrarUsuarioPorId(idUsuario);
+    if (!usuario) {
+        throw new Error('Usuário não encontrado.');
+    }
+    // A propriedade pode não existir em usuários antigos, então `|| false` garante o retorno.
+    return { perfilCompleto: usuario.profile_completed || false }; 
+}; 
+
 export default {
     completarPerfil,
     registrarNovoUsuario,
     autenticarUsuarioPorCredenciais,
     autenticarOuCriarPorGoogle,
     atualizarPerfilUsuario,
-    encontrarUsuarioPorId
+    encontrarUsuarioPorId,
+    verificarStatusPerfil
 };

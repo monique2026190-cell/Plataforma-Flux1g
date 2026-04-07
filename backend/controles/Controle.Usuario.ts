@@ -87,8 +87,25 @@ const obterPerfil = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const verificarStatusPerfil = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.user?.id) {
+        return httpRes.naoAutorizado(res, "ID do usuário não fornecido na requisição.");
+    }
+    const idUsuario = req.user.id;
+    logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`, { userId: idUsuario });
+
+    try {
+        const status = await servicoUsuario.verificarStatusPerfil(idUsuario);
+        return httpRes.sucesso(res, status);
+    } catch (error: any) {
+        logger.error(`Erro ao verificar o status do perfil do usuário ${idUsuario}:`, { userId: idUsuario, error });
+        next(error);
+    }
+};
+
 export default {
     completarPerfil,
     atualizarPerfil,
-    obterPerfil
+    obterPerfil,
+    verificarStatusPerfil
 };

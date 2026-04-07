@@ -40,6 +40,10 @@ class InfraProviderUsuario {
         const result = await httpClient.get(API_ENDPOINTS.USERS.BASE + `?email=${email}`);
         return Array.isArray(result) && result.length > 0 ? result[0] : result;
     }
+
+    public async verificarStatusPerfil(): Promise<any> {
+        return httpClient.get(API_ENDPOINTS.USERS.PROFILE_STATUS);
+    }
 }
 
 export const infraProviderUsuario = new InfraProviderUsuario();

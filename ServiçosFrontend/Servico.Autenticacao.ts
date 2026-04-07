@@ -90,6 +90,10 @@ class ServicoAutenticacao {
         throw new Error(resposta.mensagem || 'Falha ao completar o perfil.');
     }
   }
+
+  async verificarStatusPerfil(): Promise<any> {
+    return dadosProviderUsuario.verificarStatusPerfil();
+  }
 }
 
 export const servicoAutenticacao = new ServicoAutenticacao();

@@ -10,6 +10,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 logger.info('Configurando rotas de usuário...');
 
+// Rota para verificar o status do perfil do usuário
+router.get('/status-perfil', controleUsuario.verificarStatusPerfil);
+
 // Rota pública para obter o perfil de um usuário
 router.get('/:id', controleUsuario.obterPerfil);
 
