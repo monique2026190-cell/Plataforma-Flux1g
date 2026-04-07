@@ -69,11 +69,9 @@ class ServicoAutenticacao {
                 }
                 return usuario;
             }
-            this.logout();
             return null;
         } catch (error) {
-            console.error("Erro ao verificar sessão, fazendo logout:", error);
-            this.logout();
+            console.error("Erro ao verificar sessão:", error);
             return null;
         }
     }
