@@ -1,8 +1,9 @@
 import { dadosProviderUsuario } from './Infra/Dados.Provider.Usuario';
 import { mapearBackendParaFrontend } from './Contratos/Contrato.Comunicacao.Usuario';
+import { servicoSessao } from './Servico.Sessao';
+import { servicoMetodoGoogle } from './Servico.Metodo.Google';
 
-// Esta interface de usuário é uma duplicata do que está no Provedor. Futuramente, seria bom movê-la para um arquivo de tipos compartilhado.
-interface Usuario {
+export interface Usuario {
   id: string;
   nome: string;
   email: string;
@@ -18,7 +19,7 @@ class ServicoAutenticacao {
       const usuario = mapearBackendParaFrontend(resposta.dados.user);
       const token = resposta.dados.token;
       if (token) {
-        localStorage.setItem('auth_token', token);
+        servicoSessao.setToken(token);
       }
       return { usuario, token };
     } else {
@@ -28,10 +29,8 @@ class ServicoAutenticacao {
 
   async lidarComLoginGoogle(tokenResponse: any): Promise<{ usuario: Usuario, token: string }> {
     const accessToken = tokenResponse.access_token;
-    
-    const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`);
-    const userInfo = await response.json();
-    
+    const userInfo = await servicoMetodoGoogle.obterInformacoesDoUsuario(accessToken);
+
     const dadosLogin = {
       email: userInfo.email,
       googleId: userInfo.sub,
@@ -44,7 +43,7 @@ class ServicoAutenticacao {
       const dadosUsuario = mapearBackendParaFrontend(resposta.dados.user);
       const token = resposta.dados.token;
       if (token) {
-        localStorage.setItem('auth_token', token);
+        servicoSessao.setToken(token);
       }
       return { usuario: dadosUsuario, token };
     } else {
@@ -53,19 +52,18 @@ class ServicoAutenticacao {
   }
 
   logout(): void {
-    localStorage.removeItem('auth_token');
+    servicoSessao.removeToken();
   }
 
   async verificarSessao(): Promise<Usuario | null> {
-    const token = localStorage.getItem('auth_token');
+    const token = servicoSessao.getToken();
     if (token) {
         try {
             const resposta = await dadosProviderUsuario.verificarSessao();
             if (resposta.sucesso && resposta.dados?.user) {
                 const usuario = mapearBackendParaFrontend(resposta.dados.user);
-                // Renova o token se um novo for enviado
                 if (resposta.dados.token) {
-                    localStorage.setItem('auth_token', resposta.dados.token);
+                    servicoSessao.setToken(resposta.dados.token);
                 }
                 return usuario;
             }
