@@ -16,7 +16,7 @@ router.post('/', marketplaceControle.criarItem);
 // @route   GET /
 // @desc    Obter todos os itens do marketplace
 // @access  Public
-router.get('/', marketplaceControle.obterTodosItens);
+router.get('/', marketplaceControle.obterTodosOsItens);
 
 // @route   GET /:itemId
 // @desc    Obter um item específico do marketplace

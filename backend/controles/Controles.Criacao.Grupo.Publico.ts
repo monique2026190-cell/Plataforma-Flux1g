@@ -29,7 +29,11 @@ const criarGrupoPublico = async (req: AuthenticatedRequest, res: Response, next:
 
         console.log('Iniciando criação de grupo público', { event: 'GROUP_PUBLIC_CREATE_START', donoId, nome: dadosValidados.nome });
 
-        const grupoSalvo = await ServicoCriacaoGrupoPublico.criar(dadosValidados);
+        const grupoSalvo = await ServicoCriacaoGrupoPublico.criar(dadosValidados, donoId);
+
+        if (!grupoSalvo) {
+            throw new Error('Falha ao criar o grupo público.');
+        }
 
         console.log('Grupo público criado com sucesso', { event: 'GROUP_PUBLIC_CREATE_SUCCESS', groupId: grupoSalvo.id, donoId });
 

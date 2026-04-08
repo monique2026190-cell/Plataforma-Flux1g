@@ -49,7 +49,7 @@ const obterTodosOsPosts = async (req: Request, res: Response) => {
     console.log('Iniciando obtenção de todas as postagens do feed', { event: 'POSTS_GET_ALL_START' });
     try {
         const posts = await servicoPublicacaoFeed.obterTodosOsPosts(req.query);
-        console.log('Todas as postagens do feed obtidas com sucesso', { event: 'POSTS_GET_ALL_SUCCESS', count: posts.length });
+        console.log('Todas as postagens do feed obtidas com sucesso', { event: 'POSTS_GET_ALL_SUCCESS', count: posts.data.length });
         httpRes.sucesso(res, posts);
     } catch (error: any) {
         console.error('Erro ao obter todas as postagens do feed', { event: 'POSTS_GET_ALL_ERROR', errorMessage: error.message, query: req.query });

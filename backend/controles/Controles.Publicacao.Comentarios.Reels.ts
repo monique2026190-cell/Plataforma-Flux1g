@@ -31,10 +31,10 @@ const createComment = async (req: AuthenticatedRequest, res: Response) => {
         };
         const dadosValidados = validarCriacaoComentario(dadosParaValidar);
 
-        const comment = await ServicoComentariosReels.createComment(
-            { texto: dadosValidados.texto }, 
+        const comment = await ServicoComentariosReels.criarComentario(
             reelId, 
-            userId
+            userId,
+            dadosValidados.conteudo
         );
         
         console.log('Comentário de Reel criado com sucesso', { event: 'REEL_COMMENT_CREATE_SUCCESS', commentId: comment.id, reelId, userId });
@@ -57,7 +57,7 @@ const getCommentsForReel = async (req: Request, res: Response) => {
     const { reelId } = req.params;
     console.log('Buscando comentários para Reel', { event: 'REEL_COMMENTS_GET_START', reelId });
     try {
-        const comments = await ServicoComentariosReels.getCommentsForReel(reelId, req.query);
+        const comments = await ServicoComentariosReels.obterComentariosPorReelId(reelId, req.query);
         console.log('Busca de comentários para Reel bem-sucedida', { event: 'REEL_COMMENTS_GET_SUCCESS', reelId, count: comments.length });
         httpRes.sucesso(res, comments);
     } catch (error: any) {
@@ -76,7 +76,7 @@ const updateComment = async (req: AuthenticatedRequest, res: Response) => {
 
     console.log('Iniciando atualização de comentário de Reel', { event: 'REEL_COMMENT_UPDATE_START', commentId, userId });
     try {
-        const updatedComment = await ServicoComentariosReels.updateComment(commentId, req.body, userId);
+        const updatedComment = await ServicoComentariosReels.atualizarComentario(commentId, userId, req.body.conteudo);
         console.log('Comentário de Reel atualizado com sucesso', { event: 'REEL_COMMENT_UPDATE_SUCCESS', commentId, userId });
         httpRes.sucesso(res, updatedComment);
     } catch (error: any) {
@@ -95,7 +95,7 @@ const deleteComment = async (req: AuthenticatedRequest, res: Response) => {
 
     console.log('Iniciando exclusão de comentário de Reel', { event: 'REEL_COMMENT_DELETE_START', commentId, userId });
     try {
-        await ServicoComentariosReels.deleteComment(commentId, userId);
+        await ServicoComentariosReels.deletarComentario(commentId, userId);
         console.log('Comentário de Reel excluído com sucesso', { event: 'REEL_COMMENT_DELETE_SUCCESS', commentId, userId });
         httpRes.semConteudo(res);
     } catch (error: any) {

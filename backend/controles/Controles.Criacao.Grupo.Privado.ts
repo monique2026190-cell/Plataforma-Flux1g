@@ -29,7 +29,11 @@ const criarGrupoPrivado = async (req: AuthenticatedRequest, res: Response, next:
 
         console.log('Iniciando criação de grupo privado', { event: 'GROUP_PRIVATE_CREATE_START', donoId, nome: dadosValidados.nome });
 
-        const grupoSalvo = await ServicoCriacaoGrupoPrivado.criar(dadosValidados);
+        const grupoSalvo = await ServicoCriacaoGrupoPrivado.criar(dadosValidados, donoId);
+
+        if (!grupoSalvo) {
+            throw new Error('Falha ao criar o grupo privado.');
+        }
 
         console.log('Criação de grupo privado bem-sucedida', { event: 'GROUP_PRIVATE_CREATE_SUCCESS', groupId: grupoSalvo.id, donoId });
 

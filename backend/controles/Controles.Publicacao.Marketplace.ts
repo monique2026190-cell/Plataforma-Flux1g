@@ -44,10 +44,10 @@ const criarItem = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-const obterTodosItens = async (req: Request, res: Response) => {
+const obterTodosOsItens = async (req: Request, res: Response) => {
     console.log('Iniciando obtenção de todos os itens do marketplace', { event: 'ITEMS_GET_ALL_START' });
     try {
-        const items = await ServicoMarketplace.obterTodosItens(req.query);
+        const items = await ServicoMarketplace.obterTodosOsItens(req.query);
         console.log('Itens do marketplace obtidos com sucesso', { event: 'ITEMS_GET_ALL_SUCCESS', count: items.length });
         httpRes.sucesso(res, items);
     } catch (error: any) {
@@ -113,7 +113,7 @@ const deletarItem = async (req: AuthenticatedRequest, res: Response) => {
 
 export default {
     criarItem,
-    obterTodosItens,
+    obterTodosOsItens,
     obterItemPorId,
     atualizarItem,
     deletarItem

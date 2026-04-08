@@ -5,23 +5,23 @@ interface IAutor {
 }
 
 interface IComentario {
-    id: number;
+    id?: number;
     postId: number;
     autorId: number;
     conteudo: string;
-    dataCriacao: Date;
-    dataAtualizacao: Date;
-    autor: IAutor;
+    dataCriacao?: Date;
+    dataAtualizacao?: Date;
+    autor?: IAutor;
 }
 
-class Comentario {
-    id: number;
+class Comentario implements IComentario {
+    id?: number;
     postId: number;
     autorId: number;
     conteudo: string;
-    dataCriacao: Date;
-    dataAtualizacao: Date;
-    autor: IAutor; // Objeto com dados do autor
+    dataCriacao?: Date;
+    dataAtualizacao?: Date;
+    autor?: IAutor; // Objeto com dados do autor
 
     constructor({
         id,

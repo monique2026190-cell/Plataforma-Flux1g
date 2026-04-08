@@ -27,7 +27,7 @@ const createReel = async (req: AuthenticatedRequest, res: Response) => {
         const dadosParaValidar = { ...req.body, autorId: userId };
         const dadosValidados = validarPublicacaoReels(dadosParaValidar);
 
-        const reel = await ServicoReels.createReel(dadosValidados, req.user);
+        const reel = await ServicoReels.criarReel(dadosValidados, req.user);
         
         console.log('Reel criado com sucesso', { event: 'REEL_CREATE_SUCCESS', reelId: reel.id, userId });
         
@@ -47,7 +47,7 @@ const createReel = async (req: AuthenticatedRequest, res: Response) => {
 const getAllReels = async (req: Request, res: Response) => {
     console.log('Iniciando obtenção de todos os reels', { event: 'REELS_GET_ALL_START' });
     try {
-        const reels = await ServicoReels.getAllReels(req.query);
+        const reels = await ServicoReels.obterTodosOsReels(req.query);
         console.log('Todos os reels obtidos com sucesso', { event: 'REELS_GET_ALL_SUCCESS', count: reels.length });
         httpRes.sucesso(res, reels);
     } catch (error: any) {
@@ -60,7 +60,7 @@ const getReelById = async (req: Request, res: Response) => {
     const { reelId } = req.params;
     console.log('Iniciando obtenção de reel por ID', { event: 'REEL_GET_BY_ID_START', reelId });
     try {
-        const reel = await ServicoReels.getReelById(reelId);
+        const reel = await ServicoReels.obterReelPorId(reelId);
         if (!reel) {
             console.warn('Reel não encontrado', { event: 'REEL_GET_BY_ID_NOT_FOUND', reelId });
             return httpRes.naoEncontrado(res, 'Reel não encontrado.');
@@ -83,7 +83,7 @@ const updateReel = async (req: AuthenticatedRequest, res: Response) => {
 
     console.log('Iniciando atualização de reel', { event: 'REEL_UPDATE_START', reelId, userId });
     try {
-        const updatedReel = await ServicoReels.updateReel(reelId, req.body, userId);
+        const updatedReel = await ServicoReels.atualizarReel(reelId, req.body, req.user);
         console.log('Reel atualizado com sucesso', { event: 'REEL_UPDATE_SUCCESS', reelId, userId });
         httpRes.sucesso(res, updatedReel);
     } catch (error: any) {
@@ -102,7 +102,7 @@ const deleteReel = async (req: AuthenticatedRequest, res: Response) => {
 
     console.log('Iniciando exclusão de reel', { event: 'REEL_DELETE_START', reelId, userId });
     try {
-        await ServicoReels.deleteReel(reelId, userId);
+        await ServicoReels.deletarReel(reelId, req.user);
         console.log('Reel excluído com sucesso', { event: 'REEL_DELETE_SUCCESS', reelId, userId });
         httpRes.semConteudo(res);
     } catch (error: any) {

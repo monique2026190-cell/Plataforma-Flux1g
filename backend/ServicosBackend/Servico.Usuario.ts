@@ -1,13 +1,13 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import Usuario from '../models/Models.Estrutura.Usuario.js';
+import Usuario, { IUsuario, IUsuarioAtualizacao, IUsuarioGoogleAuth, IUsuarioLogin, IUsuarioRegistro } from '../models/Models.Estrutura.Usuario.js';
 import repositorioUsuario from '../Repositorios/Repositorio.Usuario.js';
 import createServicoLogger from '../config/Log.Servicos.Backend.js';
 
-const logger = createServicoLogger('Servico.Usuario.js');
+const logger = createServicoLogger('Servico.Usuario.ts');
 
-const completarPerfil = async (idUsuario, dadosPerfil, avatar) => {
+const completarPerfil = async (idUsuario: string, dadosPerfil: any, avatar: any) => {
     logger.info(`Iniciando o processo de completar perfil para o usuário ${idUsuario}.`);
 
     const usuarioExistente = await repositorioUsuario.encontrarPorId(idUsuario);
@@ -16,14 +16,13 @@ const completarPerfil = async (idUsuario, dadosPerfil, avatar) => {
         throw new Error('Usuário não encontrado.');
     }
 
-    let urlAvatar = usuarioExistente.avatar;
+    let urlAvatar = usuarioExistente.urlFoto; // Corrigido
     if (avatar) {
-        // TODO: Implementar upload de arquivo para um serviço de armazenamento
         logger.info(`Simulando upload do avatar para o usuário ${idUsuario}.`);
         urlAvatar = `https://storage.googleapis.com/fictional-bucket/${avatar.originalname}`;
     }
 
-    const dadosParaAtualizar = {
+    const dadosParaAtualizar: IUsuarioAtualizacao = {
         nickname: dadosPerfil.apelido,
         name: dadosPerfil.nome,
         bio: dadosPerfil.bio,
@@ -38,7 +37,7 @@ const completarPerfil = async (idUsuario, dadosPerfil, avatar) => {
     return Usuario.deBancoDeDados(usuarioAtualizadoDb);
 };
 
-const registrarNovoUsuario = async (dadosUsuario) => {
+const registrarNovoUsuario = async (dadosUsuario: IUsuarioRegistro) => {
     const { nome, email, senha } = dadosUsuario;
     logger.info(`Iniciando registro de novo usuário para o e-mail ${email}.`);
 
@@ -54,7 +53,7 @@ const registrarNovoUsuario = async (dadosUsuario) => {
         email,
         senha,
         apelido: email.split('@')[0],
-        profile_completed: false, // Adicionado para consistência
+        perfilCompleto: false, 
     });
 
     await novoUsuario.criptografarSenha();
@@ -65,17 +64,19 @@ const registrarNovoUsuario = async (dadosUsuario) => {
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
-const autenticarUsuarioPorCredenciais = async (credenciais) => {
+const autenticarUsuarioPorCredenciais = async (credenciais: IUsuarioLogin) => {
     const { email, senha } = credenciais;
     logger.info(`Iniciando autenticação por credenciais para o e-mail ${email}.`);
 
     const usuarioDb = await repositorioUsuario.findByEmail(email);
-    if (!usuarioDb || !usuarioDb.password_hash) {
+    // CORREÇÃO: A propriedade é 'senha' e não 'password_hash'
+    if (!usuarioDb || !usuarioDb.senha) {
         logger.warn(`Tentativa de autenticação com credenciais inválidas para o e-mail ${email}.`);
         throw new Error('Credenciais inválidas.');
     }
-
-    const senhaValida = await bcrypt.compare(senha, usuarioDb.password_hash);
+    
+    // CORREÇÃO: A propriedade é 'senha' e não 'password_hash'
+    const senhaValida = await bcrypt.compare(senha, usuarioDb.senha);
     if (!senhaValida) {
         logger.warn(`Tentativa de autenticação com senha inválida para o e-mail ${email}.`);
         throw new Error('Credenciais inválidas.');
@@ -85,7 +86,7 @@ const autenticarUsuarioPorCredenciais = async (credenciais) => {
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
-const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
+const autenticarOuCriarPorGoogle = async (dadosGoogle: IUsuarioGoogleAuth) => {
     const { nome, email, google_id } = dadosGoogle;
     logger.info(`Iniciando autenticação ou criação por Google para o e-mail ${email}.`);
 
@@ -102,11 +103,11 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
         isNewUser = true;
         const novoUsuario = new Usuario({
             id: uuidv4(),
-            nome,
+            nome: nome || email.split('@')[0], // Garante que o nome não seja undefined
             email,
-            google_id,
+            googleId: google_id,
             apelido: email.split('@')[0],
-            profile_completed: false, // Corrigido para consistência
+            perfilCompleto: false,
         });
         
         usuarioDb = await repositorioUsuario.createUser(novoUsuario.paraBancoDeDados());
@@ -117,7 +118,7 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
     return { usuario, isNewUser };
 };
 
-const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
+const atualizarPerfilUsuario = async (idUsuario: string, dadosPerfil: Partial<IUsuario>) => {
     logger.info(`Iniciando atualização de perfil para o usuário ${idUsuario}.`);
 
     const usuarioExistente = await repositorioUsuario.encontrarPorId(idUsuario);
@@ -125,14 +126,14 @@ const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
         logger.warn(`Tentativa de atualização de perfil para usuário não encontrado com ID ${idUsuario}.`);
         throw new Error('Usuário não encontrado.');
     }
-
-    const dadosParaAtualizar = Object.keys(dadosPerfil).reduce((acc, key) => {
-        if (dadosPerfil[key] !== undefined) {
-            acc[key] = dadosPerfil[key];
-        }
-        return acc;
-    }, {});
-
+    
+    // Mapeia os dados do perfil para o formato do banco de dados
+    const dadosParaAtualizar: IUsuarioAtualizacao = {};
+    if (dadosPerfil.apelido) dadosParaAtualizar.nickname = dadosPerfil.apelido;
+    if (dadosPerfil.nome) dadosParaAtualizar.name = dadosPerfil.nome;
+    if (dadosPerfil.bio) dadosParaAtualizar.bio = dadosPerfil.bio;
+    if (dadosPerfil.privado !== undefined) dadosParaAtualizar.is_private = dadosPerfil.privado;
+    if (dadosPerfil.urlFoto) dadosParaAtualizar.photo_url = dadosPerfil.urlFoto;
 
     const usuarioAtualizadoDb = await repositorioUsuario.updateUser(idUsuario, dadosParaAtualizar);
     
@@ -141,7 +142,7 @@ const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
     return Usuario.deBancoDeDados(usuarioAtualizadoDb);
 };
 
-const encontrarUsuarioPorId = async (id) => {
+const encontrarUsuarioPorId = async (id: string) => {
     logger.info(`Buscando usuário por ID ${id}.`);
     const usuarioDb = await repositorioUsuario.encontrarPorId(id);
     if (!usuarioDb) {
@@ -151,14 +152,13 @@ const encontrarUsuarioPorId = async (id) => {
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
-const verificarStatusPerfil = async (idUsuario) => {
+const verificarStatusPerfil = async (idUsuario: string) => {
     logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`);
     const usuario = await encontrarUsuarioPorId(idUsuario);
     if (!usuario) {
         throw new Error('Usuário não encontrado.');
     }
-    // A propriedade pode não existir em usuários antigos, então `|| false` garante o retorno.
-    return { perfilCompleto: usuario.profile_completed || false }; 
+    return { perfilCompleto: usuario.perfilCompleto }; 
 }; 
 
 export default {

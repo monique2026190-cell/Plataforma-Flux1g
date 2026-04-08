@@ -6,7 +6,7 @@ interface IAutor {
 }
 
 interface IPublicacaoMarketplace {
-    id: number;
+    id?: number;
     usuarioId: number;
     titulo: string;
     descricao: string;
@@ -19,8 +19,8 @@ interface IPublicacaoMarketplace {
     autor?: IAutor;
 }
 
-class PublicacaoMarketplace {
-    id: number;
+class PublicacaoMarketplace implements IPublicacaoMarketplace {
+    id?: number;
     usuarioId: number;
     titulo: string;
     descricao: string;

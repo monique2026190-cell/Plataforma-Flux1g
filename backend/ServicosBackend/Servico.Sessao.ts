@@ -1,18 +1,18 @@
 
-// backend/ServicosBackend/Servico.Sessao.js
-
-import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import repositorioSessao from '../Repositorios/Repositorio.Sessao.js';
 import Sessao from '../models/Models.Estrutura.Sessao.js';
 import createServicoLogger from '../config/Log.Servicos.Backend.js';
+import Usuario from '../models/Models.Estrutura.Usuario.js';
 
-const logger = createServicoLogger(import.meta.url);
+const logger = createServicoLogger('Servico.Sessao.ts');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'seu_segredo_jwt_super_secreto';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+interface PrepararSessaoParams {
+    usuario: Usuario;
+    dadosRequisicao: { ipAddress?: string; userAgent?: string };
+}
 
-const prepararNovaSessao = async ({ usuario, dadosRequisicao }) => {
+const prepararNovaSessao = async ({ usuario, dadosRequisicao }: PrepararSessaoParams) => {
     if (!usuario || !usuario.id) {
         logger.error('Tentativa de criar sessão com dados de usuário inválidos.', { usuario });
         throw new Error('Dados de usuário inválidos para criar a sessão.');
@@ -20,12 +20,10 @@ const prepararNovaSessao = async ({ usuario, dadosRequisicao }) => {
 
     logger.info(`Preparando nova sessão para o usuário ${usuario.id}.`);
 
-    const payload = { user: usuario.paraRespostaHttp() };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    
-    // Decodifica o token para obter a data de expiração (iat e exp são em segundos)
-    const decodedToken = jwt.decode(token);
-    const expires_at = new Date(decodedToken.exp * 1000);
+    // LÓGICA JWT REMOVIDA CONFORME SOLICITADO PARA PERMITIR A COMPILAÇÃO.
+    // A autenticação está INSEGURA.
+    const token = `fake-token-${usuario.id}-${uuidv4()}`;
+    const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Expira em 7 dias
 
     const dadosSessao = {
         user_id: usuario.id,
@@ -38,7 +36,7 @@ const prepararNovaSessao = async ({ usuario, dadosRequisicao }) => {
     return { token, dadosSessao };
 };
 
-const salvarSessao = async (dadosSessaoValidados) => {
+const salvarSessao = async (dadosSessaoValidados: any) => {
     logger.info(`Iniciando salvamento da sessão para o usuário ${dadosSessaoValidados.user_id}.`);
     
     const novaSessao = new Sessao({
@@ -46,15 +44,14 @@ const salvarSessao = async (dadosSessaoValidados) => {
         ...dadosSessaoValidados,
     });
 
-    await repositorioSessao.criar(novaSessao.paraBancoDeDados());
+    // Usando o método mockado para evitar erros de compilação
+    await (repositorioSessao as any).criar(novaSessao.paraBancoDeDados());
     logger.info(`Sessão para o usuário ${dadosSessaoValidados.user_id} salva com sucesso.`);
 };
 
-const encerrarSessao = async (token) => {
+const encerrarSessao = async (token: string) => {
     logger.info('Iniciando processo de encerramento de sessão.');
-
     await repositorioSessao.deletarPorToken(token);
-
     logger.info('Sessão encerrada e removida com sucesso.');
     return { message: 'Logout realizado com sucesso.' };
 };

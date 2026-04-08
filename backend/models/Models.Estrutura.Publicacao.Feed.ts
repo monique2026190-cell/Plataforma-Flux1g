@@ -7,7 +7,7 @@ interface IAutor {
 }
 
 interface IPublicacaoFeed {
-    id: number;
+    id?: number;
     autorId: number;
     conteudo?: string;
     urlMidia?: string;
@@ -22,8 +22,8 @@ interface IPublicacaoFeed {
     autor?: IAutor;
 }
 
-class PublicacaoFeed {
-    id: number;
+class PublicacaoFeed implements IPublicacaoFeed {
+    id?: number;
     autorId: number;
     conteudo?: string;
     urlMidia?: string;

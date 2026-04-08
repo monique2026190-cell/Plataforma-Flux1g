@@ -5,7 +5,7 @@ interface IAutor {
 }
 
 interface IPublicacaoReels {
-    id: number;
+    id?: number;
     usuarioId: number;
     urlVideo: string;
     descricao?: string;
@@ -19,8 +19,8 @@ interface IPublicacaoReels {
     autor?: IAutor;
 }
 
-class PublicacaoReels {
-    id: number;
+class PublicacaoReels implements IPublicacaoReels {
+    id?: number;
     usuarioId: number;
     urlVideo: string;
     descricao?: string;

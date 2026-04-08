@@ -29,7 +29,11 @@ const criarGrupoPago = async (req: AuthenticatedRequest, res: Response, next: Ne
 
         console.log('Iniciando criação de grupo pago', { event: 'GROUP_PAID_CREATE_START', donoId, nome: dadosValidados.nome });
 
-        const grupoSalvo = await ServicoCriacaoGrupoPago.criar(dadosValidados);
+        const grupoSalvo = await ServicoCriacaoGrupoPago.criar(dadosValidados, donoId);
+
+        if (!grupoSalvo) {
+            throw new Error('Falha ao criar o grupo pago.');
+        }
 
         console.log('Criação de grupo pago bem-sucedida', { event: 'GROUP_PAID_CREATE_SUCCESS', groupId: grupoSalvo.id, donoId });
 
