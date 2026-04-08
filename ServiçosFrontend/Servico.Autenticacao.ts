@@ -72,7 +72,7 @@ class ServicoAutenticacao {
             return null;
         } catch (error) {
             console.error("Erro ao verificar sessão:", error);
-            return null;
+            throw error;
         }
     }
     return null;

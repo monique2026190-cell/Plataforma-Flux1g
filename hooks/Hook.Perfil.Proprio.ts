@@ -13,7 +13,7 @@ export const HookPerfilProprio = () => {
         if (!processando) {
             setIsLoading(false);
             if (erro) {
-                setError(erro.message || 'Ocorreu um erro desconhecido');
+                setError(erro || 'Ocorreu um erro desconhecido');
                 setProfile(null);
             } else if (usuario) {
                 // Mapeia o usuário do contexto para o formato esperado pelo perfil

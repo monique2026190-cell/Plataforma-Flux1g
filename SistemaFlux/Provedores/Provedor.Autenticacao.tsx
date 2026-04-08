@@ -127,13 +127,20 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
 
   useEffect(() => {
     const verificarSessao = async () => {
-      setProcessando(true);
-      const usuario = await servicoAutenticacao.verificarSessao();
-      if (usuario) {
-        setUsuario(usuario);
-        setAutenticado(true);
-      }
-      setProcessando(false);
+        setProcessando(true);
+        try {
+            const usuario = await servicoAutenticacao.verificarSessao();
+            if (usuario) {
+                setUsuario(usuario);
+                setAutenticado(true);
+            }
+        } catch (error: any) {
+            setErro(error.message || 'Ocorreu um erro ao verificar a sessão.');
+            setUsuario(null);
+            setAutenticado(false);
+        } finally {
+            setProcessando(false);
+        }
     };
     
     verificarSessao();
