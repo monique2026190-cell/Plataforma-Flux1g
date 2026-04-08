@@ -38,8 +38,8 @@ class DadosProviderUsuario extends DadosBase {
     }
 
     // Métodos de Sessão
-    async login(email: string, senha: string): Promise<any> {
-        return this.handleRequest(LoginSchema, { email, senha }, (dadosValidos) => 
+    async login(credenciais: { email: string, senha: string }): Promise<any> {
+        return this.handleRequest(LoginSchema, credenciais, (dadosValidos) => 
             infraProviderUsuario.login(mapearFrontendParaBackend(dadosValidos))
         );
     }

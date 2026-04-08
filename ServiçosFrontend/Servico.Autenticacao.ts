@@ -14,7 +14,7 @@ export interface Usuario {
 
 class ServicoAutenticacao {
   async loginComEmail(credenciais: { email: string; senha: string }): Promise<{ usuario: Usuario, token: string }> {
-    const resposta = await dadosProviderUsuario.login(credenciais.email, credenciais.senha);
+    const resposta = await dadosProviderUsuario.login(credenciais);
     if (resposta.sucesso && resposta.dados?.user) {
       const usuario = mapearBackendParaFrontend(resposta.dados.user);
       const token = resposta.dados.token;
