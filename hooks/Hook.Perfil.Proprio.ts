@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../SistemaFlux/Provedores/Provedor.Autenticacao';
 
 export const HookPerfilProprio = () => {
-    const { usuario, processando, erro } = useAuth(); 
+    const { usuario, processando, erro } = useAuth() || {}; 
 
     const [profile, setProfile] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
