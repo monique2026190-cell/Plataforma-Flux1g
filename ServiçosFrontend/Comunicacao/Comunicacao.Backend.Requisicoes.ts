@@ -49,7 +49,7 @@ class HttpClient {
         const token = localStorage.getItem('auth_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const config: RequestInit = { ...options, headers };
+        const config: RequestInit = { ...options, headers, credentials: 'include' };
 
         logger.info(`Request: ${config.method || 'GET'} ${url}`, { url, method: config.method || 'GET' });
 

@@ -35,12 +35,19 @@ const registrar = async (req: Request, res: Response, next: NextFunction) => {
             throw new Error('Falha ao registrar o usuário. O serviço não retornou um usuário.');
         }
 
-        const { token, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
+        const { accessToken, refreshToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: variaveis.nodeEnv === 'production',
+          sameSite: "strict",
+          path: "/api/sessao/refresh", // Ajuste o path conforme sua rota de refresh
+        });
+
         logger.info(`Usuário ${usuario.id} registrado com sucesso.`, { userId: usuario.id });
-        return httpRes.criado(res, { token, user: usuario.paraRespostaHttp() });
+        return httpRes.criado(res, { token: accessToken, user: usuario.paraRespostaHttp() });
 
     } catch (error: any) {
         logger.error(`Erro no registro do e-mail ${email}:`, { email, error });
@@ -64,12 +71,19 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
             throw new Error('Falha ao autenticar o usuário. O serviço não retornou um usuário.');
         }
 
-        const { token, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
+        const { accessToken, refreshToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: variaveis.nodeEnv === 'production',
+          sameSite: "strict",
+          path: "/api/sessao/refresh",
+        });
+
         logger.info(`Usuário ${usuario.id} logado com sucesso.`, { userId: usuario.id });
-        return httpRes.sucesso(res, { token, user: usuario.paraRespostaHttp() });
+        return httpRes.sucesso(res, { token: accessToken, user: usuario.paraRespostaHttp() });
 
     } catch (error: any) {
         logger.error(`Erro no login do e-mail ${email}:`, { email, error });
@@ -116,14 +130,21 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
             throw new Error('Falha ao autenticar ou criar usuário.');
         }
 
-        const { token: sessionToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
+        const { accessToken, refreshToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
+
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: variaveis.nodeEnv === 'production',
+          sameSite: "strict",
+          path: "/api/sessao/refresh",
+        });
 
         logger.info(`Usuário ${usuario.id} autenticado com Google com sucesso.`, { userId: usuario.id, isNewUser });
         
         return httpRes.sucesso(res, { 
-            token: sessionToken, 
+            token: accessToken, 
             user: usuario.paraRespostaHttp(),
             isNewUser
         });
@@ -143,6 +164,8 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
             return httpRes.naoAutorizado(res, 'Token não fornecido');
         }
         await servicoSessao.encerrarSessao(token);
+
+        res.clearCookie("refreshToken", { path: "/api/sessao/refresh" });
 
         logger.info('Logout bem-sucedido.');
         return httpRes.sucesso(res, { message: 'Logout bem-sucedido' });
@@ -172,7 +195,7 @@ const googleLoginFromFrontend = async (req: Request, res: Response, next: NextFu
             throw new Error('Falha ao autenticar ou criar usuário via Google Frontend.');
         }
 
-        const { token: sessionToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
+        const { accessToken, refreshToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
@@ -181,10 +204,17 @@ const googleLoginFromFrontend = async (req: Request, res: Response, next: NextFu
             redirectRoute = 'CompleteProfile';
         }
 
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: variaveis.nodeEnv === 'production',
+          sameSite: "strict",
+          path: "/api/sessao/refresh",
+        });
+
         logger.info(`Usuário ${usuario.id} autenticado com Google Frontend com sucesso.`, { userId: usuario.id, isNewUser, redirectRoute });
         
         return httpRes.sucesso(res, { 
-            token: sessionToken, 
+            token: accessToken, 
             user: usuario.paraRespostaHttp(),
             redirect: redirectRoute,
             isNewUser
