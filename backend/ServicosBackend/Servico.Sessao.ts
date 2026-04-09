@@ -20,20 +20,19 @@ const prepararNovaSessao = async ({ usuario, dadosRequisicao }: PrepararSessaoPa
 
     logger.info(`Preparando nova sessão para o usuário ${usuario.id}.`);
 
-    // LÓGICA JWT REMOVIDA CONFORME SOLICITADO PARA PERMITIR A COMPILAÇÃO.
-    // A autenticação está INSEGURA.
-    const token = `fake-token-${usuario.id}-${uuidv4()}`;
+    const accessToken = `fake-access-token-${usuario.id}-${uuidv4()}`;
+    const refreshToken = `fake-refresh-token-${usuario.id}-${uuidv4()}`;
     const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Expira em 7 dias
 
     const dadosSessao = {
         user_id: usuario.id,
-        token,
+        token: accessToken, // O token da sessão é o accessToken
         expires_at,
         ipAddress: dadosRequisicao.ipAddress,
         userAgent: dadosRequisicao.userAgent,
     };
     
-    return { token, dadosSessao };
+    return { accessToken, refreshToken, dadosSessao };
 };
 
 const salvarSessao = async (dadosSessaoValidados: any) => {

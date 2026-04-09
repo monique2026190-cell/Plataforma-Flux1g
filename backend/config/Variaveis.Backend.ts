@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 // --- Interface de Configuração ---
 // Define a estrutura e os tipos do objeto de configuração final.
 interface IBackendConfig {
+    nodeEnv: string;
     databaseUrl: string;
     jwtSecret: string;
     corsOrigin: string;
@@ -53,6 +54,7 @@ function getOptionalEnvVarAsInt(name: string, defaultValue: number): number {
 // --- Construção da Configuração Final ---
 // Lê, valida e monta o objeto de configuração final com os tipos corretos.
 const configFinal: IBackendConfig = {
+    nodeEnv: getOptionalEnvVar('NODE_ENV', 'development'),
     databaseUrl: getEnvVar('DATABASE_URL'),
     jwtSecret: getOptionalEnvVar('JWT_SECRET', 'secret'),
     corsOrigin: getOptionalEnvVar('CORS_ORIGIN', 'http://localhost:3000'),
