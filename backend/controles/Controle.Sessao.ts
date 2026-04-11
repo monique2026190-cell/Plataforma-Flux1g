@@ -226,10 +226,30 @@ const googleLoginFromFrontend = async (req: Request, res: Response, next: NextFu
     }
 };
 
+const renovarToken = async (req: Request, res: Response, next: NextFunction) => {
+    const { refreshToken } = req.cookies;
+    logger.info(`Tentando renovar o token de acesso.`);
+
+    if (!refreshToken) {
+        return httpRes.naoAutorizado(res, 'Refresh token não fornecido.');
+    }
+
+    try {
+        const { accessToken, usuario } = await servicoSessao.renovarTokenDeAcesso(refreshToken);
+        logger.info(`Token de acesso renovado para o usuário ${usuario.id}.`);
+        return httpRes.sucesso(res, { token: accessToken, user: usuario.paraRespostaHttp() });
+    } catch (error: any) {
+        logger.error('Falha ao renovar o token de acesso:', { error });
+        return httpRes.naoAutorizado(res, 'Não foi possível renovar o token de acesso.');
+    }
+};
+
+
 export default {
     registrar,
     login,
     googleAuth,
     googleLoginFromFrontend,
-    logout
+    logout,
+    renovarToken
 };

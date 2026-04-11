@@ -16,6 +16,9 @@ router.post('/login', controleSessao.login);
 router.post('/google/login', controleSessao.googleLoginFromFrontend);
 router.get('/google/callback', controleSessao.googleAuth);
 
+// Rota para renovar o token
+router.post('/refresh', controleSessao.renovarToken);
+
 // Rota protegida
 router.post('/logout', controleSessao.logout);
 

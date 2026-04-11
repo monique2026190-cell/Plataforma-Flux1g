@@ -4,101 +4,98 @@ import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 import createControllerLogger from '../config/Log.Controles.js';
 
-// Interface para requisições autenticadas
-interface AuthenticatedRequest extends Request {
-    user?: { id: string };
-}
-
 const logger = createControllerLogger('Controle.Usuario.ts');
 
 const httpRes = {
-    sucesso: (r: Response, dados: any, m: string = "Sucesso") => r.status(200).json({ sucesso: true, mensagem: m, dados }),
-    criado: (r: Response, dados: any, m: string = "Criado com sucesso") => r.status(201).json({ sucesso: true, mensagem: m, dados }),
-    naoEncontrado: (r: Response, m: string = "Recurso não encontrado") => r.status(404).json({ sucesso: false, mensagem: m }),
-    naoAutorizado: (r: Response, m: string = "Não autorizado") => r.status(401).json({ sucesso: false, mensagem: m }),
+    sucesso: (res: Response, dados: any, mensagem = "Sucesso") => res.status(200).json({ sucesso: true, mensagem, dados }),
+    criado: (res: Response, dados: any, mensagem = "Criado com sucesso") => res.status(201).json({ sucesso: true, mensagem, dados }),
+    requisicaoInvalida: (res: Response, mensagem = "Requisição inválida") => res.status(400).json({ sucesso: false, mensagem }),
+    naoEncontrado: (res: Response, mensagem = "Não encontrado") => res.status(404).json({ sucesso: false, mensagem }),
 };
 
-const completarPerfil = async (req: Request & { file?: any }, res: Response, next: NextFunction) => {
-    const { idUsuario, apelido, nome, bio, tipoDeConta }: { idUsuario: string; apelido: string; nome: string; bio: string; tipoDeConta: string; } = req.body;
-    const avatar = req.file;
+const completarPerfil = async (req: Request, res: Response, next: NextFunction) => {
+    const idUsuario = req.params.id; 
+    const dadosPerfil = req.body;
+    const avatar = req.file; 
 
-    logger.info(`Iniciando processo de completar perfil para o usuário ${idUsuario}.`, { userId: idUsuario });
+    logger.info(`Recebida requisição para completar perfil do usuário ${idUsuario}.`, { idUsuario, dadosPerfil, avatar: avatar?.originalname });
 
     try {
-        const dadosPerfil = { apelido, nome, bio, tipoDeConta };
-        // TODO: Adicionar validação para os dados do perfil
-        const usuarioAtualizado = await servicoUsuario.completarPerfil(idUsuario, dadosPerfil, avatar);
-
+        const dadosValidados = validadorUsuario.validarCompletarPerfil(dadosPerfil);
+        
+        const usuarioAtualizado = await servicoUsuario.completarPerfil(idUsuario, dadosValidados, avatar);
+        
         if (!usuarioAtualizado) {
-            throw new Error('Falha ao completar o perfil. O serviço não retornou um usuário atualizado.');
+            logger.warn(`Usuário ${idUsuario} não encontrado para completar perfil.`);
+            return httpRes.naoEncontrado(res, 'Usuário não encontrado.');
         }
 
-        logger.info(`Perfil do usuário ${idUsuario} completado com sucesso.`, { userId: idUsuario });
-        return httpRes.sucesso(res, { user: usuarioAtualizado.paraRespostaHttp() }, "Perfil completado com sucesso.");
+        logger.info(`Perfil do usuário ${idUsuario} completado com sucesso.`);
+        return httpRes.sucesso(res, usuarioAtualizado.paraRespostaHttp());
 
     } catch (error: any) {
-        logger.error(`Erro ao completar o perfil do usuário ${idUsuario}:`, { userId: idUsuario, error });
+        logger.error(`Erro ao completar perfil do usuário ${idUsuario}:`, { idUsuario, error: error.message, stack: error.stack });
         next(error);
     }
 };
 
-const atualizarPerfil = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user?.id) {
-        return httpRes.naoAutorizado(res, "ID do usuário não fornecido na requisição.");
-    }
-    const idUsuario = req.user.id;
-    logger.info(`Iniciando atualização de perfil para o usuário ${idUsuario}.`, { userId: idUsuario, body: req.body });
+const atualizarPerfil = async (req: Request, res: Response, next: NextFunction) => {
+    const idUsuario = req.params.id;
+    const dadosPerfil = req.body;
+
+    logger.info(`Recebida requisição para atualizar perfil do usuário ${idUsuario}.`, { idUsuario, dadosPerfil });
 
     try {
-        const dadosValidados = validadorUsuario.validarAtualizacaoPerfil(req.body);
-        const usuarioAtualizado = await servicoUsuario.atualizarPerfilUsuario(idUsuario, dadosValidados);
+        const dadosValidados = validadorUsuario.validarAtualizacaoPerfil(dadosPerfil);
 
+        const usuarioAtualizado = await servicoUsuario.atualizarPerfilUsuario(idUsuario, dadosValidados);
+        
         if (!usuarioAtualizado) {
-            throw new Error('Falha ao atualizar o perfil. O serviço não retornou um usuário atualizado.');
+            logger.warn(`Usuário ${idUsuario} não encontrado para atualização de perfil.`);
+            return httpRes.naoEncontrado(res, 'Usuário não encontrado');
         }
 
-        logger.info(`Perfil do usuário ${idUsuario} atualizado com sucesso.`, { userId: idUsuario });
-        return httpRes.sucesso(res, { user: usuarioAtualizado.paraRespostaHttp() });
+        logger.info(`Perfil do usuário ${idUsuario} atualizado com sucesso.`);
+        return httpRes.sucesso(res, usuarioAtualizado.paraRespostaHttp(), "Perfil atualizado com sucesso");
 
     } catch (error: any) {
-        logger.error(`Erro ao atualizar o perfil do usuário ${idUsuario}:`, { userId: idUsuario, error });
+        logger.error(`Erro ao atualizar perfil do usuário ${idUsuario}:`, { idUsuario, error: error.message });
         next(error);
     }
 };
 
 const obterPerfil = async (req: Request, res: Response, next: NextFunction) => {
-    const { id: idUsuario } = req.params;
-    logger.info(`Buscando perfil do usuário ${idUsuario}.`, { userId: idUsuario });
+    const idUsuario = req.params.id;
+    logger.info(`Buscando perfil para o usuário ${idUsuario}.`);
 
     try {
-        const usuario = await servicoUsuario.encontrarUsuarioPorId(idUsuario);
+        const usuario = await servicoUsuario.obterUsuarioPorId(idUsuario);
 
         if (!usuario) {
-            logger.warn(`Usuário com ID ${idUsuario} não encontrado.`, { userId: idUsuario });
-            return httpRes.naoEncontrado(res, "Usuário não encontrado");
+            logger.warn(`Perfil do usuário ${idUsuario} não encontrado.`);
+            return httpRes.naoEncontrado(res, 'Usuário não encontrado');
         }
 
-        logger.info(`Perfil do usuário ${idUsuario} encontrado com sucesso.`, { userId: idUsuario });
-        return httpRes.sucesso(res, { user: usuario.paraRespostaHttp() });
+        logger.info(`Perfil do usuário ${idUsuario} encontrado com sucesso.`);
+        return httpRes.sucesso(res, usuario.paraRespostaHttp());
 
     } catch (error: any) {
-        logger.error(`Erro ao buscar o perfil do usuário ${idUsuario}:`, { userId: idUsuario, error });
+        logger.error(`Erro ao buscar perfil do usuário ${idUsuario}:`, { idUsuario, error: error.message });
         next(error);
     }
-}
+};
 
-const verificarStatusPerfil = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user?.id) {
-        return httpRes.naoAutorizado(res, "ID do usuário não fornecido na requisição.");
-    }
-    const idUsuario = req.user.id;
-    logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`, { userId: idUsuario });
+const verificarStatusPerfil = async (req: Request, res: Response, next: NextFunction) => {
+    const idUsuario = req.params.id;
+    logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`);
 
     try {
         const status = await servicoUsuario.verificarStatusPerfil(idUsuario);
+        logger.info(`Status do perfil do usuário ${idUsuario} verificado com sucesso.`);
         return httpRes.sucesso(res, status);
+
     } catch (error: any) {
-        logger.error(`Erro ao verificar o status do perfil do usuário ${idUsuario}:`, { userId: idUsuario, error });
+        logger.error(`Erro ao verificar status do perfil do usuário ${idUsuario}:`, { idUsuario, error: error.message });
         next(error);
     }
 };

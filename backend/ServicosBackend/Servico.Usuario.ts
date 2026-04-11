@@ -142,7 +142,7 @@ const atualizarPerfilUsuario = async (idUsuario: string, dadosPerfil: Partial<IU
     return Usuario.deBancoDeDados(usuarioAtualizadoDb);
 };
 
-const encontrarUsuarioPorId = async (id: string) => {
+const obterUsuarioPorId = async (id: string) => {
     logger.info(`Buscando usuário por ID ${id}.`);
     const usuarioDb = await repositorioUsuario.encontrarPorId(id);
     if (!usuarioDb) {
@@ -154,7 +154,7 @@ const encontrarUsuarioPorId = async (id: string) => {
 
 const verificarStatusPerfil = async (idUsuario: string) => {
     logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`);
-    const usuario = await encontrarUsuarioPorId(idUsuario);
+    const usuario = await obterUsuarioPorId(idUsuario);
     if (!usuario) {
         throw new Error('Usuário não encontrado.');
     }
@@ -167,6 +167,6 @@ export default {
     autenticarUsuarioPorCredenciais,
     autenticarOuCriarPorGoogle,
     atualizarPerfilUsuario,
-    encontrarUsuarioPorId,
+    obterUsuarioPorId,
     verificarStatusPerfil
 };

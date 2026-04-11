@@ -17,8 +17,8 @@ const LoadingFallback = () => (
     </div>
 );
 
-// Este hook buscaria a configuração de uma API ou arquivo JSON.
-const useMaintenanceStatus = () => {
+/scaria a configuração de uma API ou arquivo JSON.
+con/ Este hook bust useMaintenanceStatus = () => {
   const [isMaintenance, setMaintenance] = useState(false);
   const [isLoading, setLoading] = useState(true);
 
