@@ -4,6 +4,11 @@ import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 import createControllerLogger from '../config/Log.Controles.js';
 
+// Defina uma interface que estende a interface Request e inclui a propriedade 'file'
+interface RequestWithFile extends Request {
+  file?: Express.Multer.File;
+}
+
 const logger = createControllerLogger('Controle.Usuario.ts');
 
 const httpRes = {
@@ -13,7 +18,7 @@ const httpRes = {
     naoEncontrado: (res: Response, mensagem = "Não encontrado") => res.status(404).json({ sucesso: false, mensagem }),
 };
 
-const completarPerfil = async (req: Request, res: Response, next: NextFunction) => {
+const completarPerfil = async (req: RequestWithFile, res: Response, next: NextFunction) => {
     const idUsuario = req.params.id; 
     const dadosPerfil = req.body;
     const avatar = req.file; 
