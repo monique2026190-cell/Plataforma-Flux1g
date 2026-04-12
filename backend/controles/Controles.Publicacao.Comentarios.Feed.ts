@@ -1,7 +1,7 @@
 
 import { Request, Response } from 'express';
 import ServicoComentariosFeed from '../ServicosBackend/Servicos.Publicacao.Comentarios.Feed.js';
-import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';
+import validarCriacaoComentario from '../validators/Validator.Estrutura.Comentario.js';
 
 interface AuthenticatedRequest extends Request {
     user?: { id: string };
@@ -29,7 +29,7 @@ const criarComentario = async (req: AuthenticatedRequest, res: Response) => {
             autorId: userId, 
             parenteId: postId
         };
-        const dadosValidados = validarCriacaoComentario(dadosParaValidar);
+        const dadosValidados = validarCriacaoComentario.validarCriacaoComentario(dadosParaValidar);
 
         const comentario = await ServicoComentariosFeed.criarComentario(
             { texto: dadosValidados.texto },

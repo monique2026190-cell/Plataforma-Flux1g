@@ -1,7 +1,7 @@
 
 import { Request, Response } from 'express';
 import ServicoComentariosReels from '../ServicosBackend/Servicos.Publicacao.Comentarios.Reels.js';
-import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';
+import validarCriacaoComentario from '../validators/Validator.Estrutura.Comentario.js';
 
 interface AuthenticatedRequest extends Request {
     user?: { id: string };
@@ -14,7 +14,7 @@ const httpRes = {
     semConteudo: (r: Response) => r.status(204).send(),
 };
 
-const createComment = async (req: AuthenticatedRequest, res: Response) => {
+const criarComentario = async (req: AuthenticatedRequest, res: Response) => {
     const { reelId } = req.params;
     const userId = req.user?.id;
 
@@ -22,28 +22,27 @@ const createComment = async (req: AuthenticatedRequest, res: Response) => {
         return httpRes.erro(res, "Usuário não autenticado", 401);
     }
 
-    console.log('Iniciando criação de comentário para Reel', { event: 'REEL_COMMENT_CREATE_START', reelId, userId, body: req.body });
+    console.log('Iniciando criação de comentário no reels', { event: 'REELS_COMMENT_CREATE_START', reelId, userId, body: req.body });
     try {
         const dadosParaValidar = { 
             ...req.body, 
             autorId: userId, 
-            parenteId: reelId 
+            parenteId: reelId
         };
-        const dadosValidados = validarCriacaoComentario(dadosParaValidar);
+        const dadosValidados = validarCriacaoComentario.validarCriacaoComentario(dadosParaValidar);
 
-        const comment = await ServicoComentariosReels.criarComentario(
-            reelId, 
+        const comentario = await ServicoComentariosReels.criarComentario(
+            reelId,
             userId,
-            dadosValidados.conteudo
+            dadosValidados.texto
         );
-        
-        console.log('Comentário de Reel criado com sucesso', { event: 'REEL_COMMENT_CREATE_SUCCESS', commentId: comment.id, reelId, userId });
-        
-        httpRes.criado(res, comment);
+
+        console.log('Comentário no reels criado com sucesso', { event: 'REELS_COMMENT_CREATE_SUCCESS', commentId: comentario.id, reelId, userId });
+        httpRes.criado(res, comentario);
 
     } catch (error: any) {
-        console.error('Erro ao criar comentário de Reel', { 
-            event: 'REEL_COMMENT_CREATE_ERROR',
+        console.error('Erro ao criar comentário no reels', { 
+            event: 'REELS_COMMENT_CREATE_ERROR', 
             errorMessage: error.message,
             reelId, 
             userId, 
@@ -53,20 +52,20 @@ const createComment = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-const getCommentsForReel = async (req: Request, res: Response) => {
+const obterComentariosPorReelId = async (req: Request, res: Response) => {
     const { reelId } = req.params;
-    console.log('Buscando comentários para Reel', { event: 'REEL_COMMENTS_GET_START', reelId });
+    console.log('Buscando comentários do reels', { event: 'REELS_COMMENTS_GET_START', reelId });
     try {
-        const comments = await ServicoComentariosReels.obterComentariosPorReelId(reelId, req.query);
-        console.log('Busca de comentários para Reel bem-sucedida', { event: 'REEL_COMMENTS_GET_SUCCESS', reelId, count: comments.length });
-        httpRes.sucesso(res, comments);
+        const comentarios = await ServicoComentariosReels.obterComentariosPorReelId(reelId, req.query);
+        console.log('Comentários do reels obtidos com sucesso', { event: 'REELS_COMMENTS_GET_SUCCESS', reelId, count: comentarios.length });
+        httpRes.sucesso(res, comentarios);
     } catch (error: any) {
-        console.error('Erro ao buscar comentários de Reel', { event: 'REEL_COMMENTS_GET_ERROR', errorMessage: error.message, reelId });
+        console.error('Erro ao buscar comentários do reels', { event: 'REELS_COMMENTS_GET_ERROR', errorMessage: error.message, reelId });
         httpRes.erro(res, error.message, error.statusCode || 500);
     }
 };
 
-const updateComment = async (req: AuthenticatedRequest, res: Response) => {
+const atualizarComentario = async (req: AuthenticatedRequest, res: Response) => {
     const { commentId } = req.params;
     const userId = req.user?.id;
 
@@ -74,18 +73,18 @@ const updateComment = async (req: AuthenticatedRequest, res: Response) => {
         return httpRes.erro(res, "Usuário não autenticado", 401);
     }
 
-    console.log('Iniciando atualização de comentário de Reel', { event: 'REEL_COMMENT_UPDATE_START', commentId, userId });
+    console.log('Iniciando atualização de comentário no reels', { event: 'REELS_COMMENT_UPDATE_START', commentId, userId });
     try {
-        const updatedComment = await ServicoComentariosReels.atualizarComentario(commentId, userId, req.body.conteudo);
-        console.log('Comentário de Reel atualizado com sucesso', { event: 'REEL_COMMENT_UPDATE_SUCCESS', commentId, userId });
-        httpRes.sucesso(res, updatedComment);
+        const comentarioAtualizado = await ServicoComentariosReels.atualizarComentario(commentId, req.body.texto, userId);
+        console.log('Comentário no reels atualizado com sucesso', { event: 'REELS_COMMENT_UPDATE_SUCCESS', commentId, userId });
+        httpRes.sucesso(res, comentarioAtualizado);
     } catch (error: any) {
-        console.error('Erro ao atualizar comentário de Reel', { event: 'REEL_COMMENT_UPDATE_ERROR', errorMessage: error.message, commentId, userId, data: req.body });
+        console.error('Erro ao atualizar comentário no reels', { event: 'REELS_COMMENT_UPDATE_ERROR', errorMessage: error.message, commentId, userId, data: req.body });
         httpRes.erro(res, error.message, error.statusCode || 500);
     }
 };
 
-const deleteComment = async (req: AuthenticatedRequest, res: Response) => {
+const deletarComentario = async (req: AuthenticatedRequest, res: Response) => {
     const { commentId } = req.params;
     const userId = req.user?.id;
 
@@ -93,20 +92,20 @@ const deleteComment = async (req: AuthenticatedRequest, res: Response) => {
         return httpRes.erro(res, "Usuário não autenticado", 401);
     }
 
-    console.log('Iniciando exclusão de comentário de Reel', { event: 'REEL_COMMENT_DELETE_START', commentId, userId });
+    console.log('Iniciando exclusão de comentário no reels', { event: 'REELS_COMMENT_DELETE_START', commentId, userId });
     try {
         await ServicoComentariosReels.deletarComentario(commentId, userId);
-        console.log('Comentário de Reel excluído com sucesso', { event: 'REEL_COMMENT_DELETE_SUCCESS', commentId, userId });
+        console.log('Comentário no reels excluído com sucesso', { event: 'REELS_COMMENT_DELETE_SUCCESS', commentId, userId });
         httpRes.semConteudo(res);
     } catch (error: any) {
-        console.error('Erro ao excluir comentário de Reel', { event: 'REEL_COMMENT_DELETE_ERROR', errorMessage: error.message, commentId, userId });
+        console.error('Erro ao excluir comentário no reels', { event: 'REELS_COMMENT_DELETE_ERROR', errorMessage: error.message, commentId, userId });
         httpRes.erro(res, error.message, error.statusCode || 500);
     }
 };
 
 export default {
-    createComment,
-    getCommentsForReel,
-    updateComment,
-    deleteComment
+    criarComentario,
+    obterComentariosPorReelId,
+    atualizarComentario,
+    deletarComentario
 };

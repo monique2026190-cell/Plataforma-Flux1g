@@ -37,11 +37,11 @@ router.delete('/:reelId', reelsControle.deleteReel);
 // @route   POST /:reelId/comments
 // @desc    Adicionar um comentário a um Reel
 // @access  Private
-router.post('/:reelId/comments', comentariosReelsControle.createComment);
+router.post('/:reelId/comments', comentariosReelsControle.criarComentario);
 
 // @route   GET /:reelId/comments
 // @desc    Buscar todos os comentários de um Reel
 // @access  Public
-router.get('/:reelId/comments', comentariosReelsControle.getCommentsForReel);
+router.get('/:reelId/comments', comentariosReelsControle.obterComentariosPorReelId);
 
 export default router;
