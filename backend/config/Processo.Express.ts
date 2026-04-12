@@ -28,8 +28,8 @@ export function configureExpress(app: Express, io: any) {
 
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const distPath = path.resolve(__dirname, '../../dist');
-    
+    const distPath = path.resolve(__dirname, '..', '..');
+
     app.use(express.static(distPath));
 
     app.use('/api', (req: CustomRequest, res: Response) => {
