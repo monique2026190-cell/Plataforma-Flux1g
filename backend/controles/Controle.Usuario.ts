@@ -1,4 +1,4 @@
-
+import 'multer';
 import { Request, Response, NextFunction } from 'express';
 import { Express } from 'express'; // Import Express
 import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
