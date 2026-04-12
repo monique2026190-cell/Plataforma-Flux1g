@@ -1,7 +1,7 @@
+
 import { z } from 'zod';
 import { DadosBase } from './Dados.Base';
 import { infraProviderUsuario } from './Infra.Provider.Usuario';
-import { mapearFrontendParaBackend } from '../Contratos/Contrato.Comunicacao.Usuario';
 
 // Esquemas de Sessão
 const LoginSchema = z.object({
@@ -40,7 +40,7 @@ class DadosProviderUsuario extends DadosBase {
     // Métodos de Sessão
     async login(credenciais: { email: string, senha: string }): Promise<any> {
         return this.handleRequest(LoginSchema, credenciais, (dadosValidos) => 
-            infraProviderUsuario.login(mapearFrontendParaBackend(dadosValidos))
+            infraProviderUsuario.login(dadosValidos)
         );
     }
 
@@ -52,7 +52,7 @@ class DadosProviderUsuario extends DadosBase {
 
     async criarUsuario(dadosUsuario: unknown): Promise<any> {
         return this.handleRequest(CriarUsuarioSchema, dadosUsuario, (dadosValidos) => 
-            infraProviderUsuario.criarUsuario(mapearFrontendParaBackend(dadosValidos))
+            infraProviderUsuario.criarUsuario(dadosValidos)
         );
     }
 

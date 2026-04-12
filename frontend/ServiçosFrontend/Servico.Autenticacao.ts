@@ -1,6 +1,5 @@
 
 import { dadosProviderUsuario } from './Infra/Dados.Provider.Usuario';
-import { mapearBackendParaFrontend } from './Contratos/Contrato.Comunicacao.Usuario';
 import { servicoSessao } from './Servico.Sessao';
 import { servicoMetodoGoogle } from './Servico.Metodo.Google';
 import { IUsuario, IUsuarioLogin } from '../../types/types.usuario';
@@ -9,7 +8,7 @@ class ServicoAutenticacao {
   async loginComEmail(credenciais: IUsuarioLogin): Promise<{ usuario: IUsuario, token: string }> {
     const resposta = await dadosProviderUsuario.login(credenciais);
     if (resposta.sucesso && resposta.dados?.user) {
-      const usuario = mapearBackendParaFrontend(resposta.dados.user);
+      const usuario = resposta.dados.user;
       const token = resposta.dados.token;
       if (token) {
         servicoSessao.setToken(token);
@@ -33,7 +32,7 @@ class ServicoAutenticacao {
     const resposta = await dadosProviderUsuario.lidarComLoginSocial(dadosLogin);
     
     if (resposta.sucesso && resposta.dados?.user) {
-      const dadosUsuario = mapearBackendParaFrontend(resposta.dados.user);
+      const dadosUsuario = resposta.dados.user;
       const token = resposta.dados.token;
       if (token) {
         servicoSessao.setToken(token);
@@ -54,7 +53,7 @@ class ServicoAutenticacao {
         try {
             const resposta = await dadosProviderUsuario.verificarSessao();
             if (resposta.sucesso && resposta.dados?.user) {
-                const usuario = mapearBackendParaFrontend(resposta.dados.user);
+                const usuario = resposta.dados.user;
                 if (resposta.dados.token) {
                     servicoSessao.setToken(resposta.dados.token);
                 }
@@ -73,7 +72,7 @@ class ServicoAutenticacao {
     const resposta = await dadosProviderUsuario.completarPerfilInicial(idUsuario, dadosPerfil);
 
     if (resposta.sucesso && resposta.dados?.user) {
-        const usuarioAtualizado = mapearBackendParaFrontend(resposta.dados.user);
+        const usuarioAtualizado = resposta.dados.user;
         return usuarioAtualizado;
     } else {
         throw new Error(resposta.mensagem || 'Falha ao completar o perfil.');
