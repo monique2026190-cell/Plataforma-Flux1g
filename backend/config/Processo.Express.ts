@@ -25,9 +25,8 @@ export function configureExpress(app: Express, io: any) {
 
     app.use('/api', apiRoutes);
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const publicPath = path.resolve(__dirname, '..', '..', 'dist');
+    // Use o diretório de trabalho atual para resolver o caminho para a pasta 'dist'
+    const publicPath = path.resolve(process.cwd(), 'dist');
 
     app.use(express.static(publicPath));
 
