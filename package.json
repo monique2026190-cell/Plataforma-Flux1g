@@ -9,6 +9,7 @@
     "build": "vite build",
     "build:prod": "npm run clean && vite build",
     "build:server": "tsc -p tsconfig.server.json",
+    "build:render": "npm run build && npm run build:server",
     "start": "npm run build:server && node dist/server.js",
     "clean": "rm -rf dist node_modules",
     "migrate": "node scripts/executar-migracoes.js"
