@@ -1,13 +1,13 @@
 
 import { Request, Response, NextFunction } from 'express';
-import multer from 'multer'; // Importe o multer aqui
+import multer from 'multer';
 import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 import createControllerLogger from '../config/Log.Controles.js';
 
 // Defina uma interface que estende a interface Request e inclui a propriedade 'file'
 interface RequestWithFile extends Request {
-  file?: Express.Multer.File;
+  file?: multer.File;
 }
 
 const logger = createControllerLogger('Controle.Usuario.ts');

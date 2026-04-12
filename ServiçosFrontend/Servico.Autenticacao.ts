@@ -1,19 +1,12 @@
+
 import { dadosProviderUsuario } from './Infra/Dados.Provider.Usuario';
 import { mapearBackendParaFrontend } from './Contratos/Contrato.Comunicacao.Usuario';
 import { servicoSessao } from './Servico.Sessao';
 import { servicoMetodoGoogle } from './Servico.Metodo.Google';
-
-export interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  apelido?: string;
-  avatarUrl?: string;
-  perfilCompleto: boolean;
-}
+import { IUsuario, IUsuarioLogin } from '../../types/types.usuario';
 
 class ServicoAutenticacao {
-  async loginComEmail(credenciais: { email: string; senha: string }): Promise<{ usuario: Usuario, token: string }> {
+  async loginComEmail(credenciais: IUsuarioLogin): Promise<{ usuario: IUsuario, token: string }> {
     const resposta = await dadosProviderUsuario.login(credenciais);
     if (resposta.sucesso && resposta.dados?.user) {
       const usuario = mapearBackendParaFrontend(resposta.dados.user);
@@ -27,7 +20,7 @@ class ServicoAutenticacao {
     }
   }
 
-  async lidarComLoginGoogle(tokenResponse: any): Promise<{ usuario: Usuario, token: string }> {
+  async lidarComLoginGoogle(tokenResponse: any): Promise<{ usuario: IUsuario, token: string }> {
     const accessToken = tokenResponse.access_token;
     const userInfo = await servicoMetodoGoogle.obterInformacoesDoUsuario(accessToken);
 
@@ -55,7 +48,7 @@ class ServicoAutenticacao {
     servicoSessao.removeToken();
   }
 
-  async verificarSessao(): Promise<Usuario | null> {
+  async verificarSessao(): Promise<IUsuario | null> {
     const token = servicoSessao.getToken();
     if (token) {
         try {
@@ -76,7 +69,7 @@ class ServicoAutenticacao {
     return null;
   }
 
-  async completarPerfil(idUsuario: string, dadosPerfil: FormData): Promise<Usuario> {
+  async completarPerfil(idUsuario: string, dadosPerfil: FormData): Promise<IUsuario> {
     const resposta = await dadosProviderUsuario.completarPerfilInicial(idUsuario, dadosPerfil);
 
     if (resposta.sucesso && resposta.dados?.user) {
