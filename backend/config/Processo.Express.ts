@@ -27,7 +27,7 @@ export function configureExpress(app: Express, io: any) {
 
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const publicPath = path.resolve(__dirname, '..', '..', 'build', 'public');
+    const publicPath = path.resolve(__dirname, '..', '..', 'dist');
 
     app.use(express.static(publicPath));
 
@@ -48,7 +48,7 @@ export function configureExpress(app: Express, io: any) {
                     dados: { path: req.path, resolvedDistPath: publicPath },
                     error: err
                 });
-                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /build/public.');
+                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
             }
         });
     });
@@ -62,7 +62,7 @@ export function configureExpress(app: Express, io: any) {
         if (err.code === '23502' || (err.message && err.message.includes('violates not-null constraint'))) {
             statusCode = 400; // Bad Request
             publicMessage = 'Falha ao processar a requisição: um campo obrigatório não foi preenchido.';
-            logMessage = `Violação de NOT NULL na coluna '${err.column}' da tabela '${err.table}'.`;
+            logMessage = `Violação de NOT NULL na coluna \'${err.column}\' da tabela \'${err.table}\'.`;
         }
 
         logger.error(`Erro não tratado em uma rota do Express: ${logMessage}`, {
