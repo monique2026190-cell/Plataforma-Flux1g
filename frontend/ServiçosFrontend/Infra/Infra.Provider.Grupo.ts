@@ -1,5 +1,5 @@
 import { httpClient } from '../Comunicacao/Comunicacao.Backend.Requisicoes';
-import API_ENDPOINTS from '../../src/constants/api';
+import API_ENDPOINTS from '../../constants/api';
 
 class InfraProviderGrupo {
     // --- Membros ---

@@ -20,6 +20,16 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["."],
+  "include": [
+    "src",
+    "Componentes",
+    "ServiçosFrontend",
+    "SistemaFlux",
+    "hooks",
+    "pages",
+    "routes",
+    "types",
+    "vite.config.ts"
+  ],
   "exclude": ["node_modules", "dist", "backend", "server.js"]
 }

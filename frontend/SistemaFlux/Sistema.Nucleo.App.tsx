@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import '../index.css';
+import '../../index.css';
 import { ProvedorInterface } from './Provedores/Provedor.Interface';
 import { ProvedorNavegacao } from './Provedores/Provedor.Navegacao';
 import { ProvedorAutenticacao } from './Provedores/Provedor.Autenticacao';
