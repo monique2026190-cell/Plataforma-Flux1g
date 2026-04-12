@@ -27,9 +27,9 @@ export function configureExpress(app: Express, io: any) {
 
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const distPath = path.resolve(__dirname, '..', '..');
+    const publicPath = path.resolve(__dirname, '..', '..', 'build', 'public');
 
-    app.use(express.static(distPath));
+    app.use(express.static(publicPath));
 
     app.use('/api', (req: CustomRequest, res: Response) => {
         logger.warn('Endpoint da API não encontrado (404)', {
@@ -40,15 +40,15 @@ export function configureExpress(app: Express, io: any) {
     });
 
     app.get('*', (req: Request, res: Response) => {
-        const indexPath = path.join(distPath, 'index.html');
+        const indexPath = path.join(publicPath, 'index.html');
         res.sendFile(indexPath, (err) => {
             if (err) {
                 logger.warn('Erro ao tentar enviar o index.html.', {
                     componente: 'Servidor Web',
-                    dados: { path: req.path, resolvedDistPath: distPath },
+                    dados: { path: req.path, resolvedDistPath: publicPath },
                     error: err
                 });
-                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
+                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /build/public.');
             }
         });
     });

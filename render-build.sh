@@ -8,12 +8,12 @@ echo "Iniciando o processo de build da Render..."
 echo "Instalando dependências com npm install..."
 npm install
 
-# 2. Executa as migrações do banco de dados
-echo "Executando migrações do banco de dados com npm run migrate..."
-npm run migrate
-
-# 3. Gera o build do frontend para produção
+# 2. Gera o build do frontend para produção
 echo "Gerando o build do frontend com npm run build..."
 npm run build
+
+# 3. Gera o build do backend para produção
+echo "Gerando o build do backend com npm run build:server..."
+npm run build:server
 
 echo "Processo de build da Render concluído com sucesso."
