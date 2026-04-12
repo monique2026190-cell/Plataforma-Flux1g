@@ -25,7 +25,7 @@ export function configureExpress(app: Express, io: any) {
 
     app.use('/api', apiRoutes);
 
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.join(process.cwd(), 'build/public');
 
     // Debugging: Log paths for verification
     logger.info(`Serving static files from: ${distPath}`);
