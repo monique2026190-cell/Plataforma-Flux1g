@@ -1,7 +1,6 @@
 
 import express, { Request, Response, NextFunction, Express } from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import apiRoutes from '../RotasBackend/Rotas.js';
 import { setupMiddlewares } from './Sistema.Middleware.js';
 import createServerLogger from './Log.Servidor.js';
@@ -25,8 +24,8 @@ export function configureExpress(app: Express, io: any) {
 
     app.use('/api', apiRoutes);
 
-    // Use o diretório de trabalho atual para resolver o caminho para a pasta 'dist'
-    const publicPath = path.resolve(process.cwd(), 'dist');
+    // Correct path to the frontend build output, as defined in vite.config.ts
+    const publicPath = path.resolve(process.cwd(), 'build/public');
 
     app.use(express.static(publicPath));
 
@@ -47,7 +46,7 @@ export function configureExpress(app: Express, io: any) {
                     dados: { path: req.path, resolvedDistPath: publicPath },
                     error: err
                 });
-                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
+                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta correta.');
             }
         });
     });
