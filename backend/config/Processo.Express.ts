@@ -46,7 +46,7 @@ export function configureExpress(app: Express, io: any) {
                 logger.warn('Erro ao tentar enviar o index.html.', {
                     componente: 'Servidor Web',
                     dados: { path: req.path, resolvedDistPath: distPath },
-                    error: err ? { message: err.message, stack: err.stack } : 'Erro desconhecido'
+                    error: err
                 });
                 res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
             }
