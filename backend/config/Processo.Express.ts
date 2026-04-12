@@ -2,6 +2,7 @@
 import express, { Request, Response, NextFunction, Express } from 'express';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import apiRoutes from '../RotasBackend/Rotas.js';
 import { setupMiddlewares } from './Sistema.Middleware.js';
 import createServerLogger from './Log.Servidor.js';
@@ -25,7 +26,10 @@ export function configureExpress(app: Express, io: any) {
 
     app.use('/api', apiRoutes);
 
-    const distPath = path.resolve(process.cwd(), 'dist');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const distPath = path.resolve(__dirname, '../../dist');
+    
     app.use(express.static(distPath));
 
     app.use('/api', (req: CustomRequest, res: Response) => {
@@ -43,7 +47,7 @@ export function configureExpress(app: Express, io: any) {
         } else {
             logger.warn('Arquivo index.html não encontrado na pasta dist', {
                 componente: 'Servidor Web',
-                dados: { path: req.path }
+                dados: { path: req.path, resolvedDistPath: distPath }
             });
             res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
         }
