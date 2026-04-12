@@ -1,7 +1,6 @@
 
 import express, { Request, Response, NextFunction, Express } from 'express';
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import apiRoutes from '../RotasBackend/Rotas.js';
 import { setupMiddlewares } from './Sistema.Middleware.js';
@@ -42,15 +41,16 @@ export function configureExpress(app: Express, io: any) {
 
     app.get('*', (req: Request, res: Response) => {
         const indexPath = path.join(distPath, 'index.html');
-        if (fs.existsSync(indexPath)) {
-            res.sendFile(indexPath);
-        } else {
-            logger.warn('Arquivo index.html não encontrado na pasta dist', {
-                componente: 'Servidor Web',
-                dados: { path: req.path, resolvedDistPath: distPath }
-            });
-            res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
-        }
+        res.sendFile(indexPath, (err) => {
+            if (err) {
+                logger.warn('Erro ao tentar enviar o index.html.', {
+                    componente: 'Servidor Web',
+                    dados: { path: req.path, resolvedDistPath: distPath },
+                    error: err ? { message: err.message, stack: err.stack } : 'Erro desconhecido'
+                });
+                res.status(404).send('Build do frontend não encontrado. Verifique se o arquivo index.html existe na pasta /dist.');
+            }
+        });
     });
 
     app.use((err: CustomError, req: CustomRequest, res: Response, next: NextFunction) => {
