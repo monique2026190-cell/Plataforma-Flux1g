@@ -21,8 +21,16 @@ export class DadosBase {
                 this.logger.error("Erro de validação Zod", { issues: error.issues });
                 return { sucesso: false, mensagem: "Dados inválidos.", issues: error.issues };
             }
-            console.error("🔥 ERRO REAL:", error);
-            this.logger.error("Erro na camada de dados", error);
+            
+            this.logger.error("Erro na camada de dados", {
+                error: {
+                    message: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined,
+                    name: error instanceof Error ? error.name : undefined,
+                },
+                data,
+            });
+
             throw error;
         }
     }
