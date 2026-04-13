@@ -24,7 +24,11 @@ const servicoSessao = new ServicoSessao();
 // --- Dependência Interna: Serviço do Método Google ---
 class ServicoMetodoGoogle {
   async obterInformacoesDoUsuario(accessToken: string): Promise<any> {
-    const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`);
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     if (!response.ok) {
       throw new Error('Falha ao buscar informações do usuário no Google.');
     }
@@ -57,7 +61,7 @@ class ServicoAutenticacao {
     }
   }
 
-  possibilitaObterUsuarioDoCache(): IUsuario | null {
+  possibilidade1ObterUsuarioDoCache(): IUsuario | null {
     try {
       const cachedUser = localStorage.getItem(CACHED_USER_KEY);
       return cachedUser ? JSON.parse(cachedUser) : null;
@@ -68,7 +72,7 @@ class ServicoAutenticacao {
     }
   }
 
-  async possibilitaLoginComEmail(credenciais: IUsuarioLogin): Promise<{ usuario: IUsuario, token: string }> {
+  async possibilidade1LoginComEmail(credenciais: IUsuarioLogin): Promise<{ usuario: IUsuario, token: string }> {
     const resposta = await dadosProviderUsuario.login(credenciais);
     if (resposta.sucesso && resposta.dados?.user) {
       const { user: usuario, token } = resposta.dados;
@@ -82,7 +86,7 @@ class ServicoAutenticacao {
     }
   }
 
-  async possibilitaLidarComLoginGoogle(tokenResponse: any): Promise<{ usuario: IUsuario, token: string }> {
+  async possibilidade1LidarComLoginGoogle(tokenResponse: any): Promise<{ usuario: IUsuario, token: string }> {
     const accessToken = tokenResponse.access_token;
     const userInfo = await servicoMetodoGoogle.obterInformacoesDoUsuario(accessToken);
 
@@ -106,12 +110,12 @@ class ServicoAutenticacao {
     }
   }
 
-  possibilitaLogout(): void {
+  possibilidade1Logout(): void {
     servicoSessao.removeToken();
     this._limparCacheDoUsuario();
   }
 
-  async possibilitaVerificarSessao(): Promise<IUsuario | null> {
+  async possibilidade1VerificarSessao(): Promise<IUsuario | null> {
     const token = servicoSessao.getToken();
     if (!token) {
         this._limparCacheDoUsuario();
@@ -128,17 +132,17 @@ class ServicoAutenticacao {
             this._salvarUsuarioNoCache(usuario);
             return usuario;
         } else {
-            this.possibilitaLogout();
+            this.possibilidade1Logout();
             return null;
         }
     } catch (error) {
         console.error("Erro ao verificar sessão:", error);
-        this.possibilitaLogout();
+        this.possibilidade1Logout();
         throw error;
     }
   }
 
-  async possibilitaCompletarPerfil(idUsuario: string, dadosPerfil: FormData): Promise<IUsuario> {
+  async possibilidade1CompletarPerfil(idUsuario: string, dadosPerfil: FormData): Promise<IUsuario> {
     const resposta = await dadosProviderUsuario.completarPerfilInicial(idUsuario, dadosPerfil);
 
     if (resposta.sucesso && resposta.dados?.user) {
@@ -150,7 +154,7 @@ class ServicoAutenticacao {
     }
   }
 
-  async possibilitaVerificarStatusPerfil(): Promise<any> {
+  async possibilidade1VerificarStatusPerfil(): Promise<any> {
     return dadosProviderUsuario.verificarStatusPerfil();
   }
 }

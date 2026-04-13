@@ -1,45 +1,43 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../SistemaFlux/hooks/useAuth';
-import { useGoogleLogin } from '@react-oauth/google'; // 1. Importar o hook do Google diretamente aqui
+import { useGoogleLogin } from '@react-oauth/google';
 import { CardOpcoesLogin } from '../Componentes/ComponentesDeAuth/Componentes/Card.Opcoes.Login';
 import { CardLoginEmailSenha } from '../Componentes/ComponentesDeAuth/Componentes/Card.Login.Email.Senha';
 
 export const Login: React.FC = () => {
     const navigate = useNavigate();
-    // 2. Pegar a nova função `processarLoginGoogle` do hook useAuth
-    const { autenticado, processando, erro, usuario, loginComEmail, processarLoginGoogle } = useAuth(); 
+    const { processando, erro, possibilitaLoginComEmail, possibilitaFinalizarLoginComGoogle } = useAuth(); 
 
     const [mostrarFormEmail, setMostrarFormEmail] = useState(false);
     const [email, definirEmail] = useState('');
     const [senha, definirSenha] = useState('');
 
-    // 3. O hook useGoogleLogin é chamado aqui, na UI, e não no provedor global.
     const iniciarLoginComGoogle = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            // Em caso de sucesso, chamamos a função do provedor para atualizar o estado global
-            await processarLoginGoogle(tokenResponse);
+            try {
+                const usuario = await possibilitaFinalizarLoginComGoogle(tokenResponse);
+                const rota = usuario.perfilCompleto ? '/feed' : '/CompleteProfile';
+                navigate(rota);
+            } catch (err) {
+                console.error("Falha no login com Google (onSuccess):", err);
+            }
         },
         onError: (error) => {
-            // O erro pode ser tratado aqui ou no provedor, se desejado
-            console.error('Erro no login Google:', error);
+            console.error('Erro no login Google (hook):', error);
         },
     });
 
-    useEffect(() => {
-        if (autenticado) {
-            if (usuario && !usuario.perfilCompleto) {
-                navigate('/CompleteProfile'); 
-            } else {
-                navigate('/Feed');
-            }
-        }
-    }, [autenticado, usuario, navigate]);
-
-    const submeterLoginEmail = (e: React.FormEvent) => {
+    const submeterLoginEmail = async (e: React.FormEvent) => {
         e.preventDefault();
-        loginComEmail({ email, senha });
+        try {
+            const usuario = await possibilitaLoginComEmail({ email, senha });
+            const rota = usuario.perfilCompleto ? '/feed' : '/CompleteProfile';
+            navigate(rota);
+        } catch(err) {
+            console.error("Falha no login com Email:", err);
+        }
     };
 
     const CamadaDeProcessamento = () => (
@@ -51,7 +49,6 @@ export const Login: React.FC = () => {
     const BotaoGoogle = () => {
         return (
             <button
-                // 4. O botão agora chama a função `iniciarLoginComGoogle` criada pelo hook `useGoogleLogin`
                 onClick={() => iniciarLoginComGoogle()}
                 disabled={processando}
                 className="w-full bg-[#1a73e8] hover:bg-[#1a73e8]/90 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"

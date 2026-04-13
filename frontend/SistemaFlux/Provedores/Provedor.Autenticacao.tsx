@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useCallback, useEffect, useContext } from 'react';
 import { servicoAutenticacao } from '../../ServiçosFrontend/Servico.Autenticacao';
 
@@ -69,7 +70,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     setProcessandoLogout(true);
     setErro(null);
     try {
-      await servicoAutenticacao.logout();
+      await servicoAutenticacao.possibilidade1Logout();
       setUsuario(null);
       setAutenticado(false);
     } catch (error: any) {
@@ -83,7 +84,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     setProcessandoLogin(true);
     setErro(null);
     try {
-      const { usuario } = await servicoAutenticacao.loginComEmail(credenciais);
+      const { usuario } = await servicoAutenticacao.possibilidade1LoginComEmail(credenciais);
       setUsuario(usuario);
       setAutenticado(true);
       return usuario;
@@ -99,7 +100,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     setProcessandoLogin(true);
     setErro(null);
     try {
-      const { usuario } = await servicoAutenticacao.lidarComLoginGoogle(tokenResponse);
+      const { usuario } = await servicoAutenticacao.possibilidade1LidarComLoginGoogle(tokenResponse);
       setUsuario(usuario);
       setAutenticado(true);
       return usuario;
@@ -118,7 +119,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     setProcessandoPerfil(true);
     setErro(null);
     try {
-      const usuarioAtualizado = await servicoAutenticacao.completarPerfil(usuario.id, dadosPerfil);
+      const usuarioAtualizado = await servicoAutenticacao.possibilidade1CompletarPerfil(usuario.id, dadosPerfil);
       setUsuario(prev => ({ ...prev!, ...usuarioAtualizado, perfilCompleto: true }));
     } catch (error: any) {
       setErro(error.message || 'Erro ao completar o perfil');
@@ -129,10 +130,12 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
   }, [usuario]);
 
   useEffect(() => {
+    if (autenticado) return;
+
     const verificarSessao = async () => {
       setProcessandoSessao(true);
       try {
-        const usuarioSessao = await servicoAutenticacao.verificarSessao();
+        const usuarioSessao = await servicoAutenticacao.possibilidade1VerificarSessao();
         if (usuarioSessao) {
           setUsuario(usuarioSessao);
           setAutenticado(true);
@@ -146,7 +149,7 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
     };
     
     verificarSessao();
-  }, []);
+  }, [autenticado]);
 
   const value: AuthContextType = {
     usuario,
