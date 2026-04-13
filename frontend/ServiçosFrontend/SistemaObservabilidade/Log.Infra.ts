@@ -1,5 +1,5 @@
 
-import { createLogger, ILogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
+import { criarLogger, ILogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * @class LoggerParaInfra
@@ -22,7 +22,7 @@ class LoggerParaInfra {
    * @param {string} nomeDoProvedor - O nome do provedor que será usado como prefixo nos logs.
    */
   constructor(private nomeDoProvedor: string) {
-    this.logger = createLogger(`Infra.${nomeDoProvedor}`);
+    this.logger = criarLogger(`Infra.${nomeDoProvedor}`);
   }
 
   /**

@@ -1,6 +1,6 @@
-import { createLogger } from './Comunicacao.Backend.Observabilidade';
+import { criarLogger } from './Comunicacao.Backend.Observabilidade';
 
-const logger = createLogger('Infra.ResponseHandler');
+const logger = criarLogger('Infra.ResponseHandler');
 
 // --- Funções de Mascaramento de Log (sem alteração) ---
 const chavesSensiveis = ['password', 'token', 'authorization', 'cookie', 'senha', 'refreshToken', 'secret'];

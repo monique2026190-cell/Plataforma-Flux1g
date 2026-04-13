@@ -1,89 +1,126 @@
-import { createLogger } from './Comunicacao.Backend.Observabilidade';
+import { criarLogger } from './Comunicacao.Backend.Observabilidade';
 import VariaveisFrontend from '../../SistemaFlux/Variaveis.Frontend.js';
 import { processarResposta } from './Comunicacao.Backend.Respostas';
 
-const logger = createLogger('Infra.HttpClient');
+const logger = criarLogger('Infra.ClienteHttp');
 
-const safeJsonStringify = (obj: any): string => {
+const jsonSeguro = (obj: any): string => {
     try {
-        return JSON.stringify(obj, (key, value) =>
-            value instanceof Error ? { message: value.message, stack: value.stack } : value
+        return JSON.stringify(obj, (chave, valor) =>
+            valor instanceof Error ? { mensagem: valor.message, stack: valor.stack } : valor
         );
     } catch (e) {
         return '[Erro na serialização]';
     }
 };
 
-class HttpClient {
-    public isRefreshing = false;
-    public failedQueue: { resolve: (value: any) => void; reject: (reason?: any) => void; }[] = [];
+type ItemFila = {
+    resolver: (valor: any) => void;
+    rejeitar: (motivo?: any) => void;
+};
 
-    public processQueue(error: any, token: string | null = null) {
-        this.failedQueue.forEach(prom => {
-            if (error) prom.reject(error);
-            else prom.resolve(token);
+class ClienteHttp {
+    public estaAtualizandoToken = false;
+    public filaRequisicoes: ItemFila[] = [];
+
+    public processarFila(erro: any, token: string | null = null) {
+        this.filaRequisicoes.forEach(item => {
+            if (erro) item.rejeitar(erro);
+            else item.resolver(token);
         });
-        this.failedQueue = [];
+        this.filaRequisicoes = [];
     }
 
-    public async customFetch(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> {
-        const startTime = performance.now();
-        
-        const baseUrl = VariaveisFrontend.API_BASE_URL || '/api';
-        let url = endpoint;
-        if (!endpoint.startsWith('http') && !endpoint.startsWith(baseUrl)) {
-            const separator = (baseUrl.endsWith('/') || endpoint.startsWith('/')) ? '' : '/';
-            url = `${baseUrl}${separator}${endpoint}`;
+    public async requisicao(
+        endpoint: string,
+        opcoes: RequestInit = {},
+        ehTentativaNovamente = false
+    ): Promise<any> {
+        const tempoInicio = performance.now();
+
+        const urlBase = VariaveisFrontend.API_BASE_URL || '/api';
+        let urlFinal = endpoint;
+
+        if (!endpoint.startsWith('http') && !endpoint.startsWith(urlBase)) {
+            const separador = (urlBase.endsWith('/') || endpoint.startsWith('/')) ? '' : '/';
+            urlFinal = `${urlBase}${separador}${endpoint}`;
         }
 
-        const headers: Record<string, string> = {};
-        if (!(options.body instanceof FormData)) {
-            headers['Content-Type'] = 'application/json';
+        const cabecalhos: Record<string, string> = {};
+
+        if (!(opcoes.body instanceof FormData)) {
+            cabecalhos['Content-Type'] = 'application/json';
         }
 
-        if (options.headers) {
-            const extraHeaders = new Headers(options.headers);
-            extraHeaders.forEach((valor, chave) => { headers[chave] = valor; });
+        if (opcoes.headers) {
+            const headersExtras = new Headers(opcoes.headers);
+            headersExtras.forEach((valor, chave) => {
+                cabecalhos[chave] = valor;
+            });
         }
 
         const token = localStorage.getItem('auth_token');
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (token) {
+            cabecalhos['Authorization'] = `Bearer ${token}`;
+        }
 
-        const config: RequestInit = { ...options, headers, credentials: 'include' };
+        const config: RequestInit = {
+            ...opcoes,
+            headers: cabecalhos,
+            credentials: 'include'
+        };
 
-        logger.info(`Request: ${config.method || 'GET'} ${url}`, { url, method: config.method || 'GET' });
+        logger.info(`Requisição: ${config.method || 'GET'} ${urlFinal}`, {
+            url: urlFinal,
+            metodo: config.method || 'GET'
+        });
 
         try {
-            const response = await fetch(url, config);
-            // Delegar o processamento da resposta para o módulo de respostas
-            return await processarResposta(this, response, url, startTime, { endpoint, options }, isRetry);
-        } catch (error: any) {
-            // Trata erros de conexão que ocorrem antes de receber uma resposta
-            if (!(error.response)) {
-                logger.error(`Connection Failed: ${url}`, { error: error.message });
+            const resposta = await fetch(urlFinal, config);
+
+            return await processarResposta(
+                this,
+                resposta,
+                urlFinal,
+                tempoInicio,
+                { endpoint, opcoes },
+                ehTentativaNovamente
+            );
+        } catch (erro: any) {
+            if (!(erro.response)) {
+                logger.error(`Falha de conexão: ${urlFinal}`, {
+                    erro: erro.message
+                });
             }
-            throw error;
+            throw erro;
         }
     }
 
-    public get<T = any>(url: string, config?: any): Promise<T> {
-        return this.customFetch(url, { ...config, method: 'GET' });
+    public obter<T = any>(url: string, config?: any): Promise<T> {
+        return this.requisicao(url, { ...config, method: 'GET' });
     }
 
-    public post<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        const body = (data instanceof FormData || typeof data === 'string') ? data : safeJsonStringify(data);
-        return this.customFetch(url, { ...config, method: 'POST', body });
+    public enviar<T = any>(url: string, dados?: any, config?: any): Promise<T> {
+        const corpo = (dados instanceof FormData || typeof dados === 'string')
+            ? dados
+            : jsonSeguro(dados);
+
+        return this.requisicao(url, { ...config, method: 'POST', body: corpo });
     }
 
-    public put<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        const body = (data instanceof FormData || typeof data === 'string') ? data : safeJsonStringify(data);
-        return this.customFetch(url, { ...config, method: 'PUT', body });
+    public atualizar<T = any>(url: string, dados?: any, config?: any): Promise<T> {
+        const corpo = (dados instanceof FormData || typeof dados === 'string')
+            ? dados
+            : jsonSeguro(dados);
+
+        return this.requisicao(url, { ...config, method: 'PUT', body: corpo });
     }
 
-    public delete<T = any>(url: string, config?: any): Promise<T> {
-        return this.customFetch(url, { ...config, method: 'DELETE' });
+    public remover<T = any>(url: string, config?: any): Promise<T> {
+        return this.requisicao(url, { ...config, method: 'DELETE' });
     }
 }
 
-export const httpClient = new HttpClient();
+export const possibilidadeClienteHttp = new ClienteHttp();
+
 console.log('[SISTEMA] Módulo Comunicacao.Backend.Requisicoes inicializado com sucesso.');

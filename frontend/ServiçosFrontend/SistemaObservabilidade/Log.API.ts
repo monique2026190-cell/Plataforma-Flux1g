@@ -1,7 +1,7 @@
 
 // ServiçosFrontend/SistemaObservabilidade/Log.API.ts
 
-import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
+import { criarLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * Cria uma instância de logger para um arquivo de API específico.
@@ -13,7 +13,7 @@ import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade
  */
 export const createApiLogger = (apiName: string) => {
     // Cria um logger base, passando o nome da API como o "módulo".
-    const logger = createLogger(`API-${apiName}`);
+    const logger = criarLogger(`API-${apiName}`);
 
     return {
         /**

@@ -1,7 +1,7 @@
 
 // ServiçosFrontend/SistemaObservabilidade/Log.Aplication.ts
 
-import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
+import { criarLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * Cria uma instância de logger para um arquivo de Serviço de Aplicação específico.
@@ -12,7 +12,7 @@ import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade
  */
 export const createApplicationServiceLogger = (applicationServiceName: string) => {
     // Cria um logger base, passando o nome do Serviço de Aplicação como o "módulo".
-    const logger = createLogger(`AppService-${applicationServiceName}`);
+    const logger = criarLogger(`AppService-${applicationServiceName}`);
 
     return {
         /**

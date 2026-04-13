@@ -1,7 +1,7 @@
 
 // ServiçosFrontend/SistemaObservabilidade/Log.Contratos.ts
 
-import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
+import { criarLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 
 /**
  * Cria uma instância de logger para um arquivo de contrato (schema Zod) específico.
@@ -12,7 +12,7 @@ import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade
  */
 export const createContractLogger = (contractName: string) => {
     // Cria um logger base, passando o nome do contrato como o "módulo".
-    const logger = createLogger(`Contrato-${contractName}`);
+    const logger = criarLogger(`Contrato-${contractName}`);
 
     return {
         /**

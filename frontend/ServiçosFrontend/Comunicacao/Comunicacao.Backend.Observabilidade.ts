@@ -31,7 +31,7 @@ interface LogEntry {
 
 // --- FÁBRICA DE LOGGER (Exportada no topo para evitar problemas de dependência circular) ---
 
-export const createLogger = (module: string) => ({
+export const criarLogger = (module: string) => ({
   log: (message: any, data?: any) => performLog('INFO', module, message, data),
   info: (message: any, data?: any) => performLog('INFO', module, message, data),
   warn: (message: any, data?: any) => performLog('WARN', module, message, data),

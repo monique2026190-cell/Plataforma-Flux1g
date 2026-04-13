@@ -1,6 +1,6 @@
 // ServiçosFrontend/SistemaObservabilidade/Log.Hook.ts
 
-import { createLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
+import { criarLogger } from '../Comunicacao/Comunicacao.Backend.Observabilidade';
 import VariaveisFrontend from '../Config/Variaveis.Frontend';
 
 // Definindo uma interface para o contexto do usuário para consistência
@@ -18,7 +18,7 @@ interface UserContext {
  * @returns Um objeto com métodos de log decorados para hooks.
  */
 export const createHookLogger = (hookName: string) => {
-    const logger = createLogger(`Hook-${hookName}`);
+    const logger = criarLogger(`Hook-${hookName}`);
 
     const buildLogObject = (functionName: string, type: string, message: string, userContext?: UserContext) => ({
         hook: hookName,

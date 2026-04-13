@@ -1,6 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect, useContext } from 'react';
 import { servicoAutenticacao } from '../../ServiçosFrontend/Servico.Autenticacao';
 
+// Tipagem para o objeto de usuário
 interface Usuario {
   id: string;
   nome: string;
@@ -10,17 +11,28 @@ interface Usuario {
   perfilCompleto: boolean;
 }
 
+// Tipagem para a resposta do token do Google
+interface GoogleTokenResponse {
+  access_token: string;
+}
+
+// Tipagem para o contexto de autenticação
 export interface AuthContextType {
   usuario: Usuario | null;
   autenticado: boolean;
-  processando: boolean;
   erro: string | null;
-  loginComEmail: (credenciais: { email: string; senha: string }) => Promise<void>;
-  processarLoginGoogle: (tokenResponse: any) => Promise<void>;
-  logout: () => void;
-  limparErro: () => void;
-  completarPerfil: (dados: FormData) => Promise<void>;
-  verificarStatusPerfil: () => Promise<void>;
+
+  processandoLogin: boolean;
+  processandoLogout: boolean;
+  processandoSessao: boolean;
+  processandoPerfil: boolean;
+  sessaoVerificada: boolean;
+
+  possibilitaLoginComEmail: (credenciais: { email: string; senha: string }) => Promise<Usuario>;
+  possibilitaFinalizarLoginComGoogle: (tokenResponse: GoogleTokenResponse) => Promise<Usuario>;
+  possibilitaLogout: () => Promise<void>;
+  possibilitaLimparErro: () => void;
+  possibilitaCompletarPerfil: (dados: FormData) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,137 +52,121 @@ interface ProvedorAutenticacaoProps {
 export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [autenticado, setAutenticado] = useState<boolean>(false);
-  const [processando, setProcessando] = useState<boolean>(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  const logout = useCallback(() => {
-    servicoAutenticacao.logout();
-    setUsuario(null);
-    setAutenticado(false);
-  }, []);
+  // --- Estados de Carregamento Granulares ---
+  const [processandoLogin, setProcessandoLogin] = useState<boolean>(false);
+  const [processandoLogout, setProcessandoLogout] = useState<boolean>(false);
+  const [processandoSessao, setProcessandoSessao] = useState<boolean>(true);
+  const [processandoPerfil, setProcessandoPerfil] = useState<boolean>(false);
+  const [sessaoVerificada, setSessaoVerificada] = useState<boolean>(false);
 
-  const limparErro = useCallback(() => {
+  const possibilitaLimparErro = useCallback(() => {
     setErro(null);
   }, []);
 
-  const loginComEmail = useCallback(async (credenciais: { email: string; senha: string }) => {
-    setProcessando(true);
+  const possibilitaLogout = useCallback(async () => {
+    setProcessandoLogout(true);
+    setErro(null);
+    try {
+      await servicoAutenticacao.logout();
+      setUsuario(null);
+      setAutenticado(false);
+    } catch (error: any) {
+      setErro(error.message || 'Erro ao fazer logout');
+    } finally {
+      setProcessandoLogout(false);
+    }
+  }, []);
+
+  const possibilitaLoginComEmail = useCallback(async (credenciais: { email: string; senha: string }): Promise<Usuario> => {
+    setProcessandoLogin(true);
     setErro(null);
     try {
       const { usuario } = await servicoAutenticacao.loginComEmail(credenciais);
       setUsuario(usuario);
       setAutenticado(true);
+      return usuario;
     } catch (error: any) {
       setErro(error.message || 'Erro ao fazer login');
       throw error;
     } finally {
-      setProcessando(false);
+      setProcessandoLogin(false);
     }
   }, []);
 
-  const processarLoginGoogle = useCallback(async (tokenResponse: any) => {
-    setProcessando(true);
+  const possibilitaFinalizarLoginComGoogle = useCallback(async (tokenResponse: GoogleTokenResponse): Promise<Usuario> => {
+    setProcessandoLogin(true);
+    setErro(null);
     try {
       const { usuario } = await servicoAutenticacao.lidarComLoginGoogle(tokenResponse);
       setUsuario(usuario);
       setAutenticado(true);
+      return usuario;
     } catch (error: any) {
       setErro(error.message || 'Falha no login com Google');
       throw error;
     } finally {
-      setProcessando(false);
+      setProcessandoLogin(false);
     }
   }, []);
 
-  const completarPerfil = useCallback(async (dadosPerfil: FormData) => {
-    if (!usuario) throw new Error("Usuário não autenticado.");
-    setProcessando(true);
+  const possibilitaCompletarPerfil = useCallback(async (dadosPerfil: FormData) => {
+    if (!usuario) {
+      throw new Error("Usuário não autenticado para completar o perfil.");
+    }
+    setProcessandoPerfil(true);
+    setErro(null);
     try {
       const usuarioAtualizado = await servicoAutenticacao.completarPerfil(usuario.id, dadosPerfil);
-      setUsuario(prev => {
-        if (!prev) return null;
-        const novoUsuario = {
-            ...prev,
-            ...usuarioAtualizado,
-            perfilCompleto: true 
-        };
-        return novoUsuario;
-      });
+      setUsuario(prev => ({ ...prev!, ...usuarioAtualizado, perfilCompleto: true }));
     } catch (error: any) {
       setErro(error.message || 'Erro ao completar o perfil');
       throw error;
     } finally {
-      setProcessando(false);
+      setProcessandoPerfil(false);
     }
   }, [usuario]);
 
-  const verificarStatusPerfil = useCallback(async () => {
-    if (!autenticado) return;
-    setProcessando(true);
-    try {
-      const resposta = await servicoAutenticacao.verificarStatusPerfil();
-      if (resposta.sucesso && typeof resposta.dados?.perfilCompleto === 'boolean') {
-        setUsuario(prev => {
-          if (prev && prev.perfilCompleto !== resposta.dados.perfilCompleto) {
-            return { ...prev, perfilCompleto: resposta.dados.perfilCompleto };
-          }
-          return prev;
-        });
-      }
-    } catch (error: any) {
-      console.error("Erro ao verificar status do perfil:", error);
-      setErro(error.message || 'Erro ao verificar status do perfil');
-    } finally {
-      setProcessando(false);
-    }
-  }, [autenticado]);
-
   useEffect(() => {
     const verificarSessao = async () => {
-        setProcessando(true);
-        try {
-            const usuarioSessao = await servicoAutenticacao.verificarSessao();
-            if (usuarioSessao) {
-                setUsuario(usuarioSessao);
-                setAutenticado(true);
-            } else {
-                setUsuario(null);
-                setAutenticado(false);
-            }
-        } catch (error) {
-            console.error("Falha ao verificar sessão:", error);
-            setUsuario(null);
-            setAutenticado(false);
-        } finally {
-            setProcessando(false);
+      setProcessandoSessao(true);
+      try {
+        const usuarioSessao = await servicoAutenticacao.verificarSessao();
+        if (usuarioSessao) {
+          setUsuario(usuarioSessao);
+          setAutenticado(true);
         }
+      } catch (error) {
+        console.error("Falha ao verificar sessão:", error);
+      } finally {
+        setProcessandoSessao(false);
+        setSessaoVerificada(true);
+      }
     };
     
     verificarSessao();
   }, []);
 
-  useEffect(() => {
-    if (autenticado) {
-      verificarStatusPerfil();
-    }
-  }, [autenticado, verificarStatusPerfil]);
-
   const value: AuthContextType = {
     usuario,
     autenticado,
-    processando,
     erro,
-    loginComEmail,
-    processarLoginGoogle,
-    logout,
-    limparErro,
-    completarPerfil,
-    verificarStatusPerfil,
+    processandoLogin,
+    processandoLogout,
+    processandoSessao,
+    processandoPerfil,
+    sessaoVerificada,
+    possibilitaLoginComEmail,
+    possibilitaFinalizarLoginComGoogle,
+    possibilitaLogout,
+    possibilitaLimparErro,
+    possibilitaCompletarPerfil,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {sessaoVerificada ? children : null}
     </AuthContext.Provider>
   );
 };
