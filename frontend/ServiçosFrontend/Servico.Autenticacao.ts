@@ -1,8 +1,41 @@
 
 import { dadosProviderUsuario } from './Infra/Dados.Provider.Usuario';
-import { servicoSessao } from './Servico.Sessao';
-import { servicoMetodoGoogle } from './Servico.Metodo.Google';
 import { IUsuario, IUsuarioLogin } from '../../types/types.usuario';
+
+// --- Dependência Interna: Serviço de Sessão ---
+class ServicoSessao {
+  private readonly CHAVE_TOKEN = 'auth_token';
+
+  getToken(): string | null {
+    return localStorage.getItem(this.CHAVE_TOKEN);
+  }
+
+  setToken(token: string): void {
+    localStorage.setItem(this.CHAVE_TOKEN, token);
+  }
+
+  removeToken(): void {
+    localStorage.removeItem(this.CHAVE_TOKEN);
+  }
+}
+
+const servicoSessao = new ServicoSessao();
+
+// --- Dependência Interna: Serviço do Método Google ---
+class ServicoMetodoGoogle {
+  async obterInformacoesDoUsuario(accessToken: string): Promise<any> {
+    const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`);
+    if (!response.ok) {
+      throw new Error('Falha ao buscar informações do usuário no Google.');
+    }
+    return response.json();
+  }
+}
+
+const servicoMetodoGoogle = new ServicoMetodoGoogle();
+
+
+// --- Serviço Principal de Autenticação ---
 
 const CACHED_USER_KEY = 'authUser';
 
