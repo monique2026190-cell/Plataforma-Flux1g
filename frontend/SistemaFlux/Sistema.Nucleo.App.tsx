@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import '../../index.css';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import VariaveisFrontend from './Variaveis.Frontend';
 import { ProvedorInterface } from './Provedores/Provedor.Interface';
 import { ProvedorNavegacao } from './Provedores/Provedor.Navegacao';
 import { ProvedorAutenticacao } from './Provedores/Provedor.Autenticacao';
 import AppRoutes from '../routes/AppRoutes';
 
-const Maintenance = lazy(() => import('../pages/Maintenance'));
+const PaginaManutencao = lazy(() => import('../pages/Maintenance'));
 
-const LoadingFallback = () => (
+const TelaDeCarregamento = () => (
     <div className="h-screen w-full bg-[#0c0f14] flex flex-col items-center justify-center gap-4">
         <i className="fa-solid fa-circle-notch fa-spin text-[#00c2ff] text-2xl"></i>
         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[3px]">
@@ -17,54 +19,86 @@ const LoadingFallback = () => (
     </div>
 );
 
-// scaria a configuração de uma API ou arquivo JSON.
-// con/ Este hook bust 
-const useMaintenanceStatus = () => {
-  const [isMaintenance, setMaintenance] = useState(false);
-  const [isLoading, setLoading] = useState(true);
+/**
+ * Hook customizado para verificar o status de manutenção da aplicação de forma robusta.
+ * Ele busca um arquivo de configuração com um timeout para evitar travamentos.
+ */
+const useStatusManutencao = () => {
+  const [emManutencao, setEmManutencao] = useState(false);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    // Exemplo buscando de um JSON público
-    fetch('/config.json')
-      .then(res => res.json())
-      .then(config => {
-        setMaintenance(config.maintenanceMode || false);
-        setLoading(false);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+        console.warn("A verificação de manutenção excedeu o tempo limite.");
+        controller.abort();
+    }, 5000); // Timeout de 5 segundos
+
+    fetch('/config.json', { signal: controller.signal })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Falha ao buscar config.json');
+        }
+        return res.json();
       })
-      .catch(() => {
-        // Em caso de erro, assumimos que não está em manutenção
-        setMaintenance(false);
-        setLoading(false);
+      .then(config => {
+        setEmManutencao(config.maintenanceMode || false);
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error("Erro ao verificar status de manutenção:", error);
+        }
+        setEmManutencao(false);
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setCarregando(false);
       });
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
-  return { isLoading, isMaintenance };
+  return { carregando, emManutencao };
 };
 
-
+/**
+ * Componente principal que estrutura o núcleo da aplicação.
+ * Gerencia o estado de manutenção, os provedores de contexto e as rotas.
+ */
 const SistemaNucleoApp: React.FC = () => {
-  const { isLoading, isMaintenance } = useMaintenanceStatus();
+  const { carregando, emManutencao } = useStatusManutencao();
 
-  if (isLoading) {
-    return <LoadingFallback />;
-  }
-
-  if (isMaintenance) {
+  if (!VariaveisFrontend.googleClientId || VariaveisFrontend.googleClientId === 'CHAVE_NAO_DEFINIDA') {
+    console.error("Erro Crítico: O Google Client ID não está configurado.");
     return (
-        <Suspense fallback={<LoadingFallback />}>
-            <Maintenance />
-        </Suspense>
+        <div className="h-screen w-full bg-[#0c0f14] flex flex-col items-center justify-center gap-4">
+            <span className="text-lg font-bold text-red-500">Erro de Configuração</span>
+            <span className="text-sm text-gray-400 text-center px-4">O Google Client ID não foi encontrado. A aplicação não pode ser iniciada.</span>
+        </div>
     );
   }
-
+  
   return (
-    <ProvedorAutenticacao>
-      <ProvedorInterface>
-        <ProvedorNavegacao>
-          <AppRoutes />
-        </ProvedorNavegacao>
-      </ProvedorInterface>
-    </ProvedorAutenticacao>
+    <GoogleOAuthProvider clientId={VariaveisFrontend.googleClientId}>
+        <Suspense fallback={<TelaDeCarregamento />}>
+            {carregando ? (
+                <TelaDeCarregamento />
+            ) : emManutencao ? (
+                <PaginaManutencao />
+            ) : (
+                <ProvedorAutenticacao>
+                    <ProvedorInterface>
+                        <ProvedorNavegacao>
+                            <AppRoutes />
+                        </ProvedorNavegacao>
+                    </ProvedorInterface>
+                </ProvedorAutenticacao>
+            )}
+        </Suspense>
+    </GoogleOAuthProvider>
   );
 };
 
