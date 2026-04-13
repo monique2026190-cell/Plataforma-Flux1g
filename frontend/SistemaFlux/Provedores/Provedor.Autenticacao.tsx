@@ -89,7 +89,8 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
       setAutenticado(true);
       return usuario;
     } catch (error: any) {
-      setErro(error.message || 'Erro ao fazer login');
+      console.error("🔥 Login com Email erro completo:", error);
+      setErro(error?.message || 'Falha no login com Email');
       throw error;
     } finally {
       setProcessandoLogin(false);
@@ -105,7 +106,8 @@ export const ProvedorAutenticacao: React.FC<ProvedorAutenticacaoProps> = ({ chil
       setAutenticado(true);
       return usuario;
     } catch (error: any) {
-      setErro(error.message || 'Falha no login com Google');
+      console.error("🔥 Login Google erro completo:", error);
+      setErro(error?.message || 'Falha no login com Google');
       throw error;
     } finally {
       setProcessandoLogin(false);
