@@ -7,7 +7,7 @@ const VerifyEmail = lazy(() => import('../pages/VerifyEmail').then(module => ({ 
 const ForgotPassword = lazy(() => import('../pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
 const ResetPassword = lazy(() => import('../pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
 const Banned = lazy(() => import('../pages/Banned').then(module => ({ default: module.Banned })));
-const GoogleAuthCallback = lazy(() => import('../pages/GoogleAuthCallback').then(module => ({ default: module.GoogleAuthCallback })));
+const RetornoAutenticacaoGoogle = lazy(() => import('../pages/GoogleAuthCallback').then(module => ({ default: module.RetornoAutenticacaoGoogle })));
 
 export const authRoutes = [
   { 
@@ -35,11 +35,11 @@ export const authRoutes = [
     element: <ResetPassword />
   },
   {
-    path: '/banned', 
+    path: '/banned',
     element: <Banned />
   },
   {
     path: '/auth/google/callback',
-    element: <GoogleAuthCallback />
+    element: <RetornoAutenticacaoGoogle />
   }
 ];
