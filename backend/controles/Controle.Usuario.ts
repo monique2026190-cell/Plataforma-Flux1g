@@ -9,6 +9,13 @@ interface RequestWithFile extends Request {
   file?: Express.Multer.File;
 }
 
+// Defina uma interface para requisições autenticadas
+interface AuthenticatedRequest extends Request {
+    user?: {
+      id: string;
+    };
+}
+
 const logger = createControllerLogger('Controle.Usuario.ts');
 
 const httpRes = {
@@ -16,12 +23,17 @@ const httpRes = {
     criado: (res: Response, dados: any, mensagem = "Criado com sucesso") => res.status(201).json({ sucesso: true, mensagem, dados }),
     requisicaoInvalida: (res: Response, mensagem = "Requisição inválida") => res.status(400).json({ sucesso: false, mensagem }),
     naoEncontrado: (res: Response, mensagem = "Não encontrado") => res.status(404).json({ sucesso: false, mensagem }),
+    naoAutorizado: (res: Response, mensagem = "Não autorizado") => res.status(401).json({ sucesso: false, mensagem }),
 };
 
 const completarPerfil = async (req: RequestWithFile, res: Response, next: NextFunction) => {
-    const idUsuario = req.params.id; 
+    const idUsuario = (req as AuthenticatedRequest).user?.id;
     const dadosPerfil = req.body;
-    const avatar = req.file; 
+    const avatar = req.file;
+
+    if (!idUsuario) {
+        return httpRes.naoAutorizado(res, 'Usuário não autenticado.');
+    }
 
     logger.info(`Recebida requisição para completar perfil do usuário ${idUsuario}.`, { idUsuario, dadosPerfil, avatar: avatar?.originalname });
 
@@ -44,9 +56,13 @@ const completarPerfil = async (req: RequestWithFile, res: Response, next: NextFu
     }
 };
 
-const atualizarPerfil = async (req: Request, res: Response, next: NextFunction) => {
-    const idUsuario = req.params.id;
+const atualizarPerfil = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const idUsuario = req.user?.id;
     const dadosPerfil = req.body;
+
+    if (!idUsuario) {
+        return httpRes.naoAutorizado(res, 'Usuário não autenticado.');
+    }
 
     logger.info(`Recebida requisição para atualizar perfil do usuário ${idUsuario}.`, { idUsuario, dadosPerfil });
 
@@ -90,8 +106,14 @@ const obterPerfil = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-const verificarStatusPerfil = async (req: Request, res: Response, next: NextFunction) => {
-    const idUsuario = req.params.id;
+const verificarStatusPerfil = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const idUsuario = req.user?.id;
+    
+    if (!idUsuario) {
+        logger.warn('Tentativa de verificar status do perfil sem autenticação.');
+        return httpRes.naoAutorizado(res, 'Usuário não autenticado.');
+    }
+
     logger.info(`Verificando status do perfil para o usuário ${idUsuario}.`);
 
     try {
