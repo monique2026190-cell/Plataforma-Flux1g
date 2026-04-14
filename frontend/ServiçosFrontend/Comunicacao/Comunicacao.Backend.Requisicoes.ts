@@ -59,8 +59,7 @@ class ClienteHttp {
 
         const config: RequestInit = {
             ...opcoes,
-            headers: headers,
-            credentials: 'include'
+            headers: headers
         };
 
         logger.info(`Requisição: ${config.method || 'GET'} ${urlFinal}`, {
