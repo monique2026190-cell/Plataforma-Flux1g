@@ -13,7 +13,7 @@ interface CompleteProfileForm {
 
 export const useCompleteProfile = () => {
     const navigate = useNavigate();
-    const { usuario, autenticado, processando, logout, completarPerfil } = useAuth();
+    const { usuario, autenticado, processando, logout, possibilitaCompletarPerfil } = useAuth();
 
     const [previaImagem, setPreviaImagem] = useState<string | null>(null);
     const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
@@ -38,7 +38,7 @@ export const useCompleteProfile = () => {
     });
 
     useEffect(() => {
-        if (completarPerfil === undefined) {
+        if (possibilitaCompletarPerfil === undefined) {
             throw new Error("A função 'completarPerfil' não foi fornecida pelo 'AuthContext'. Verifique o 'Provedor.Autenticacao' e certifique-se de que ela está sendo exportada no valor do provedor.");
         }
 
@@ -49,7 +49,7 @@ export const useCompleteProfile = () => {
                 navigate('/feed');
             }
         }
-    }, [navigate, autenticado, processando, usuario, completarPerfil]);
+    }, [navigate, autenticado, processando, usuario, possibilitaCompletarPerfil]);
 
     const aoMudarImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -87,7 +87,7 @@ export const useCompleteProfile = () => {
             }
 
             if (usuario?.id) {
-                await completarPerfil(formData);
+                await possibilitaCompletarPerfil(formData);
                 navigate('/feed');
             } else {
                 throw new Error("ID do usuário não encontrado.");
