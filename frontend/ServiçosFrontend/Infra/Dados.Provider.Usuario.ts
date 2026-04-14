@@ -40,31 +40,33 @@ class DadosProviderUsuario extends DadosBase {
     // Métodos de Sessão
     async login(credenciais: { email: string, senha: string }): Promise<any> {
         return this.handleRequest(LoginSchema, credenciais, (dadosValidos) => 
-            infraProviderUsuario.login(dadosValidos)
+            infraProviderUsuario.OpcaoLogin(dadosValidos)
         );
     }
 
     async lidarComLoginSocial(dadosLogin: unknown): Promise<any> {
         return this.handleRequest(LoginSocialSchema, dadosLogin, (dadosValidos) => 
-            infraProviderUsuario.lidarComLoginSocial(dadosValidos)
+            infraProviderUsuario.OpcaoLidarComLoginSocial(dadosValidos)
         );
     }
 
     async criarUsuario(dadosUsuario: unknown): Promise<any> {
         return this.handleRequest(CriarUsuarioSchema, dadosUsuario, (dadosValidos) => 
-            infraProviderUsuario.criarUsuario(dadosValidos)
+            infraProviderUsuario.OpcaoCriarUsuario(dadosValidos)
         );
     }
 
     async completarPerfilInicial(idUsuario: string, dadosPerfil: FormData): Promise<any> {
         dadosPerfil.append('idUsuario', idUsuario);
 
-        // A validação com Zod é complexa para FormData. 
-        // A validação será feita no backend.
         try {
-            return await infraProviderUsuario.completarPerfilInicial(dadosPerfil);
+            return await infraProviderUsuario.OpcaoCompletarPerfilInicial(dadosPerfil);
         } catch (error) {
-            this.log.error('Erro de requisição ao completar perfil inicial', { error });
+            this.logger.error('Erro de requisição ao completar perfil inicial', {
+                idUsuario,
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             throw error;
         }
     }
@@ -72,7 +74,7 @@ class DadosProviderUsuario extends DadosBase {
     async verificarSessao(): Promise<any> {
         const token = localStorage.getItem('auth_token');
         if (token) {
-            return await infraProviderUsuario.verificarSessao(token);
+            return await infraProviderUsuario.OpcaoVerificarSessao(token);
         }
         return Promise.resolve({ sucesso: false, mensagem: "Token não encontrado." });
     }
@@ -80,29 +82,37 @@ class DadosProviderUsuario extends DadosBase {
     // Métodos de Gerenciamento de Usuário
     async atualizarPerfil(perfilData: unknown): Promise<any> {
         return this.handleRequest(AtualizarPerfilSchema, perfilData, (dadosValidos) => 
-            infraProviderUsuario.atualizarPerfil(dadosValidos)
+            infraProviderUsuario.OpcaoAtualizarPerfil(dadosValidos)
         );
     }
 
     async buscarUsuarioPorId(id: string): Promise<any> {
         try {
-            return await infraProviderUsuario.buscarUsuarioPorId(id);
+            return await infraProviderUsuario.OpcaoBuscarUsuarioPorId(id);
         } catch (error) {
-            this.logger.error(`Erro ao buscar usuário por ID: ${id}`, error);
+            this.logger.error('Erro ao buscar usuário por ID', {
+                id,
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             throw error;
         }
     }
 
     async buscarUsuarioPorEmail(email: string): Promise<any> {
         try {
-            return await infraProviderUsuario.buscarUsuarioPorEmail(email);
+            return await infraProviderUsuario.OpcaoBuscarUsuarioPorEmail(email);
         } catch (error) {
-            this.logger.error(`Erro ao buscar usuário por Email: ${email}`, error);
+            this.logger.error('Erro ao buscar usuário por Email', {
+                email,
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             throw error;
         }
     }
     async verificarStatusPerfil(): Promise<any> {
-      return infraProviderUsuario.verificarStatusPerfil();
+      return infraProviderUsuario.OpcaoVerificarStatusPerfil();
     }
 }
 
