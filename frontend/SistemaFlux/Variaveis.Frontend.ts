@@ -1,3 +1,4 @@
+
 // Arquivo: SistemaFlux/Variaveis.Frontend.ts
 
 /**
@@ -16,6 +17,7 @@ interface ImportMetaEnv {
  */
 interface FrontendConfig {
   readonly API_BASE_URL: string;
+  readonly REFRESH_TOKEN_ENDPOINT: string; // Adicionado para o refresh token
   readonly stripePublicKey: string;
   readonly googleClientId: string;
   readonly mode: 'production' | 'development' | 'test';
@@ -24,8 +26,6 @@ interface FrontendConfig {
 // --- Processamento do Ambiente ---
 
 // Cria uma referência segura para as variáveis de ambiente.
-// O `as any` é um escape, mas justificável, pois `import.meta` pode não
-// existir em todos os contextos de execução (ex: testes unitários).
 const env: ImportMetaEnv = (typeof import.meta !== 'undefined' && import.meta.env)
   ? (import.meta.env as unknown as ImportMetaEnv)
   : { MODE: 'development' };
@@ -36,11 +36,14 @@ const isProduction = env.MODE === 'production';
 
 const VariaveisFrontend: FrontendConfig = {
     /**
-     * A URL base da API. Apontar para um caminho relativo como '/api' permite
-     * usar o proxy do Vite em desenvolvimento e facilita o roteamento em produção,
-     * evitando problemas de CORS.
+     * A URL base da API. 
      */
     API_BASE_URL: '/api',
+
+    /**
+     * O endpoint para renovar o token de acesso.
+     */
+    REFRESH_TOKEN_ENDPOINT: '/auth/refresh',
 
     /**
      * Chave pública do Stripe. É seguro expor esta chave no frontend.
@@ -71,6 +74,5 @@ if (isProduction) {
 
 /**
  * Exporta o objeto de configuração congelado, tornando-o imutável.
- * Isso previne modificações acidentais em outras partes do código.
  */
 export default Object.freeze(VariaveisFrontend);

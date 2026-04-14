@@ -2,42 +2,44 @@
 import { dadosProviderUsuario } from './Infra/Dados.Provider.Usuario';
 import { IUsuario, IUsuarioLogin } from '../../types/types.usuario';
 
-// --- Dependência Interna: Serviço de Sessão ---
-class ServicoSessao {
-  private readonly CHAVE_TOKEN = 'auth_token';
+// --- Serviço de Gerenciamento de Tokens ---
+class ServicoToken {
+  private readonly AUTH_TOKEN_KEY = 'auth_token';
+  private readonly REFRESH_TOKEN_KEY = 'refreshToken';
 
-  getToken(): string | null {
-    return localStorage.getItem(this.CHAVE_TOKEN);
+  getAuthToken(): string | null {
+    return localStorage.getItem(this.AUTH_TOKEN_KEY);
   }
 
-  setToken(token: string): void {
-    localStorage.setItem(this.CHAVE_TOKEN, token);
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
-  removeToken(): void {
-    localStorage.removeItem(this.CHAVE_TOKEN);
+  setTokens(authToken: string, refreshToken: string): void {
+    localStorage.setItem(this.AUTH_TOKEN_KEY, authToken);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+  }
+
+  removeTokens(): void {
+    localStorage.removeItem(this.AUTH_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 }
 
-const servicoSessao = new ServicoSessao();
+const servicoToken = new ServicoToken();
 
-// --- Dependência Interna: Serviço do Método Google ---
+// --- Serviço do Método Google (sem alterações) ---
 class ServicoMetodoGoogle {
   async obterInformacoesDoUsuario(accessToken: string): Promise<any> {
     const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
-    if (!response.ok) {
-      throw new Error('Falha ao buscar informações do usuário no Google.');
-    }
+    if (!response.ok) throw new Error('Falha ao buscar informações do usuário no Google.');
     return response.json();
   }
 }
 
 const servicoMetodoGoogle = new ServicoMetodoGoogle();
-
 
 // --- Serviço Principal de Autenticação ---
 
@@ -54,10 +56,17 @@ class ServicoAutenticacao {
   }
 
   private _limparCacheDoUsuario() {
-    try {
-      localStorage.removeItem(CACHED_USER_KEY);
-    } catch (error) {
-      console.error("Erro ao limpar cache do usuário:", error);
+    localStorage.removeItem(CACHED_USER_KEY);
+  }
+
+  private async _processarRespostaDeLogin(resposta: any): Promise<{ usuario: IUsuario, token: string }> {
+    if (resposta.sucesso && resposta.dados?.user && resposta.dados?.token && resposta.dados?.refreshToken) {
+      const { user: usuario, token, refreshToken } = resposta.dados;
+      servicoToken.setTokens(token, refreshToken);
+      this._salvarUsuarioNoCache(usuario);
+      return { usuario, token };
+    } else {
+      throw new Error(resposta.mensagem || 'Resposta de autenticação inválida do servidor.');
     }
   }
 
@@ -74,83 +83,59 @@ class ServicoAutenticacao {
 
   async possibilidade1LoginComEmail(credenciais: IUsuarioLogin): Promise<{ usuario: IUsuario, token: string }> {
     const resposta = await dadosProviderUsuario.login(credenciais);
-    if (resposta.sucesso && resposta.dados?.user) {
-      const { user: usuario, token } = resposta.dados;
-      if (token) {
-        servicoSessao.setToken(token);
-      }
-      this._salvarUsuarioNoCache(usuario);
-      return { usuario, token };
-    } else {
-      throw new Error(resposta.mensagem || 'Falha no login');
-    }
+    return this._processarRespostaDeLogin(resposta);
   }
 
   async possibilidade1LidarComLoginGoogle(tokenResponse: any): Promise<{ usuario: IUsuario, token: string }> {
     const accessToken = tokenResponse.access_token;
     const userInfo = await servicoMetodoGoogle.obterInformacoesDoUsuario(accessToken);
-
-    const dadosLogin = {
-      email: userInfo.email,
-      googleId: userInfo.sub,
-      tokenProvider: accessToken,
-    };
-
+    const dadosLogin = { email: userInfo.email, googleId: userInfo.sub, tokenProvider: accessToken };
     const resposta = await dadosProviderUsuario.lidarComLoginSocial(dadosLogin);
-    
-    if (resposta.sucesso && resposta.dados?.user) {
-      const { user: usuario, token } = resposta.dados;
-      if (token) {
-        servicoSessao.setToken(token);
-      }
-      this._salvarUsuarioNoCache(usuario);
-      return { usuario, token };
-    } else {
-      throw new Error(resposta.mensagem || 'Falha no login com Google');
-    }
+    return this._processarRespostaDeLogin(resposta);
   }
 
   possibilidade1Logout(): void {
-    servicoSessao.removeToken();
+    servicoToken.removeTokens();
     this._limparCacheDoUsuario();
+    window.dispatchEvent(new Event('authChange')); // Notificar a UI para reagir
   }
 
   async possibilidade1VerificarSessao(): Promise<IUsuario | null> {
-    const token = servicoSessao.getToken();
+    const token = servicoToken.getAuthToken();
     if (!token) {
-        this._limparCacheDoUsuario();
-        return null;
+      this._limparCacheDoUsuario();
+      return null;
     }
 
     try {
-        const resposta = await dadosProviderUsuario.verificarSessao();
-        if (resposta.sucesso && resposta.dados?.user) {
-            const usuario = resposta.dados.user;
-            if (resposta.dados.token) {
-                servicoSessao.setToken(resposta.dados.token);
-            }
-            this._salvarUsuarioNoCache(usuario);
-            return usuario;
-        } else {
-            this.possibilidade1Logout();
-            return null;
+      const resposta = await dadosProviderUsuario.verificarSessao();
+      if (resposta.sucesso && resposta.dados?.user) {
+        const usuario = resposta.dados.user;
+        // Se a verificação de sessão retornar novos tokens, atualize-os.
+        if (resposta.dados.token && resposta.dados.refreshToken) {
+          servicoToken.setTokens(resposta.dados.token, resposta.dados.refreshToken);
         }
-    } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
+        this._salvarUsuarioNoCache(usuario);
+        return usuario;
+      } else {
         this.possibilidade1Logout();
-        throw error;
+        return null;
+      }
+    } catch (error) {
+      console.error("Erro ao verificar sessão, fazendo logout forçado:", error);
+      this.possibilidade1Logout();
+      return null; // Retornar nulo após logout forçado
     }
   }
 
   async possibilidade1CompletarPerfil(idUsuario: string, dadosPerfil: FormData): Promise<IUsuario> {
     const resposta = await dadosProviderUsuario.completarPerfilInicial(idUsuario, dadosPerfil);
-
     if (resposta.sucesso && resposta.dados?.user) {
-        const usuarioAtualizado = resposta.dados.user;
-        this._salvarUsuarioNoCache(usuarioAtualizado);
-        return usuarioAtualizado;
+      const usuarioAtualizado = resposta.dados.user;
+      this._salvarUsuarioNoCache(usuarioAtualizado);
+      return usuarioAtualizado;
     } else {
-        throw new Error(resposta.mensagem || 'Falha ao completar o perfil.');
+      throw new Error(resposta.mensagem || 'Falha ao completar o perfil.');
     }
   }
 

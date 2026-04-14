@@ -46,27 +46,20 @@ class ClienteHttp {
             urlFinal = `${urlBase}${separador}${endpoint}`;
         }
 
-        const cabecalhos: Record<string, string> = {};
+        const headers = new Headers(opcoes.headers);
 
-        if (!(opcoes.body instanceof FormData)) {
-            cabecalhos['Content-Type'] = 'application/json';
-        }
-
-        if (opcoes.headers) {
-            const headersExtras = new Headers(opcoes.headers);
-            headersExtras.forEach((valor, chave) => {
-                cabecalhos[chave] = valor;
-            });
+        if (!(opcoes.body instanceof FormData) && !headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/json');
         }
 
         const token = localStorage.getItem('auth_token');
         if (token) {
-            cabecalhos['Authorization'] = `Bearer ${token}`;
+            headers.set('Authorization', `Bearer ${token}`);
         }
 
         const config: RequestInit = {
             ...opcoes,
-            headers: cabecalhos,
+            headers: headers,
             credentials: 'include'
         };
 

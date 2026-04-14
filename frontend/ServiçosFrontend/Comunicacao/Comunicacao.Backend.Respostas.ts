@@ -1,16 +1,15 @@
 import { criarLogger } from './Comunicacao.Backend.Observabilidade';
+import VariaveisFrontend from '../../SistemaFlux/Variaveis.Frontend';
 
 const logger = criarLogger('Infra.ResponseHandler');
 
-// --- Funções de Mascaramento de Log (sem alteração) ---
 const chavesSensiveis = ['password', 'token', 'authorization', 'cookie', 'senha', 'refreshToken', 'secret'];
 
 const mascararLog = (obj: any): any => {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj instanceof FormData) return '[FormData]';
+    if (Array.isArray(obj)) return `[Array(${obj.length})]`;
     try {
-        if (obj === null || typeof obj !== 'object') return obj;
-        if (obj instanceof FormData) return '[FormData]';
-        if (Array.isArray(obj)) return `[Array(${obj.length})]`;
-        
         const clone: any = {};
         for (const key in obj) {
             if (chavesSensiveis.some(k => key.toLowerCase().includes(k))) {
@@ -26,87 +25,83 @@ const mascararLog = (obj: any): any => {
     }
 };
 
-/**
- * Lida com a expiração final da sessão do usuário.
- * Esta função é chamada quando a renovação do token falha ou é impossível.
- * @param context - O contexto da API, contendo a fila de requisições.
- * @param error - O erro que causou a expiração da sessão.
- */
 function handleSessionExpiration(context: any, error: Error) {
-    logger.error('Sessão expirada ou falha na renovação. Redirecionando para login.', error);
-    context.processarFila(error, null); // Notifica as requisições em espera sobre a falha
+    logger.error(`Sessão expirada: ${error.message}. O usuário será desconectado.`);
+    context.processarFila(error, null);
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refreshToken');
-    window.dispatchEvent(new Event('authChange')); // Dispara um evento global para a UI reagir (ex: redirecionar)
-    return Promise.reject(new Error('Sessão expirada. Por favor, faça login novamente.'));
+    window.dispatchEvent(new CustomEvent('auth-expired'));
 }
 
-/**
- * Gerencia todo o fluxo de renovação do token de acesso quando uma requisição retorna 401.
- * @param context - O contexto da API, para gerenciar estado e filas.
- * @param originalOptions - As opções da requisição original que falhou.
- */
-async function handleTokenRefresh(context: any, originalOptions: any): Promise<any> {
-    // Se uma renovação já está em andamento, enfileira a requisição para ser executada depois.
-    if (context.isRefreshing) {
-        return new Promise((resolve, reject) => {
-            context.failedQueue.push({ resolve, reject });
-        }).then(newToken => {
-            // Tenta novamente a requisição original com o novo token
-            const newHeaders = { ...originalOptions.headers, Authorization: `Bearer ${newToken}` };
-            return context.customFetch(originalOptions.endpoint, { ...originalOptions.options, headers: newHeaders }, true);
+async function handleTokenRefresh(context: any, originalRequest: { endpoint: string, opcoes: RequestInit }): Promise<any> {
+    if (context.estaAtualizandoToken) {
+        return new Promise((resolver, rejeitar) => {
+            context.filaRequisicoes.push({ resolver, rejeitar });
+        }).then((token: string) => {
+            const newHeaders = new Headers(originalRequest.opcoes.headers);
+            newHeaders.set('Authorization', `Bearer ${token}`);
+            return context.requisicao(originalRequest.endpoint, { ...originalRequest.opcoes, headers: newHeaders }, true);
         });
     }
 
-    context.isRefreshing = true;
+    context.estaAtualizandoToken = true;
 
     try {
         const refreshToken = localStorage.getItem('refreshToken');
-
-        // Caso crítico: Não há refreshToken. A sessão está perdida.
         if (!refreshToken) {
-            return handleSessionExpiration(context, new Error('Refresh token não encontrado no localStorage.'));
+            throw new Error('Refresh token não encontrado no armazenamento local.');
         }
 
-        // Tenta renovar o token de acesso fazendo uma chamada à API.
-        const refreshResponse = await fetch('/api/auth/refresh', {
+        const urlBase = VariaveisFrontend.API_BASE_URL || '/api';
+        const refreshEndpoint = VariaveisFrontend.REFRESH_TOKEN_ENDPOINT || '/auth/refresh';
+        const refreshUrl = `${urlBase}${refreshEndpoint.startsWith('/') ? '' : '/'}${refreshEndpoint}`;
+
+        logger.info('Iniciando a renovação do token de acesso.');
+        const refreshResponse = await fetch(refreshUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken })
         });
 
-        // Se a API recusar o refreshToken (expirado, inválido), encerra a sessão.
         if (!refreshResponse.ok) {
-            return handleSessionExpiration(context, new Error('Falha na renovação do token. O servidor recusou o refresh token.'));
+            const errorData = await refreshResponse.json().catch(() => ({ message: 'O servidor recusou a renovação do token.' }));
+            throw new Error(errorData.message || 'Falha na renovação do token.');
         }
 
-        const { token: newToken } = await refreshResponse.json();
-        localStorage.setItem('auth_token', newToken);
+        const { token: novoToken, refreshToken: novoRefreshToken } = await refreshResponse.json();
+        localStorage.setItem('auth_token', novoToken);
+        if (novoRefreshToken) {
+            localStorage.setItem('refreshToken', novoRefreshToken);
+        }
 
-        // Processa a fila de requisições que estavam aguardando o novo token.
-        context.processarFila(null, newToken);
+        logger.info('Token renovado com sucesso.');
+        context.processarFila(null, novoToken);
 
-        // Re-executa a requisição original que falhou, agora com o novo token.
-        const newHeaders = { ...originalOptions.headers, Authorization: `Bearer ${newToken}` };
-        return await context.customFetch(originalOptions.endpoint, { ...originalOptions.options, headers: newHeaders }, true);
+        const newHeaders = new Headers(originalRequest.opcoes.headers);
+        newHeaders.set('Authorization', `Bearer ${novoToken}`);
+        return await context.requisicao(originalRequest.endpoint, { ...originalRequest.opcoes, headers: newHeaders }, true);
 
     } catch (error: any) {
-        // Se qualquer outro erro ocorrer (ex: rede), encerra a sessão por segurança.
-        return handleSessionExpiration(context, error);
+        handleSessionExpiration(context, error);
+        throw error;
     } finally {
-        context.isRefreshing = false;
+        context.estaAtualizandoToken = false;
     }
 }
 
-/**
- * Processa a resposta de uma chamada da API, lidando com erros e renovação de token.
- */
-export async function processarResposta(context: any, response: Response, url: string, startTime: number, originalOptions: any, isRetry: boolean): Promise<any> {
+export async function processarResposta(
+    context: any, 
+    response: Response, 
+    url: string, 
+    startTime: number, 
+    originalRequest: { endpoint: string, opcoes: RequestInit }, 
+    isRetry: boolean
+): Promise<any> {
     const duration = (performance.now() - startTime).toFixed(2);
 
-    // Se a resposta for 401 (Não Autorizado) e não for uma tentativa repetida, delega para o handleTokenRefresh.
     if (response.status === 401 && !isRetry) {
-        return handleTokenRefresh(context, originalOptions);
+        logger.warn(`Requisição não autorizada (401) para ${url}. Tentando renovar o token.`);
+        return handleTokenRefresh(context, originalRequest);
     }
 
     const text = await response.text();
@@ -114,21 +109,19 @@ export async function processarResposta(context: any, response: Response, url: s
     try {
         data = text ? JSON.parse(text) : null;
     } catch (e) {
-        data = { raw: text }; // Se não for JSON, encapsula o texto bruto.
+        data = { rawResponse: text };
     }
-    
-    // Se a resposta não for "ok" (ex: 404, 500), registra o erro e lança uma exceção.
+
     if (!response.ok) {
-        logger.error(`Response Error: ${response.status} ${url}`, { 
-            duration: `${duration}ms`, 
-            data: mascararLog(data) 
+        logger.error(`Erro na resposta: ${response.status} ${url}`, { 
+            duracao: `${duration}ms`, 
+            resposta: mascararLog(data) 
         });
-        const error = new Error(data?.mensagem || data?.message || `Erro ${response.status}`);
+        const error = new Error(data?.mensagem || data?.message || `Erro de servidor com status ${response.status}`);
         (error as any).response = { data, status: response.status };
         throw error;
     }
 
-    // Se tudo correu bem, registra o sucesso e retorna os dados.
-    logger.info(`Response Success: ${response.status} ${url}`, { duration: `${duration}ms` });
+    logger.info(`Resposta com sucesso: ${response.status} ${url}`, { duracao: `${duration}ms` });
     return data;
 }
