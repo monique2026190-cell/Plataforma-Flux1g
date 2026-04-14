@@ -34,7 +34,7 @@ const mascararLog = (obj: any): any => {
  */
 function handleSessionExpiration(context: any, error: Error) {
     logger.error('Sessão expirada ou falha na renovação. Redirecionando para login.', error);
-    context.processQueue(error, null); // Notifica as requisições em espera sobre a falha
+    context.processarFila(error, null); // Notifica as requisições em espera sobre a falha
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refreshToken');
     window.dispatchEvent(new Event('authChange')); // Dispara um evento global para a UI reagir (ex: redirecionar)
@@ -84,7 +84,7 @@ async function handleTokenRefresh(context: any, originalOptions: any): Promise<a
         localStorage.setItem('auth_token', newToken);
 
         // Processa a fila de requisições que estavam aguardando o novo token.
-        context.processQueue(null, newToken);
+        context.processarFila(null, newToken);
 
         // Re-executa a requisição original que falhou, agora com o novo token.
         const newHeaders = { ...originalOptions.headers, Authorization: `Bearer ${newToken}` };
