@@ -31,9 +31,22 @@ export const useRetornoGoogle = () => {
     }
 
     possibilitaFinalizarLoginComGoogle({ access_token: tokenDeAcesso })
-      .then((usuario) => {
-        const rotaDestino = usuario.perfilCompleto ? '/feed' : '/complete-profile';
-        navegar(rotaDestino, { replace: true });
+      .then((resposta) => {
+        // CORREÇÃO: A lógica de redirecionamento agora obedece a resposta da API.
+        // O backend envia `{ isNewUser: boolean, redirectRoute: string }`.
+        
+        if (resposta.isNewUser) {
+            // Se for um novo usuário, redireciona para completar o perfil.
+            navegar('/complete-profile', { replace: true });
+        } else if (resposta.redirectRoute) {
+            // Se for um usuário existente, usa a rota enviada pelo backend.
+            const rotaDestino = `/${resposta.redirectRoute.toLowerCase()}`;
+            navegar(rotaDestino, { replace: true });
+        } else {
+            // Fallback de segurança caso a API não retorne a rota esperada.
+            console.warn("[GoogleAuth] A API não retornou 'redirectRoute'. Redirecionando para /feed.");
+            navegar('/feed', { replace: true });
+        }
       })
       .catch((erro) => {
         console.error("[GoogleAuth] Falha ao finalizar o login com Google:", erro);
